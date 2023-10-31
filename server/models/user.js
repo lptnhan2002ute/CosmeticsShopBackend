@@ -28,10 +28,10 @@ var userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    address: {
+    address: [{
         type: String,
         required: true,
-    },
+    }],
     birthday: {
         type: Date,
 

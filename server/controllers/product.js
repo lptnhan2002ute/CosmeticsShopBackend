@@ -23,17 +23,67 @@ const getProduct = asyncHandler(async (req, res) => {
 })
 
 const getAllProduct = asyncHandler(async (req, res) => {
-    const product = await Product.find()
+    const queries = { ...req.query }
+    // Tach cac truong dac biet ra khoi query
+    const excludeFields = ['limit', 'sort', 'page', 'fields']
+    excludeFields.forEach(field => delete queries[field])
+
+    // Format operators cho dung chuan mongoose
+    let queryString = JSON.stringify(queries)
+    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
+    const formatedQueries = JSON.parse(queryString)
+
+    //Filter
+    if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
+    let queryCommand = Product.find(formatedQueries)
+
+    //Sort
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ')
+        queryCommand = queryCommand.sort(sortBy)
+    }
+
+    // Fields limit
+    if (req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ')
+        queryCommand = queryCommand.select(fields)
+    }
+
+    //Pagination
+    //limit: số object lấy về trong 1 api
+    // skip: 1
+    const page = +req.query.page || 1
+    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS
+    const skip = (page - 1) * limit
+    queryCommand.skip(skip).limit(limit)
+
+
+
+
+    //Execute query
+    const response = await queryCommand.exec();
+    if (!response || response.length === 0) {
+        return res.status(404).json({
+            success: false,
+            productData: 'Cannot get product',
+        });
+    }
+
+    const counts = await Product.countDocuments(formatedQueries);
     return res.status(200).json({
-        success: product ? true : false,
-        productData: product ? product : 'Cannot get product'
-    })
+        success: true,
+        counts,
+        productData: response,
+
+    });
+    //const product = await Product.find()
+
 })
 
 const updateProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
     if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName)
-    const updatedProduct = await Product.findByIdAndUpdate( pid , req.body, { new: true })
+    const updatedProduct = await Product.findByIdAndUpdate(pid, req.body, { new: true })
     return res.status(200).json({
         success: updatedProduct ? true : false,
         updatedProduct: updatedProduct ? updatedProduct : 'Updated product is failed'
@@ -50,11 +100,51 @@ const deleteProduct = asyncHandler(async (req, res) => {
     })
 })
 
+const rating = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const { star, comment, pid } = req.body
+    if (!star || !pid) throw new Error('Missing input')
+    const product = await Product.findById(pid)
+    if (!product) throw new Error('Product not found')
+
+    const existingRating = product.ratings.find(ele => ele.postedBy && ele.postedBy.toString() === _id)
+
+    if (existingRating) {
+        existingRating.star = star
+        existingRating.comment = comment
+    } else {
+        product.ratings.push({ star, comment, postedBy: _id })
+    }
+    await product.save()
+    //Sum ratings
+    const count = product.ratings.length
+    const sumRatings = product.ratings.reduce((sum, ele) => sum + +ele.star, 0)
+    product.totalRatings = Math.round(sumRatings * 10 / count) / 10
+
+    await product.save()
+
+    return res.status(200).json({
+        status: true
+    })
+
+})
+
+const uploadImageProduct = asyncHandler(async (req, res) => {
+    const { pid } = req.params
+    if (!req.files) throw new Error('Missing inputs')
+    const product = await Product.findByIdAndUpdate(pid, { $push: { imageUrl: { $each: req.files.map(ele => ele.path) } } },{new: true})
+    return res.status(200).json({
+        status: product ? true : false,
+        updated: product ? product : 'Cannot upload images'
+    })
+})
 
 module.exports = {
     createProduct,
     getProduct,
     getAllProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    rating,
+    uploadImageProduct
 }

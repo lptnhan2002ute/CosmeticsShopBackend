@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const Cart = require('../models/cart')
 const asyncHandler = require('express-async-handler')
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const jwt = require('jsonwebtoken')
@@ -21,6 +22,11 @@ const registerGuest = asyncHandler(async (req, res) => {
         throw new Error('Email này đã tồn tại trong hệ thống ')
     else {
         const newUser = await User.create(req.body)
+        const cart = new Cart({
+            userId: newUser._id,
+            products: []
+        })
+        await cart.save();
         return res.status(200).json({
             success: newUser ? true : false,
             mess: newUser ? 'Register is successful. You can login' : 'Something were wrong'
@@ -121,6 +127,42 @@ const updateUser = asyncHandler(async (req, res) => {
         message: 'Cập nhật thông tin thất bại.'
     });
 })
+const changePassword = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!_id || !currentPassword || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: 'Thiếu thông tin cần thiết.'
+        });
+    }
+    const user = await User.findById(_id);
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: 'Người dùng không tồn tại.'
+        });
+    }
+    const isPasswordValid = await user.isCorrectPassword(currentPassword);
+    if (!isPasswordValid) {
+        return res.status(400).json({
+            success: false,
+            message: 'Mật khẩu hiện tại không chính xác.'
+        });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+        success: true,
+        message: 'Mật khẩu đã được thay đổi thành công.'
+    });
+})
 
 const resetAccessToken = asyncHandler(async (req, res) => {
     // lấy token từ cookie
@@ -137,6 +179,8 @@ const resetAccessToken = asyncHandler(async (req, res) => {
     })
 })
 
+
+// Tìm cách vô hiệu hóa accessToken khi logout
 const logout = asyncHandler(async (req, res) => {
     const cookie = req.cookies
     if (!cookie || !cookie.refreshToken) throw new Error('No refresh token in cookies')
@@ -218,7 +262,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 const updateUserByAdmin = asyncHandler(async (req, res) => {
     // req.params
-    const { uid } = req.query; 
+    const { uid } = req.query;
     const updates = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
@@ -241,6 +285,60 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
     })
 })
 
+const addProductToCart = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const { pid, quantity } = req.body
+    if (!pid || !quantity) throw new Error('Missing input!')
+    const cart = await Cart.findOne({ userId: _id })
+    if (!cart) {
+        return res.status(404).json({
+            success: false,
+            mess: 'User cart not found'
+        });
+    }
+    const alreadyProduct = cart?.products.find(product => product.product.toString() === pid)
+    if (alreadyProduct) {
+        alreadyProduct.quantity += +quantity;
+    } else {
+        cart.products.push({ product: pid, quantity });
+    }
+    await cart.save();
+
+    return res.status(200).json({
+        success: true,
+        mess: 'Product added to cart successfully'
+    })
+})
+
+// const updateUserAddress = asyncHandler(async (req, res) => {
+//     const { _id } = req.user;
+//     const { address } = req.body;
+
+//     if (!_id || !address) {
+//         return res.status(400).json({
+//             success: false,
+//             message: 'Thiếu thông tin cần thiết.'
+//         });
+//     }
+//     const user = await User.findById(_id);
+//     if (!user) {
+//         return res.status(404).json({
+//             success: false,
+//             message: 'Người dùng không tồn tại.'
+//         });
+//     }
+//     // Thêm địa chỉ vào mảng address
+//     user.address.push(address);
+//     // Lưu lại thông tin người dùng
+//     await user.save();
+
+//     return res.status(200).json({
+//         success: true,
+//         message: 'Địa chỉ đã được thêm hoặc thay đổi thành công.'
+//     });
+// });
+
+
 module.exports = {
     registerGuest,
     loginUser,
@@ -252,6 +350,9 @@ module.exports = {
     getUser,
     deleteUser,
     updateUser,
-    updateUserByAdmin
+    updateUserByAdmin,
+    changePassword,
+    addProductToCart
+    // updateUserAddress
 }
 

@@ -22,7 +22,10 @@ router.get('/', [verifyAccessToken, isAdmin], ctrls.getUser)
 router.delete('/', [verifyAccessToken, isAdmin], ctrls.deleteUser)
 
 router.put('/customer', verifyAccessToken, ctrls.updateUser)
+router.put('/customer/resetpassword', verifyAccessToken, ctrls.changePassword)
 router.put('/', [verifyAccessToken, isAdmin], ctrls.updateUserByAdmin)
+// router.put('/customer/updateaddress', verifyAccessToken, ctrls.updateUserAddress)
+router.put('/cart', verifyAccessToken, ctrls.addProductToCart)
 module.exports = router
 
 //Post + put : body

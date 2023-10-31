@@ -1,9 +1,13 @@
 const router = require('express').Router()
 const ctrls = require('../controllers/product')
 const { verifyAccessToken, isAdmin } = require('../middlewares/verifyToken')
+const uploader = require('../config/cloudinary.config')
 
 router.post('/', [verifyAccessToken, isAdmin], ctrls.createProduct)
 router.get('/', ctrls.getAllProduct)
+
+router.put('/ratings', verifyAccessToken, ctrls.rating)
+router.put('/uploadimage/:pid', [verifyAccessToken, isAdmin], uploader.array('images', 7), ctrls.uploadImageProduct)
 router.get('/:pid', ctrls.getProduct)
 
 router.put('/:pid', [verifyAccessToken, isAdmin], ctrls.updateProduct)
