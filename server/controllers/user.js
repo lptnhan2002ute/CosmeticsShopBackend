@@ -288,7 +288,12 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 const addProductToCart = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const { pid, quantity } = req.body
-    if (!pid || !quantity) throw new Error('Missing input!')
+    if (!pid || !quantity) {
+        return res.status(400).json({
+            success: false,
+            mess: 'Missing input!'
+        });
+    }
     const cart = await Cart.findOne({ userId: _id })
     if (!cart) {
         return res.status(404).json({
@@ -296,9 +301,9 @@ const addProductToCart = asyncHandler(async (req, res) => {
             mess: 'User cart not found'
         });
     }
-    const alreadyProduct = cart?.products.find(product => product.product.toString() === pid)
-    if (alreadyProduct) {
-        alreadyProduct.quantity += +quantity;
+    const existingProduct = cart?.products.find(product => product.product.toString() === pid)
+    if (existingProduct) {
+        existingProduct.quantity += +quantity;
     } else {
         cart.products.push({ product: pid, quantity });
     }
