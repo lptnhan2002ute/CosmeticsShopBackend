@@ -11,7 +11,10 @@ var orderSchema = new mongoose.Schema({
         default: 'Pending',
         enum: ['Cancelled','Pending','Completed'],
     },
-    paymentStatus: {},
+    total: Number,
+    voucher: {
+        type: mongoose.Types.ObjectId, ref: 'Voucher'
+    },
     orderBy: {
         type: mongoose.Types.ObjectId, 
         ref: 'User',
