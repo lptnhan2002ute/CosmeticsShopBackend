@@ -23,12 +23,14 @@ var productSchema = new mongoose.Schema({
         required: true,
     },
     brand: {
-        type: String,
+        type: mongoose.Types.ObjectId,
+        ref: 'Brand',
         required: true,
     },
     category: {
         type: mongoose.Types.ObjectId,
-        ref: 'ProductCategory'
+        ref: 'ProductCategory',
+        required: true,
     },
     stockQuantity: {
         type: Number,
@@ -40,7 +42,8 @@ var productSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: Array,
-        required: true,
+        //required: true,
+        default:[]
     },
     ratings: [
         {

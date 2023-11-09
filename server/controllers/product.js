@@ -16,7 +16,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const getProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
-    const product = await Product.findById(pid)
+    const product = await Product.findById(pid).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
     return res.status(200).json({
         success: product ? true : false,
         productData: product ? product : 'Cannot find product'
