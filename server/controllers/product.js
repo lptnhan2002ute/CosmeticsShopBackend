@@ -33,7 +33,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     let queryString = JSON.stringify(queries)
     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
     const formatedQueries = JSON.parse(queryString)
-   
+
     //Filter
     if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
     let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
@@ -64,9 +64,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
 
     //Execute query
-    
+
     const response = await queryCommand.exec();
-   
+
     if (!response || response.length === 0) {
         return res.status(404).json({
             success: false,
