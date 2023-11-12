@@ -26,9 +26,9 @@ var productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    categoryId: {
+    category: {
         type: mongoose.Types.ObjectId,
-        ref: 'Category'
+        ref: 'ProductCategory'
     },
     stockQuantity: {
         type: Number,

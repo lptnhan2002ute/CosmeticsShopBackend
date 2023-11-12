@@ -1,0 +1,70 @@
+import React, { useState, useEffect} from 'react'
+import { apiGetProducts } from '../apis/product'
+import { Product, CustomSlider } from './'
+import {getNewProducts} from '../store/products/asyncActions'
+import { useDispatch, useSelector } from 'react-redux'
+
+const tabs = [
+    { id: 1, name: 'Hàng bán chạy'},
+    { id: 2, name: 'Hàng mới nhất'}
+]
+
+const BestSeller = () => {
+    const [bestSellers, setBestSellers] = useState(null)
+    const [activedTab, setActivedTab] = useState(1)
+    const [products, setProducts] = useState(null)
+    const dispatch = useDispatch()
+    const {newProducts} = useSelector(state => state.products)
+
+
+    const fetchProducts = async () => {
+        const response = await apiGetProducts({ sort: '-soldQuantity' })
+        if (response.success) {
+            setBestSellers(response.productData)
+            setProducts(response.productData)
+        } 
+        
+        
+    }
+
+    useEffect(() => {
+       fetchProducts()
+       dispatch(getNewProducts())
+    }, [])
+    useEffect(() => {
+        if (activedTab ===1) setProducts(bestSellers)
+        if (activedTab ===2) setProducts(newProducts)
+    }, [activedTab])
+
+    return (
+        <div>
+            <div className='flex text-[15px] ml-[-32px]'>
+                {tabs.map(el => (
+                    <span 
+                    key={el.id} 
+                    className={`font-semibold px-8 capitalize cursor-pointer border-r text-gray-400 ${activedTab === el.id ? 'text-gray-900' : ''}`}
+                    onClick={() => setActivedTab(el.id)}
+                    > {el.name} </span>
+                ))}
+            </div>
+            <div className='mt-4 mx-[-10px] border-t-2 border-main pt-4'>
+               <CustomSlider products={products} activedTab={activedTab} />
+            </div>
+            <div className='w-full flex gap-4 mt-4'>
+                <img
+                src='https://topprint.vn/wp-content/uploads/2021/07/banner-my-pham-dep-11.png'
+                alt='banner'
+                className='flex-1 object-cover w-full h-[200px]'
+                />
+                <img
+                src='https://myphamhanskinaz.com/wp-content/uploads/2021/09/kinh-doanh-online-nen-lay-hang-o-dau1.jpg'
+                alt='banner'
+                className='flex-1 object-cover w-full h-[200px]'
+                />
+            </div>
+        </div>
+    )
+    
+}
+
+export default BestSeller
