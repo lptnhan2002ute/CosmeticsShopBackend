@@ -153,7 +153,7 @@ const rating = asyncHandler(async (req, res) => {
 const uploadImageProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
     if (!req.files) throw new Error('Missing inputs')
-    const product = await Product.findByIdAndUpdate(pid, { $push: { imageUrl: { $each: req.files.map(ele => ele.path) } } },{new: true})
+    const product = await Product.findByIdAndUpdate(pid, { $push: { imageUrl: { $each: req.files.map(ele => ele.path) } } }, { new: true }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
     return res.status(200).json({
         status: product ? true : false,
         updated: product ? product : 'Cannot upload images'
