@@ -3,12 +3,6 @@ const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
-    userID: {
-        type: Number,
-        // required: true,
-        unique: true,
-        index: true,
-    },
     email: {
         type: String,
         required: true,
@@ -36,7 +30,7 @@ var userSchema = new mongoose.Schema({
         type: Date,
 
     },
-    phoneNumber: {
+    phone: {
         type: String,
         required: true,
         validate: {
@@ -70,6 +64,9 @@ var userSchema = new mongoose.Schema({
     passwordResetTokenTimeout: {
         type: String,
     },
+    registerToken: {
+        type: String,
+    },
 }, {
     timestamps: true
 });
@@ -78,12 +75,6 @@ userSchema.pre('save', async function (next) {
     //generate userId
     if (!this.isNew) {
         return next()
-    }
-    if (this.userID === null || typeof this.userID === 'undefined') {
-        const User = mongoose.model('User', userSchema);
-        const user = await User.findOne({}, 'userID', { sort: { userID: -1 } }).exec()
-
-        this.userID = user ? user.userID + 1 : 1
     }
     // bcrypt password
     if (!this.isModified('password')) {

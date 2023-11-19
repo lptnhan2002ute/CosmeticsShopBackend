@@ -7,32 +7,100 @@ const { response } = require('express')
 const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
+const createToken = require('uniqid')
 
 // Register for Guest
+// const registerGuest = asyncHandler(async (req, res) => {
+//     const { email, password, name } = req.body
+//     if (!email || !password || !name)
+//     return res.status(400).json({
+//         success: false,
+//         mess: 'Thiếu dữ liệu yêu cầu'
+//     })
+
+//     const user = await User.findOne({ email: email })
+//     if (user) {
+//         return res.status(400).json({
+//             success: false,
+//             mess: 'Email này đã tồn tại trong hệ thống'
+//         });
+//     }
+//     else {
+//         const newUser = await User.create(req.body)
+//         if (newUser) {
+//             const cart = new Cart({
+//                 userId: newUser._id,
+//                 products: []
+//             });
+//             await cart.save();
+//             return res.status(200).json({
+//                 success: newUser ? true : false,
+//                 mess: newUser ? 'Register is successful. You can login' : 'Something were wrong'
+//             })
+//         }
+//     }
+// })
+
 const registerGuest = asyncHandler(async (req, res) => {
-    const { email, password, name } = req.body
-    if (!email || !password || !name)
+    const { email, password, name, phone } = req.body
+    if (!email || !password || !name || !phone) 
         return res.status(400).json({
             success: false,
-            message: 'Thiếu dữ liệu yêu cầu'
+            mess: 'Thiếu dữ liệu yêu cầu'
         })
-
     const user = await User.findOne({ email: email })
-    if (user)
-        throw new Error('Email này đã tồn tại trong hệ thống ')
-    else {
-        const newUser = await User.create(req.body)
+    if (user) {
+        return res.status(400).json({
+            success: false,
+            mess: 'Email này đã tồn tại trong hệ thống'
+        });
+    }
+    const token = createToken()
+    res.cookie('dataregister', {...req.body,token}, {httpOnly: true, maxAge: 5*60*1000})
+    const html = `Yêu cầu click vào link ở dưới để hoàn tất quá trình đăng ký. Thời gian link có hiệu lực là 5 phút kể từ khi bạn nhận được. <a href="${process.env.URL_SERVER}/api/user/finalregister/${token}">Click here</a>`;
+    const data = {
+        email,
+        html,
+        subject: 'Final Registration'
+    }
+    try {
+        await sendMail(data); // Sử dụng hàm sendMail để gửi email
+        // Trả về result từ hàm sendMail
+        return res.status(200).json({
+            success: true,
+            mess: 'Đã gửi email xác nhận. Vui lòng check mail để kích hoạt tài khoản'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }   
+})
+const finalRegister = asyncHandler(async (req, res) => {
+    const cookie = req.cookies
+    const { token} = req.params
+    if (!cookie || cookie?.dataregister?.token !== token)
+        return res.redirect(`${process.env.CLIENT_URL}/finalregister/1`)
+    
+    const newUser = await User.create({
+        email: cookie?.dataregister?.email,
+        password: cookie?.dataregister?.password,
+        name: cookie?.dataregister?.name,
+        phone: cookie?.dataregister?.phone,
+    })
+    if (newUser) {
         const cart = new Cart({
             userId: newUser._id,
             products: []
-        })
+        });
         await cart.save();
-        return res.status(200).json({
-            success: newUser ? true : false,
-            mess: newUser ? 'Register is successful. You can login' : 'Something were wrong'
-        })
+        return res.redirect(`${process.env.CLIENT_URL}/login`)
     }
+    else return res.redirect(`${process.env.CLIENT_URL}/finalregister/0`)
 })
+
+
 
 //RefreshToken => Tạo mới AccessToken
 //AccessToken => Xác thực, phân quyền người dùng
@@ -223,9 +291,13 @@ const forgetPassword = asyncHandler(async (req, res) => {
     await user.save();
 
     const html = `Yêu cầu click vào link ở dưới để tạo mật khẩu mới. Thời gian link có hiệu lực là 5 phút kể từ khi bạn nhận được. <a href="${process.env.URL_SERVER}/api/user/reset-password/${resetToken}">Click here</a>`;
-
+    const data = {
+        email,
+        html,
+        subject: 'Forgot Password'
+    }
     try {
-        const result = await sendMail(email, html); // Sử dụng hàm sendMail để gửi email
+        const result = await sendMail(data); // Sử dụng hàm sendMail để gửi email
 
         // Trả về result từ hàm sendMail
         return res.status(200).json({
@@ -357,7 +429,8 @@ module.exports = {
     updateUser,
     updateUserByAdmin,
     changePassword,
-    addProductToCart
+    addProductToCart,
+    finalRegister
     // updateUserAddress
 }
 

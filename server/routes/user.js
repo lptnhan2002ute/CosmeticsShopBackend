@@ -5,6 +5,8 @@ const { verifyAccessToken, isAdmin } = require('../middlewares/verifyToken')
 
 router.post('/register', ctrls.registerGuest)
 
+router.post('/finalregister/:token', ctrls.finalRegister)
+
 router.post('/login', ctrls.loginUser)
 
 router.get('/customer', verifyAccessToken, ctrls.getOneUser)

@@ -18,7 +18,8 @@ const getAccessToken = async () => {
 };
 
 
-const sendMail = asyncHandler(async (email, html) => {
+const sendMail = asyncHandler(async (data) => {
+    const { email, html, subject } = data
     const accessTokenObject = await myOAuth2Client.getAccessToken();
     const accessToken = accessTokenObject.token;
 
@@ -38,8 +39,8 @@ const sendMail = asyncHandler(async (email, html) => {
     // async..await is not allowed in global scope, must use a wrapper
     const mailOptions = {
         from: '"Cosmetics" <no-reply@cosmeticshop.com>',
-        to: email,
-        subject: 'Forgot Password',
+        to: email, // Thêm thông tin người nhận email
+        subject: subject,
         html: html,
     };
 
@@ -51,7 +52,6 @@ const sendMail = asyncHandler(async (email, html) => {
             console.log('Email sent: %s', info.response);
         }
     });
-
 })
 
 module.exports = sendMail
