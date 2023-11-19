@@ -8,6 +8,7 @@ const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
+const createToken = require('uniqid')
 
 // Register for Guest
 // const registerGuest = asyncHandler(async (req, res) => {
