@@ -15,7 +15,7 @@ router.post('/check', ctrls.resetAccessToken)
 
 router.post('/logout', verifyAccessToken, ctrls.logout)
 
-router.get('/forgetpassword', ctrls.forgetPassword)
+router.post('/forgetpassword', ctrls.forgetPassword)
 
 router.put('/resetpassword', ctrls.resetPassword)
 

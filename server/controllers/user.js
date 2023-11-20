@@ -43,7 +43,7 @@ const createToken = require('uniqid')
 
 const registerGuest = asyncHandler(async (req, res) => {
     const { email, password, name, phone } = req.body
-    if (!email || !password || !name || !phone) 
+    if (!email || !password || !name || !phone)
         return res.status(400).json({
             success: false,
             mess: 'Thiếu dữ liệu yêu cầu'
@@ -56,8 +56,9 @@ const registerGuest = asyncHandler(async (req, res) => {
         });
     }
     const token = createToken()
-    res.cookie('dataregister', {...req.body,token}, {httpOnly: true, maxAge: 5*60*1000})
-    const html = `Yêu cầu click vào link ở dưới để hoàn tất quá trình đăng ký. Thời gian link có hiệu lực là 5 phút kể từ khi bạn nhận được. <a href="${process.env.URL_SERVER}/api/user/finalregister/${token}">Click here</a>`;
+    console.log(token)
+    res.cookie('dataregister', { ...req.body, token }, { httpOnly: true, maxAge: 10 * 60 * 1000 })
+    const html = `Yêu cầu click vào link ở dưới để hoàn tất quá trình đăng ký. Thời gian link có hiệu lực là 10 phút kể từ khi bạn nhận được. <form action="${process.env.URL_SERVER}/api/user/finalregister/${token}" method="POST"><button type="submit">Click here</button></form>`;
     const data = {
         email,
         html,
@@ -75,29 +76,31 @@ const registerGuest = asyncHandler(async (req, res) => {
             success: false,
             error: error.message
         });
-    }   
+    }
 })
 const finalRegister = asyncHandler(async (req, res) => {
     const cookie = req.cookies
-    const { token} = req.params
-    if (!cookie || cookie?.dataregister?.token !== token)
-        return res.redirect(`${process.env.CLIENT_URL}/finalregister/1`)
-    
+    const { token } = req.params
+    if (!cookie || cookie?.dataregister?.token !== token){
+        res.clearCookie('dataregister')
+        return res.redirect(`${process.env.CLIENT_URL}/finalregister/failed`)
+    }
     const newUser = await User.create({
         email: cookie?.dataregister?.email,
         password: cookie?.dataregister?.password,
         name: cookie?.dataregister?.name,
         phone: cookie?.dataregister?.phone,
     })
+    res.clearCookie('dataregister')
     if (newUser) {
         const cart = new Cart({
             userId: newUser._id,
             products: []
         });
         await cart.save();
-        return res.redirect(`${process.env.CLIENT_URL}/login`)
+        return res.redirect(`${process.env.CLIENT_URL}/finalregister/success`)
     }
-    else return res.redirect(`${process.env.CLIENT_URL}/finalregister/0`)
+    else return res.redirect(`${process.env.CLIENT_URL}/finalregister/failed`)
 })
 
 
@@ -271,11 +274,11 @@ const logout = asyncHandler(async (req, res) => {
 // so sánh 2 token
 
 const forgetPassword = asyncHandler(async (req, res) => {
-    const { email } = req.query;
+    const { email } = req.body;
     if (!email) {
         return res.status(400).json({
             success: false,
-            message: 'Email not found'
+            mess: 'Email not found'
         });
     }
 
@@ -283,14 +286,14 @@ const forgetPassword = asyncHandler(async (req, res) => {
     if (!user) {
         return res.status(404).json({
             success: false,
-            message: 'User not found'
+            mess: 'User not found'
         });
     }
 
     const resetToken = user.generatePasswordResetToken();
     await user.save();
 
-    const html = `Yêu cầu click vào link ở dưới để tạo mật khẩu mới. Thời gian link có hiệu lực là 5 phút kể từ khi bạn nhận được. <a href="${process.env.URL_SERVER}/api/user/reset-password/${resetToken}">Click here</a>`;
+    const html = `Yêu cầu click vào link ở dưới để tạo mật khẩu mới. Thời gian link có hiệu lực là 5 phút kể từ khi bạn nhận được. <a href="${process.env.CLIENT_URL}/reset-password/${resetToken}" method="POST">Click here</a>`;
     const data = {
         email,
         html,
@@ -303,7 +306,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
         return res.status(200).json({
             success: true,
             result,
-            message: 'Đã gửi email xác nhận. Vui lòng check mail'
+            mess: 'Đã gửi email xác nhận. Vui lòng check mail'
         });
     } catch (error) {
         return res.status(500).json({

@@ -33,21 +33,21 @@ const getAllProduct = asyncHandler(async (req, res) => {
     let queryString = JSON.stringify(queries)
     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
     const formatedQueries = JSON.parse(queryString)
-
+   
     //Filter
     if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
     let queryCommand = Product.find(formatedQueries).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
 
-    if (queries?.category) {
-        const category = await Category.findOne({ categoryName: queries.category });
+    if (queries?.categoryName) {
+        const category = await Category.findOne({ categoryName: queries.categoryName });
         if (category) {
             // Lấy ID của category tìm thấy và thêm vào bộ lọc
             formatedQueries.category = category
             queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
         }
     }
-    if (queries?.category && queries?.productName) {
-        const category = await Category.findOne({ categoryName: queries.category });
+    if (queries?.categoryName && queries?.productName) {
+        const category = await Category.findOne({ categoryName: queries.categoryName });
         if (category) {
             // Lấy ID của category tìm thấy và thêm vào bộ lọc
             formatedQueries.category = category;
@@ -76,9 +76,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
 
     //Execute query
-
+    
     const response = await queryCommand.exec();
-
+   
     if (!response || response.length === 0) {
         return res.status(404).json({
             success: false,
@@ -87,6 +87,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
     }
 
     const counts = await Product.countDocuments(formatedQueries);
+    // const counts = await Product.countDocuments(
+    //     formatedQueries.category ? { category: formatedQueries.category._id } : {}
+    // );
     // const counts = await Product.countDocuments(
     //     formatedQueries.category ? { category: formatedQueries.category._id } : {}
     // );
