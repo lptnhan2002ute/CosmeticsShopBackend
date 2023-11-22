@@ -56,7 +56,6 @@ const registerGuest = asyncHandler(async (req, res) => {
         });
     }
     const token = createToken()
-    console.log(token)
     res.cookie('dataregister', { ...req.body, token }, { httpOnly: true, maxAge: 10 * 60 * 1000 })
     const html = `Yêu cầu click vào link ở dưới để hoàn tất quá trình đăng ký. Thời gian link có hiệu lực là 10 phút kể từ khi bạn nhận được. <form action="${process.env.URL_SERVER}/api/user/finalregister/${token}" method="POST"><button type="submit">Click here</button></form>`;
     const data = {
@@ -81,7 +80,7 @@ const registerGuest = asyncHandler(async (req, res) => {
 const finalRegister = asyncHandler(async (req, res) => {
     const cookie = req.cookies
     const { token } = req.params
-    if (!cookie || cookie?.dataregister?.token !== token){
+    if (!cookie || cookie?.dataregister?.token !== token) {
         res.clearCookie('dataregister')
         return res.redirect(`${process.env.CLIENT_URL}/finalregister/failed`)
     }
@@ -113,7 +112,7 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!email || !password)
         return res.status(400).json({
             success: false,
-            message: 'Thiếu dữ liệu yêu cầu'
+            mess: 'Thiếu dữ liệu yêu cầu'
         })
 
     const respone = await User.findOne({ email })
@@ -137,7 +136,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     return res.status(401).json({
         success: false,
-        message: 'Đăng nhập thất bại do sai email hoặc password!'
+        mess: 'Đăng nhập thất bại do sai email hoặc password!'
     });
 })
 

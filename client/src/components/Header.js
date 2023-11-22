@@ -26,11 +26,14 @@ const {RiPhoneFill, MdEmail, BiUserCircle, FaShoppingBag} = icons
                     </span>
                     <span>Online Help 24/7</span>
                 </div>
-                <div className='flex items-center justify-center gap-2 px-6 border-r'>
+                <div className='cursor-pointer flex items-center justify-center gap-2 px-6 border-r'>
                     <FaShoppingBag color='#ff007f' />
                     <span>0 item(s)</span>
                 </div>
-                <div className='flex items-center justify-center px-6'><BiUserCircle size={24} /></div>
+                <div className='cursor-pointer flex items-center justify-center px-6'>
+                    <BiUserCircle color='#ff007f' size={24} />
+                    <span>Profile</span>
+                    </div>
             </div>
         </div>
     )

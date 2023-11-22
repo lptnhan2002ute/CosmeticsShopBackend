@@ -9,7 +9,7 @@ router.post('/finalregister/:token', ctrls.finalRegister)
 
 router.post('/login', ctrls.loginUser)
 
-router.get('/customer', verifyAccessToken, ctrls.getOneUser)
+router.get('/current', verifyAccessToken, ctrls.getOneUser)
 
 router.post('/check', ctrls.resetAccessToken)
 
