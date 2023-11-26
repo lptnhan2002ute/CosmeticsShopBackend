@@ -11,3 +11,5 @@ export const renderStarFromNumber = (number, size) => {
     for(let i = 5; i>+number; i--) stars.push(<AiOutlineStar color="orange" size={size || 16}/>)
     return stars
 }
+
+export const fotmatPrice = number => Math.round(number / 1000) *1000

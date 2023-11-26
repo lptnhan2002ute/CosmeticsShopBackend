@@ -16,7 +16,7 @@ const Product = ({productData, isNew}) => {
         <div className='w-full text-base px-[10px]'>
             <Link 
             className='w-full border p-[15px] flex flex-col items-center'
-            to={`/${path.DETAIL_PRODUCT}/${productData?._id}/${productData?.productName}`}
+            to={`/${productData?.category?.categoryName}/${productData?._id}/${productData?.productName}`}
             onMouseEnter={e => {
                 e.stopPropagation()
                 setIsShowOption(true)
@@ -44,7 +44,7 @@ const Product = ({productData, isNew}) => {
                 <span className='flex h-4'>{renderStarFromNumber(productData?.totalRatings)?.map((el, index) =>(
                     <span key={index}>{el}</span>
                 ))}</span>
-                <span className='line-clamp-2'>{productData?.productName}</span>
+                <span className='line-clamp-1'>{productData?.productName}</span>
                 <span>{`${formatMoney(productData?.price)} VNĐ`}</span>
             </div>
             </Link>

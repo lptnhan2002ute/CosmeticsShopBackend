@@ -2,6 +2,7 @@ const { request } = require('express')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const slugify = require('slugify')
+const Category = require('../models/productCategory');
 
 const createProduct = asyncHandler(async (req, res) => {
     if (Object.keys(req.body).length === 0) throw new Error('Missing input!!')
@@ -35,7 +36,24 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
     //Filter
     if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
-    let queryCommand = Product.find(formatedQueries)
+    let queryCommand = Product.find(formatedQueries).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
+
+    if (queries?.categoryName) {
+        const category = await Category.findOne({ categoryName: queries.categoryName });
+        if (category) {
+            // Lấy ID của category tìm thấy và thêm vào bộ lọc
+            formatedQueries.category = category
+            queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
+        }
+    }
+    if (queries?.categoryName && queries?.productName) {
+        const category = await Category.findOne({ categoryName: queries.categoryName });
+        if (category) {
+            // Lấy ID của category tìm thấy và thêm vào bộ lọc
+            formatedQueries.category = category;
+            queryCommand = Product.find({ category: formatedQueries.category, productName: formatedQueries.productName }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id');
+        }
+    }
 
     //Sort
     if (req.query.sort) {
