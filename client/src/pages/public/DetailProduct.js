@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import { useParams } from 'react-router-dom'
-import { apiGetProduct, apiGetProducts } from '../../apis'
+import { apiGetProduct, apiGetProducts, apiGetProductCategory } from '../../apis'
 import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider } from '../../components'
 import Slider from 'react-slick'
 import { fotmatPrice, formatMoney, renderStarFromNumber } from '../../ultils/helpers'
@@ -24,7 +24,7 @@ const DetailProduct = () => {
         if (response.success) setProduct(response.productData)
     }
     const fetchProducts = async () => {
-        const response = await apiGetProducts({category})
+        const response = await apiGetProductCategory({category})
         if (response?.success) setRelatedProduct(response.productData)
     }
     useEffect(() => {

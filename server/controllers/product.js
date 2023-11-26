@@ -38,23 +38,22 @@ const getAllProduct = asyncHandler(async (req, res) => {
     if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
     let queryCommand = Product.find(formatedQueries).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
 
-    if (queries?.categoryName) {
-        const category = await Category.findOne({ categoryName: queries.categoryName });
+    if (queries?.category) {
+        const category = await Category.findOne({ categoryName: queries.category });
         if (category) {
             // Lấy ID của category tìm thấy và thêm vào bộ lọc
             formatedQueries.category = category
             queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
         }
     }
-    if (queries?.categoryName && queries?.productName) {
-        const category = await Category.findOne({ categoryName: queries.categoryName });
+    if (queries?.category && queries?.productName) {
+        const category = await Category.findOne({ categoryName: queries.category });
         if (category) {
             // Lấy ID của category tìm thấy và thêm vào bộ lọc
             formatedQueries.category = category;
             queryCommand = Product.find({ category: formatedQueries.category, productName: formatedQueries.productName }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id');
         }
     }
-
     //Sort
     if (req.query.sort) {
         const sortBy = req.query.sort.split(',').join(' ')
@@ -76,10 +75,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
     queryCommand.skip(skip).limit(limit)
 
 
-
-
     //Execute query
+
     const response = await queryCommand.exec();
+
     if (!response || response.length === 0) {
         return res.status(404).json({
             success: false,
@@ -88,6 +87,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
     }
 
     const counts = await Product.countDocuments(formatedQueries);
+    // const counts = await Product.countDocuments(
+    //     formatedQueries.category ? { category: formatedQueries.category._id } : {}
+    // );
     return res.status(200).json({
         success: true,
         counts,
@@ -97,6 +99,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     //const product = await Product.find()
 
 })
+
 
 const updateProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
