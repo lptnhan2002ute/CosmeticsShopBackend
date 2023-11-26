@@ -24,7 +24,11 @@ const DetailProduct = () => {
         if (response.success) setProduct(response.productData)
     }
     const fetchProducts = async () => {
-        const response = await apiGetProductCategory({category})
+        const payload={
+            category
+        }
+        const response = await apiGetProductCategory(payload)
+
         if (response?.success) setRelatedProduct(response.productData)
     }
     useEffect(() => {
