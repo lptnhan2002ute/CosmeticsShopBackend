@@ -10,8 +10,8 @@ const Sidebar = () => {
         <div className='flex flex-col border'>
             {categories?.map(el =>(
                 <NavLink
-                    key={createSlug(el.categoryName)}
-                    to={createSlug(el.categoryName)}
+                    key={el._id}
+                    to={el._id}
                     className={({isActive}) => isActive ? 'bg-main text-white px-5 pt-[15px] pb-[14px] text-sm hover:text-main' : 'px-5 pt-[15px] pb-[14px] text-sm hover:text-main'} 
                 >
                    {el.categoryName}

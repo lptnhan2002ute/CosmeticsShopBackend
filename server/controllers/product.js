@@ -36,23 +36,11 @@ const getAllProduct = asyncHandler(async (req, res) => {
    
     //Filter
     if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
-    let queryCommand = Product.find(formatedQueries).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
-
-    if (queries?.categoryName) {
-        const category = await Category.findOne({ categoryName: queries.categoryName });
-        if (category) {
-            // Lấy ID của category tìm thấy và thêm vào bộ lọc
-            formatedQueries.category = category
-            queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
-        }
-    }
-    if (queries?.categoryName && queries?.productName) {
-        const category = await Category.findOne({ categoryName: queries.categoryName });
-        if (category) {
-            // Lấy ID của category tìm thấy và thêm vào bộ lọc
-            formatedQueries.category = category;
-            queryCommand = Product.find({ category: formatedQueries.category, productName: formatedQueries.productName }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id');
-        }
+    let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
+    // if (queries?.categoryId) formatedQueries.categoryId = 
+    if (queries?.categoryId) {
+        formatedQueries.category = queries.categoryId;
+        queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', '_id brandName').populate('category', '_id categoryName')
     }
     //Sort
     if (req.query.sort) {
@@ -85,14 +73,12 @@ const getAllProduct = asyncHandler(async (req, res) => {
             productData: 'Cannot get product',
         });
     }
-
-    const counts = await Product.countDocuments(formatedQueries);
-    // const counts = await Product.countDocuments(
-    //     formatedQueries.category ? { category: formatedQueries.category._id } : {}
-    // );
-    // const counts = await Product.countDocuments(
-    //     formatedQueries.category ? { category: formatedQueries.category._id } : {}
-    // );
+    let counts
+    counts = await Product.countDocuments(formatedQueries);
+    if (queries?.categoryId)
+        counts = await Product.countDocuments(
+            formatedQueries.category ? { category: formatedQueries.category } : {}
+        );
     return res.status(200).json({
         success: true,
         counts,

@@ -24,7 +24,12 @@ const DetailProduct = () => {
         if (response.success) setProduct(response.productData)
     }
     const fetchProducts = async () => {
-        const response = await apiGetProductCategory({category})
+        const payload={
+            category
+        }
+        
+        const response = await apiGetProductCategory(payload)
+
         if (response?.success) setRelatedProduct(response.productData)
     }
     useEffect(() => {
@@ -50,7 +55,7 @@ const DetailProduct = () => {
              <div className='h-[81px] bg-gray-100 flex justify-center items-center'>
                 <div className='w-main '>
                 <h3 className='font-semibold'>{title}</h3>
-                <Breadcrumb title={title} category={category}/>
+                <Breadcrumb title={title} category={Array.isArray(relatedProduct)?relatedProduct[0].category.categoryName:""}/>
                 </div>
              </div>
              <div className='w-main m-auto mt-4 flex'>
