@@ -10,37 +10,6 @@ const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
 const createToken = require('uniqid')
 
-// Register for Guest
-// const registerGuest = asyncHandler(async (req, res) => {
-//     const { email, password, name } = req.body
-//     if (!email || !password || !name)
-//     return res.status(400).json({
-//         success: false,
-//         mess: 'Thiếu dữ liệu yêu cầu'
-//     })
-
-//     const user = await User.findOne({ email: email })
-//     if (user) {
-//         return res.status(400).json({
-//             success: false,
-//             mess: 'Email này đã tồn tại trong hệ thống'
-//         });
-//     }
-//     else {
-//         const newUser = await User.create(req.body)
-//         if (newUser) {
-//             const cart = new Cart({
-//                 userId: newUser._id,
-//                 products: []
-//             });
-//             await cart.save();
-//             return res.status(200).json({
-//                 success: newUser ? true : false,
-//                 mess: newUser ? 'Register is successful. You can login' : 'Something were wrong'
-//             })
-//         }
-//     }
-// })
 
 const registerGuest = asyncHandler(async (req, res) => {
     const { email, password, name, phone } = req.body
@@ -434,6 +403,6 @@ module.exports = {
     changePassword,
     addProductToCart,
     finalRegister
-    // updateUserAddress
+
 }
 

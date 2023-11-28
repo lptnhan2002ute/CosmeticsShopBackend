@@ -1,8 +1,8 @@
-import React, { useState, useCallback,useEffect } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { InputField, Button } from '../../components'
 import { apiRegister, apiLogin, apiForgetPassword } from '../../apis/user'
 import Swal from 'sweetalert2'
-import { useNavigate, Link} from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { validate } from '../../ultils/helpers'
 import path from '../../ultils/path'
 import { login } from '../../store/users/userSlice'
@@ -46,35 +46,37 @@ const Login = () => {
 
     }
 
-    useEffect(() => {resetPayload()},{isRegister})
+    useEffect(() => { resetPayload() }, { isRegister })
     const handleSubmit = useCallback(async () => {
         const { name, phone, ...data } = payload
 
         // const data = isRegister ? payload : { email = payload.email, password = payload.password }
         const invalids = isRegister ? validate(payload, setInvalidFields) : validate(data, setInvalidFields)
         if (invalids === 0) {
-        if (isRegister) {
-            const response = await apiRegister(payload)
-            if (response.success) {
-                Swal.fire('Congratulation!', response.mess, 'success').then(() => {
-                    setIsRegister(false)
-                    resetPayload()
-                })
-            }
-            else {
-                Swal.fire('OOPS@', response.mess, 'error')
-            }
+            if (isRegister) {
+                const response = await apiRegister(payload)
+                if (response.success) {
+                    Swal.fire('Congratulation!', response.mess, 'success').then(() => {
+                        setIsRegister(false)
+                        resetPayload()
+                    })
+                }
+                else {
+                    Swal.fire('OOPS@', response.mess, 'error')
+                }
 
-        } else {
-            const res = await apiLogin(data)
-            if (res.success) {
-                dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
-                navigate(`/${path.HOME}`)
+            } else {
+                const res = await apiLogin(data)
+                if (res.success) {
+                    dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
+                    setTimeout(async () => {
+                        await navigate(`/${path.HOME}`);
+                    }, 100); // 100ms
+                }
+                else {
+                    Swal.fire('OOPS@', res.mess, 'error')
+                }
             }
-            else {
-                Swal.fire('OOPS@', res.mess, 'error')
-            }
-        }
         }
     }, [payload, isRegister])
     return (

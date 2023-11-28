@@ -17,7 +17,7 @@ function App() {
         <Route path={path.PUBLIC} element={<Public />} >
           <Route path={path.HOME} element={<Home />} />
           <Route path={path.FAQS} element={<FAQ />} />
-          <Route path={path.DETAIL_PRODUCT__PID__TITLE} element={<DetailProduct />} />
+          <Route path={path.DETAIL_PRODUCT__CATEGORY__PID__TITLE} element={<DetailProduct />} />
           <Route path={path.OUR_SERVICES} element={<Services />} />
           <Route path={path.PRODUCTS} element={<Products />} />
           <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
@@ -27,7 +27,7 @@ function App() {
       </Routes>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={5000}  
         hideProgressBar={true}
         newestOnTop={false}
         closeOnClick
