@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "mongoose-auto-increment": "^5.0.1",
-    "mongoose-sequence": "^5.3.1"
-  }
-}

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 const Home = () => {
     const {newProducts} = useSelector(state => state.products)
     const { isLoggedIn, current } = useSelector(state => state.user)
-    console.log({isLoggedIn,current})
+    //console.log({isLoggedIn,current})
     return (
         <>
         <div className='w-main flex mt-6'>
