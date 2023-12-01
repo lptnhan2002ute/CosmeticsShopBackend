@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { validate } from '../../ultils/helpers'
 import path from '../../ultils/path'
 import { login } from '../../store/users/userSlice'
-// import { showModal } from '../../store/appSlice'
+import { showModal } from '../../store/appSlice'
 import { useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -55,9 +55,9 @@ const Login = () => {
         const invalids = isRegister ? validate(payload, setInvalidFields) : validate(data, setInvalidFields)
         if (invalids === 0) {
             if (isRegister) {
-                // dispatch(showModal({isShowModal: true, modalChildren: <Loading/>}))
+                dispatch(showModal({ isShowModal: true, modalChildren: <Loading /> }))
                 const response = await apiRegister(payload)
-                // dispatch(showModal({isShowModal: false, modalChildren: null}))
+                dispatch(showModal({ isShowModal: false, modalChildren: null }))
                 if (response.success) {
                     Swal.fire('Congratulation!', response.mess, 'success').then(() => {
                         setIsRegister(false)
@@ -69,15 +69,19 @@ const Login = () => {
                 }
 
             } else {
+                dispatch(showModal({ isShowModal: true, modalChildren: <Loading /> }))
                 const res = await apiLogin(data)
+                dispatch(showModal({ isShowModal: false, modalChildren: null }))
                 if (res.success) {
-                    dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
-                    setTimeout(async () => {
-                        await navigate(`/${path.HOME}`);
-                    }, 100); // 100ms
-                }
-                else {
-                    Swal.fire('OOPS@', res.mess, 'error')
+                    if (res.success) {
+                        dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
+                        setTimeout(async () => {
+                            await navigate(`/${path.HOME}`);
+                        }, 100); // 100ms
+                    }
+                    else {
+                        Swal.fire('OOPS@', res.mess, 'error')
+                    }
                 }
             }
         }
@@ -164,5 +168,6 @@ const Login = () => {
         </div>
     )
 }
+
 
 export default Login

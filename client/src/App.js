@@ -5,16 +5,19 @@ import { AdminLayout, ManageOrder, ManageProduct, ManageUser, CreateProduct, Das
 import { MemberLayout, Personal, History, Wishlist, MyCart } from './pages/member';
 import path from './ultils/path';
 import { apiGetCategories } from './store/asyncActions'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
+import { Modal } from './components';
 
 function App() {
   const dispatch = useDispatch()
+  const { isShowModal, modalChildren } = useSelector(state => state.app)
   useEffect(() => {
     dispatch(apiGetCategories())
   }, [])
   return (
-    <div className="min-h-screen font-main">
+    <div className="font-main relative">
+      {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>
         <Route path={path.PUBLIC} element={<Public />} >
           <Route path={path.HOME} element={<Home />} />
@@ -43,7 +46,7 @@ function App() {
       </Routes>
       <ToastContainer
         position="top-right"
-        autoClose={5000}  
+        autoClose={5000}
         hideProgressBar={true}
         newestOnTop={false}
         closeOnClick
