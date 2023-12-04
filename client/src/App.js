@@ -8,7 +8,6 @@ import { apiGetCategories } from './store/asyncActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
 import { Modal } from './components';
-import MyCart from './pages/member/MyCart';
 
 function App() {
   const dispatch = useDispatch()
@@ -30,20 +29,20 @@ function App() {
           <Route path={path.ALL} element={<Home />} />
         </Route>
         <Route path={path.ADMIN} element={<AdminLayout />}>
-           <Route path={path.DASHBOARD} element={<Dashboard />}/>
-           <Route path={path.MANAGE_ORDER} element={<ManageOrder />}/>
-           <Route path={path.MANAGE_PRODUCT} element={<ManageProduct />}/>
-           <Route path={path.MANAGE_USER} element={<ManageUser />}/>
-           <Route path={path.CREATE_PRODUCT} element={<CreateProduct />}/>
+          <Route path={path.DASHBOARD} element={<Dashboard />} />
+          <Route path={path.MANAGE_ORDER} element={<ManageOrder />} />
+          <Route path={path.MANAGE_PRODUCT} element={<ManageProduct />} />
+          <Route path={path.MANAGE_USER} element={<ManageUser />} />
+          <Route path={path.CREATE_PRODUCT} element={<CreateProduct />} />
         </Route>
         <Route path={path.MEMBER} element={<MemberLayout />}>
-           <Route path={path.PERSONAL} element={<Personal />}/>
-           <Route path={path.MY_CART} element={<MyCart />}/>
-           <Route path={path.HISTORY} element={<History />}/>
-           <Route path={path.WISHLIST} element={<Wishlist />}/>
+          <Route path={path.PERSONAL} element={<Personal />} />
+          <Route path={path.MY_CART} element={<MyCart />} />
+          <Route path={path.HISTORY} element={<History />} />
+          <Route path={path.WISHLIST} element={<Wishlist />} />
         </Route>
         <Route path={path.MY_CART} element={<MyCart id='cart' />} />
-       
+
         <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />
         <Route path={path.LOGIN} element={<Login />} />
       </Routes>
