@@ -8,6 +8,7 @@ import { apiGetCategories } from './store/asyncActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
 import { Modal } from './components';
+import MyCart from './pages/member/MyCart';
 
 function App() {
   const dispatch = useDispatch()
@@ -16,7 +17,7 @@ function App() {
     dispatch(apiGetCategories())
   }, [])
   return (
-    <div className="font-main relative">
+    <div className="font-main h-screen">
       {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>
         <Route path={path.PUBLIC} element={<Public />} >
@@ -41,6 +42,8 @@ function App() {
            <Route path={path.HISTORY} element={<History />}/>
            <Route path={path.WISHLIST} element={<Wishlist />}/>
         </Route>
+        <Route path={path.MY_CART} element={<MyCart id='cart' />} />
+       
         <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />
         <Route path={path.LOGIN} element={<Login />} />
       </Routes>
