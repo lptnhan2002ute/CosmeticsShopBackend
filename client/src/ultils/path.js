@@ -23,7 +23,7 @@ const path = {
     // member
     MEMBER: 'member',
     PERSONAL: 'personal',
-    MY_CART: 'my-card',
+    MY_CART: 'my-cart',
     HISTORY: 'buy-history',
     WISHLIST: 'wishlist'
 
