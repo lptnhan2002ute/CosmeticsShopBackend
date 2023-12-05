@@ -7,17 +7,42 @@ import { SelectOption } from './'
 import icons from '../ultils/icon'
 import { Link } from 'react-router-dom'
 import path from '../ultils/path'
+import Swal from 'sweetalert2'
 import withBaseComponent from '../hocs/withBaseComponent'
 import { showModal } from '../store/appSlice'
 import DetailProduct from '../pages/public/DetailProduct'
+import { apiUpdateCart } from '../apis'
+import { toast } from 'react-toastify'
+import { getUserCart, getCurrent } from '../store/users/asyncAction'
+import { useSelector } from 'react-redux'
 
-const { AiOutlineMenu, AiFillEye, BsFillSuitHeartFill } = icons
+
+const { BsCartPlus, AiFillEye, BsFillSuitHeartFill } = icons
 
 const Product = ({ productData, isNew, navigate, dispatch }) => {
     const [isShowOption, setIsShowOption] = useState(false)
-    const handleClickOptions = (e, flag) => {
+    const { current} = useSelector(state => state.user)
+    const handleClickOptions = async (e, flag) => {
         e.stopPropagation()
-        if (flag === 'MENU') navigate(`/${productData?.category?._id}/${productData?._id}/${productData?.productName}`)
+
+        if (flag === 'CART') {
+            if (!current) return Swal.fire({
+                title: 'Almost...',
+                text: ' Please login first',
+                icon: 'info',
+                cancelButtonText: 'Not now!',
+                showCancelButton: true,
+                confirmButtonText:'Go login page!'
+            }).then((rs)=>{
+                if(rs.isConfirmed) navigate(`/${path.LOGIN}`)
+            })
+            const response = await apiUpdateCart({ pid: productData._id })
+            if (response.success) {
+                toast.success(response.mess)
+                dispatch(getCurrent())
+            }
+            else toast.error(response.mess)
+        }
         if (flag === 'WISHLIST') console.log('WISHLIST')
         if (flag === 'QUICK_VIEW') {
             dispatch(showModal({ isShowModal: true, modalChildren: <DetailProduct data={{ pid: productData?._id, category: productData?.category?.categoryName }} isQuickView /> }))
@@ -41,9 +66,9 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                     {isShowOption && <div
                         className='absolute bottom-0 flex justify-center left-0 right-0 gap-2 animate-slide-top'
                     >
-                        <span onClick={(e) => handleClickOptions(e, 'QUICK_VIEW')}><SelectOption icon={<AiFillEye />} /> </span>
-                        <span onClick={(e) => handleClickOptions(e, 'MENU')}><SelectOption icon={<AiOutlineMenu />} /> </span>
-                        <span onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill />} /></span>
+                        <span title='Quick view' onClick={(e) => handleClickOptions(e, 'QUICK_VIEW')}><SelectOption icon={<AiFillEye />} /> </span>
+                        <span title='Add to Cart' onClick={(e) => handleClickOptions(e, 'CART')}><SelectOption icon={<BsCartPlus />} /> </span>
+                        <span title='Add wishList' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill />} /></span>
                     </div>}
                     <img src={productData?.imageUrl[0] || 'https://www.panzerwrecks.com/wp-content/uploads/2022/09/No-product.png'}
                         alt=''

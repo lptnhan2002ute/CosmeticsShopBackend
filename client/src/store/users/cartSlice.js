@@ -2,52 +2,42 @@ import { createSlice } from "@reduxjs/toolkit";
 import * as actions from './asyncAction'
 
 
-export const userSlice = createSlice({
-    name: 'user',
+export const cartSlice = createSlice({
+    name: 'cart',
     initialState: {
         isLoggedIn: false,
-        current: null,
         cart: null,
         token: null,
         isLoading: false,
         mess: ''
     },
     reducers: {
-        login: (state, action) => {
-            state.isLoggedIn = action.payload.isLoggedIn
-            // state.current = action.payload.userData
-            state.token = action.payload.token
+        logoutcart: (state, action) => {
+            state.isLoggedIn = false
+            state.cart = null
+            state.token = null
+            state.isLoading = false
         },
-        logout: (state,action) => {
-            state.isLoggedIn= false
-            state.current= null
-            state.token= null
-            state.isLoading= false
-        },
-        clearMessage: (state) => {
-            state.mess = ''
-        }
     },
     //Code logic xử lý async action
     extraReducers: (builder) => {
         // Bắt đầu thực hiện action login (Promise pending)
-        builder.addCase(actions.getCurrent.pending, (state) => {
+        builder.addCase(actions.getUserCart.pending, (state) => {
             // Bật trạng thái loading
             state.isLoading = true;
         });
 
         // Khi thực hiện action login thành công (Promise fulfilled)
-        builder.addCase(actions.getCurrent.fulfilled, (state, action) => {
+        builder.addCase(actions.getUserCart.fulfilled, (state, action) => {
             state.isLoading = false;
-            state.current = action.payload;
+            state.cart = action.payload;
             state.isLoggedIn = true;
         });
 
         // Khi thực hiện action login thất bại (Promise rejected)
-        builder.addCase(actions.getCurrent.rejected, (state, action) => {
+        builder.addCase(actions.getUserCart.rejected, (state, action) => {
             state.isLoading = false;
-            state.current = null;
-            state.current = null;
+            state.cart = null;
             state.isLoggedIn = false;
             state.token = null;
             state.mess = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!'
@@ -56,6 +46,5 @@ export const userSlice = createSlice({
 
     }
 })
-export const { login, logout, clearMessage } = userSlice.actions
-export default userSlice.reducer
-
+export const { logoutcart } = cartSlice.actions
+export default cartSlice.reducer
