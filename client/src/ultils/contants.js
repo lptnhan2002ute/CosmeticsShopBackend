@@ -66,3 +66,74 @@ export const productInformation = [
 
     }
 ]
+const {AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine} = icons
+export  const adminSidebar = [
+    {
+        id: 1,
+        type: 'single',
+        text: 'Dashboard',
+        path: `/${path.ADMIN}/${path.DASHBOARD}`,
+        icon: <AiOutlineDashboard />
+    },
+    {
+        id: 2,
+        type: 'single',
+        text: 'Manage users',
+        path: `/${path.ADMIN}/${path.MANAGE_USER}`,
+        icon: <MdGroups />
+    },
+    {
+        id: 3,
+        type: 'parent',
+        text: 'Manage products',
+        icon: <TbBrandProducthunt />,
+        submenu: [
+            {
+               text: 'Create product',
+               path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
+            },
+            {
+                text: 'Manege product',
+                path: `/${path.ADMIN}/${path.MANAGE_PRODUCT}`
+            }
+        ]
+    },
+    {
+        id: 4,
+        type: 'single',
+        text: 'Manage orders',
+        path: `/${path.ADMIN}/${path.MANAGE_ORDER}`,
+        icon: <RiBillLine />
+    }
+]
+
+export  const memberSidebar = [
+    {
+        id: 1,
+        type: 'single',
+        text: 'Thông tin cá nhân',
+        path: `/${path.MEMBER}/${path.PERSONAL}`,
+        icon: <AiOutlineDashboard />
+    },
+    {
+        id: 2,
+        type: 'single',
+        text: 'Giỏ hàng của tôi',
+        path: `/${path.MEMBER}/${path.MY_CART}`,
+        icon: <MdGroups />
+    },
+    {
+        id: 3,
+        type: 'single',
+        text: 'Lịch sử mua hàng',
+        path: `/${path.MEMBER}/${path.HISTORY}`,
+        icon: <RiBillLine />
+    },
+    {
+        id: 4,
+        type: 'single',
+        text: 'Danh sách yêu thích',
+        path: `/${path.MEMBER}/${path.WISHLIST}`,
+        icon: <RiBillLine />
+    }
+]

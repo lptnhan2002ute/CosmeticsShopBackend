@@ -1,11 +1,12 @@
-import { RiPhoneFill, RiTruckFill } from 'react-icons/ri'
-import { MdEmail } from 'react-icons/md'
+import { RiPhoneFill, RiTruckFill, RiBillLine } from 'react-icons/ri'
+import { MdEmail, MdGroups } from 'react-icons/md'
 import { FaShoppingBag, FaTty } from 'react-icons/fa'
 import { BiUserCircle } from 'react-icons/bi'
-import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFillGift, AiOutlineDown, AiOutlineLogout } from 'react-icons/ai'
+import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFillGift, AiOutlineDown, AiOutlineLogout, AiOutlineDashboard } from 'react-icons/ai'
 import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill } from 'react-icons/bs'
 import { GiClockwork } from 'react-icons/gi'
 import { IoIosArrowForward } from 'react-icons/io'
+import { TbBrandProducthunt} from 'react-icons/tb'
 
 
 const icons = {
@@ -27,7 +28,11 @@ const icons = {
     BsReplyFill,
     FaTty,
     AiOutlineDown,
-    AiOutlineLogout
+    AiOutlineLogout,
+    AiOutlineDashboard,
+    MdGroups,
+    TbBrandProducthunt,
+    RiBillLine
 
 
 }

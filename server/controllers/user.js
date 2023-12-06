@@ -112,7 +112,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const getOneUser = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const user = await User.findById(_id).select('-refreshToken -password -role -__v')
+    const user = await User.findById(_id).select('-refreshToken -password -__v')
     return res.status(200).json({
         success: user ? true : false,
         rs: user ? user : 'User not found'
@@ -120,10 +120,58 @@ const getOneUser = asyncHandler(async (req, res) => {
 })
 
 const getUser = asyncHandler(async (req, res) => {
-    const response = await User.find().select('-refreshToken -password -role -__v')
-    return res.status(200).json({
-        success: response ? true : false,
-        users: response
+    const queries = {...req.query};
+    //Tach cac truong dac biet khoi queries
+    const excludeFields = ["limit", "sort", "page", "fields"]; 
+    excludeFields.forEach(el => delete queries[el])
+
+
+    //Format lai cac operators cho dung cu phap mongoose
+    let queryString = JSON.stringify(queries)
+    queryString = queryString.replace(/\b(gt|gte|lt|lte)\b/g, machedEl => `$${machedEl}`)
+    const formatedQueries = JSON.parse(queryString);
+    if (queries?.name) formatedQueries.name = {$regex: queries.name, $options: "i"}
+    if (req.query.q) {
+        delete formatedQueries.q
+        formatedQueries['$or'] = [
+            {name : {$regex: req.query.q, $options: "i"}},
+            {email: {$regex: req.query.q, $options: "i"}}
+        ]
+    }
+    let queryCommand = User.find(formatedQueries);
+
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ')
+        queryCommand = queryCommand.sort(sortBy);
+        
+    }
+    
+
+    if (req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ')
+        queryCommand = queryCommand.select(fields);
+    }
+
+    
+    
+    const page = +req.query.page || 1; // page number
+    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS; //So bai trong 1 trang
+    const skip = (page - 1) * limit;  //Tong so bai da bo qua (Tong so bai o truoc trang nay)
+    queryCommand.skip(skip).limit(limit);
+
+    //Execute command
+    queryCommand.exec(async(err, response) => {
+        if (err) throw new Error(err.message)
+        
+        const counts = await User.find(formatedQueries).countDocuments()
+    
+            return res.status(200).json({
+                
+                success: response ? true : false,
+                counts,
+                users: response ? response : "Cannot get products",
+                
+            })
     })
 })
 
