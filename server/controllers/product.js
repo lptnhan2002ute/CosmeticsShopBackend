@@ -35,7 +35,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     const formatedQueries = JSON.parse(queryString)
 
     //Filter
-    if (queries?.productName) formatedQueries.productName = { $regex: queries.productName, $options: 'i' }
+    if (queries?.productName) formatedQueries.productName = { $regex: decodeURIComponent(queries.productName), $options: 'i' }
     let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
     // if (queries?.categoryId) formatedQueries.categoryId = 
     if (queries?.categoryId) {
@@ -57,11 +57,14 @@ const getAllProduct = asyncHandler(async (req, res) => {
     //Pagination
     //limit: số object lấy về trong 1 api
     // skip: 1
-    const page = +req.query.page || 1
-    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS
-    const skip = (page - 1) * limit
-    queryCommand.skip(skip).limit(limit)
+    const page = +req.query.page
+    const limit = +req.query.limit
 
+    if (page && limit) {
+
+        const skip = (page - 1) * limit
+        queryCommand.skip(skip).limit(limit)
+    }
 
     //Execute query
 

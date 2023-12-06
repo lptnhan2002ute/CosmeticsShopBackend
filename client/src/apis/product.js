@@ -6,7 +6,7 @@ export const apiGetProducts = (params) => axios({
     params
 })
 export const apiGetProduct = (pid) => axios({
-    url: '/product/'+pid,
+    url: '/product/' + pid,
     method: 'get',
 })
 // export const apiGetProductCategory = (params) => axios({
@@ -15,7 +15,8 @@ export const apiGetProduct = (pid) => axios({
 //     params
 // })
 export const apiGetProductCategory = (params) => axios({
-    url:`/product?categoryId=${params.category}` ,
+    headers: { 'Content-type': 'application/json' },
+    url: `/product`,
     method: 'get',
     params
 })
