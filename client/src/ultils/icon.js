@@ -3,7 +3,7 @@ import { MdEmail, MdGroups } from 'react-icons/md'
 import { FaShoppingBag, FaTty } from 'react-icons/fa'
 import { BiUserCircle } from 'react-icons/bi'
 import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFillGift, AiOutlineDown, AiOutlineLogout, AiOutlineDashboard } from 'react-icons/ai'
-import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill } from 'react-icons/bs'
+import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill, BsCartPlus } from 'react-icons/bs'
 import { GiClockwork } from 'react-icons/gi'
 import { IoIosArrowForward } from 'react-icons/io'
 import { TbBrandProducthunt} from 'react-icons/tb'
@@ -32,7 +32,8 @@ const icons = {
     AiOutlineDashboard,
     MdGroups,
     TbBrandProducthunt,
-    RiBillLine
+    RiBillLine,
+    BsCartPlus
 
 
 }

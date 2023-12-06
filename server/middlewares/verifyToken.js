@@ -11,7 +11,6 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
                 success: false,
                 mess: 'Access token is invalid'
             })
-            // console.log(decode)
             req.user = decode
             next()
         })
@@ -26,7 +25,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
 
 const isAdmin = asyncHandler((req, res, next) => {
     const { role } = req.user
-    if (+role != 'Admin')
+    if (role !== 'Admin')
         return res.status(401).json({
             success: false,
             mess: 'You are not admin'

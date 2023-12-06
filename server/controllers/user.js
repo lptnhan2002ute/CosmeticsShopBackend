@@ -1,5 +1,6 @@
 const User = require('../models/user')
 const Cart = require('../models/cart')
+const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const jwt = require('jsonwebtoken')
@@ -8,7 +9,6 @@ const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
-
 
 
 const registerGuest = asyncHandler(async (req, res) => {
@@ -73,7 +73,6 @@ const finalRegister = asyncHandler(async (req, res) => {
 })
 
 
-
 //RefreshToken => Tạo mới AccessToken
 //AccessToken => Xác thực, phân quyền người dùng
 // Login for User
@@ -118,61 +117,84 @@ const getOneUser = asyncHandler(async (req, res) => {
         rs: user ? user : 'User not found'
     })
 })
+const getUserCart = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const user = await User.findById(_id).select('-refreshToken -password -__v -createdAt -updatedAt')
+    const cart = await Cart.findOne({ userId: _id }).populate({ path: 'products.product', select: 'productName price' })
+    const userCart = {
+        user: user,
+        cart: {
+            products: cart.products.map(item => ({
+                product: {
+                    _id: item.product._id,
+                    productName: item.product.productName,
+                    price: item.product.price,
+                },
+                quantity: item.quantity,
+            })),
+        },
+    };
+
+    return res.status(200).json({
+        success: true,
+        userCart: userCart,
+    });
+})
 
 const getUser = asyncHandler(async (req, res) => {
-    const queries = {...req.query};
-    //Tach cac truong dac biet khoi queries
-    const excludeFields = ["limit", "sort", "page", "fields"]; 
-    excludeFields.forEach(el => delete queries[el])
+    const queries = { ...req.query }
+    // Tach cac truong dac biet ra khoi query
+    const excludeFields = ['limit', 'sort', 'page', 'fields']
+    excludeFields.forEach(field => delete queries[field])
 
-
-    //Format lai cac operators cho dung cu phap mongoose
+    // Format operators cho dung chuan mongoose
     let queryString = JSON.stringify(queries)
-    queryString = queryString.replace(/\b(gt|gte|lt|lte)\b/g, machedEl => `$${machedEl}`)
-    const formatedQueries = JSON.parse(queryString);
-    if (queries?.name) formatedQueries.name = {$regex: queries.name, $options: "i"}
-    if (req.query.q) {
-        delete formatedQueries.q
-        formatedQueries['$or'] = [
-            {name : {$regex: req.query.q, $options: "i"}},
-            {email: {$regex: req.query.q, $options: "i"}}
-        ]
-    }
-    let queryCommand = User.find(formatedQueries);
+    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
+    const formatedQueries = JSON.parse(queryString)
 
+    //Filter
+    if (queries?.name) formatedQueries.name = { $regex: queries.name, $options: 'i' }
+    let queryCommand = User.find(formatedQueries).select('-refreshToken -password -__v -passwordResetToken -passwordResetTokenTimeout')
+
+    //Sort
     if (req.query.sort) {
         const sortBy = req.query.sort.split(',').join(' ')
-        queryCommand = queryCommand.sort(sortBy);
-        
+        queryCommand = queryCommand.sort(sortBy)
     }
-    
 
+    // Fields limit
     if (req.query.fields) {
         const fields = req.query.fields.split(',').join(' ')
-        queryCommand = queryCommand.select(fields);
+        queryCommand = queryCommand.select(fields)
     }
 
-    
-    
-    const page = +req.query.page || 1; // page number
-    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS; //So bai trong 1 trang
-    const skip = (page - 1) * limit;  //Tong so bai da bo qua (Tong so bai o truoc trang nay)
-    queryCommand.skip(skip).limit(limit);
+    //Pagination
+    //limit: số object lấy về trong 1 api
+    // skip: 1
+    const page = +req.query.page || 1
+    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS
+    const skip = (page - 1) * limit
+    queryCommand.skip(skip).limit(limit)
 
-    //Execute command
-    queryCommand.exec(async(err, response) => {
-        if (err) throw new Error(err.message)
-        
-        const counts = await User.find(formatedQueries).countDocuments()
-    
-            return res.status(200).json({
-                
-                success: response ? true : false,
-                counts,
-                users: response ? response : "Cannot get products",
-                
-            })
-    })
+
+    //Execute query
+
+    const response = await queryCommand.exec();
+
+    if (!response || response.length === 0) {
+        return res.status(404).json({
+            success: false,
+            userData: 'Cannot get User',
+        });
+    }
+    let counts
+    counts = await User.countDocuments(formatedQueries);
+    return res.status(200).json({
+        success: true,
+        counts,
+        userData: response,
+
+    });
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -181,16 +203,23 @@ const deleteUser = asyncHandler(async (req, res) => {
     if (!_id) {
         return res.status(400).json({
             success: false,
-            message: 'Missing inputs',
+            mess: 'Missing inputs',
         });
     }
-    const user = await User.findByIdAndDelete(_id)
-    return res.status(200).json({
-        success: user ? true : false,
-        deleteUser: user ? `User with email ${user.email} is deleted` : 'No user deleted'
-    })
+    const deletedUser = await User.findByIdAndDelete(_id)
+    if (deletedUser) {
+        await Cart.deleteOne({ userId: _id });
+        return res.status(200).json({
+            success: true,
+            message: `User with email ${deletedUser.email} is deleted`,
+        });
+    } else {
+        return res.status(404).json({
+            success: false,
+            message: 'No user deleted',
+        });
+    }
 })
-
 
 const updateUser = asyncHandler(async (req, res) => {
     const { _id } = req.user;
@@ -222,14 +251,14 @@ const changePassword = asyncHandler(async (req, res) => {
     if (!_id || !currentPassword || !newPassword) {
         return res.status(400).json({
             success: false,
-            message: 'Thiếu thông tin cần thiết.'
+            mess: 'Thiếu thông tin cần thiết.'
         });
     }
     const user = await User.findById(_id);
     if (!user) {
         return res.status(404).json({
             success: false,
-            message: 'Người dùng không tồn tại.'
+            mess: 'Người dùng không tồn tại.'
         });
     }
     const isPasswordValid = await user.isCorrectPassword(currentPassword);
@@ -380,7 +409,10 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 const addProductToCart = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const { pid, quantity } = req.body
-    if (!pid || !quantity) {
+    const product = await Product.findById(pid)
+    const defaultQuantity = 1;
+    const newQuantity = quantity || defaultQuantity;
+    if (!product) {
         return res.status(400).json({
             success: false,
             mess: 'Missing input!'
@@ -395,10 +427,11 @@ const addProductToCart = asyncHandler(async (req, res) => {
     }
     const existingProduct = cart?.products.find(product => product.product.toString() === pid)
     if (existingProduct) {
-        existingProduct.quantity += +quantity;
+        existingProduct.quantity += +newQuantity;
     } else {
-        cart.products.push({ product: pid, quantity });
+        cart.products.push({ product: pid, quantity: newQuantity });
     }
+
     await cart.save();
 
     return res.status(200).json({
@@ -407,34 +440,32 @@ const addProductToCart = asyncHandler(async (req, res) => {
     })
 })
 
-// const updateUserAddress = asyncHandler(async (req, res) => {
-//     const { _id } = req.user;
-//     const { address } = req.body;
+const removeProductFromCart = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { pid } = req.params;
 
-//     if (!_id || !address) {
-//         return res.status(400).json({
-//             success: false,
-//             message: 'Thiếu thông tin cần thiết.'
-//         });
-//     }
-//     const user = await User.findById(_id);
-//     if (!user) {
-//         return res.status(404).json({
-//             success: false,
-//             message: 'Người dùng không tồn tại.'
-//         });
-//     }
-//     // Thêm địa chỉ vào mảng address
-//     user.address.push(address);
-//     // Lưu lại thông tin người dùng
-//     await user.save();
+    const cart = await Cart.findOne({ userId: _id });
+    if (!cart) {
+        return res.status(404).json({
+            success: false,
+            mess: 'User cart not found'
+        });
+    }
 
-//     return res.status(200).json({
-//         success: true,
-//         message: 'Địa chỉ đã được thêm hoặc thay đổi thành công.'
-//     });
-// });
-
+    const alreadyProduct = cart?.products.find(product => product.product.toString() === pid)
+    if (!alreadyProduct) {
+        return res.status(404).json({
+            success: false,
+            mess: 'Product not found in the cart'
+        })
+    }
+    cart.products.pull({ product: pid });
+    await cart.save();
+    return res.status(200).json({
+        success: true,
+        mess: 'Product remove successfully'
+    })
+});
 
 module.exports = {
     registerGuest,
@@ -450,7 +481,9 @@ module.exports = {
     updateUserByAdmin,
     changePassword,
     addProductToCart,
-    finalRegister
+    finalRegister,
+    removeProductFromCart,
+    getUserCart
 
 }
 
