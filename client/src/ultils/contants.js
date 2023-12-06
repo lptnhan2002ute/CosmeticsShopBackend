@@ -10,7 +10,7 @@ export const navigation = [
     {
         id: 2,
         value: 'PRODUCTS',
-        path: `/${path.PRODUCTS}`
+        path: `/${path.ALL_PRODUCTS}`
     },
     {
         id: 3,
@@ -28,7 +28,7 @@ export const navigation = [
         path: `/${path.FAQS}`
     }
 ]
-const {RiTruckFill, BsShieldShaded, BsReplyFill, FaTty, AiFillGift} = icons
+const { RiTruckFill, BsShieldShaded, BsReplyFill, FaTty, AiFillGift } = icons
 export const productInformation = [
     {
         id: '1',
