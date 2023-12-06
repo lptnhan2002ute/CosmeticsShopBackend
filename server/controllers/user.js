@@ -120,59 +120,59 @@ const getOneUser = asyncHandler(async (req, res) => {
 })
 
 const getUser = asyncHandler(async (req, res) => {
-    const queries = {...req.query};
-    //Tach cac truong dac biet khoi queries
-    const excludeFields = ["limit", "sort", "page", "fields"]; 
-    excludeFields.forEach(el => delete queries[el])
+    const queries = { ...req.query }
+    // Tach cac truong dac biet ra khoi query
+    const excludeFields = ['limit', 'sort', 'page', 'fields']
+    excludeFields.forEach(field => delete queries[field])
 
-
-    //Format lai cac operators cho dung cu phap mongoose
+    // Format operators cho dung chuan mongoose
     let queryString = JSON.stringify(queries)
-    queryString = queryString.replace(/\b(gt|gte|lt|lte)\b/g, machedEl => `$${machedEl}`)
-    const formatedQueries = JSON.parse(queryString);
-    if (queries?.name) formatedQueries.name = {$regex: queries.name, $options: "i"}
-    if (req.query.q) {
-        delete formatedQueries.q
-        formatedQueries['$or'] = [
-            {name : {$regex: req.query.q, $options: "i"}},
-            {email: {$regex: req.query.q, $options: "i"}}
-        ]
-    }
-    let queryCommand = User.find(formatedQueries);
+    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
+    const formatedQueries = JSON.parse(queryString)
 
+    //Filter
+    if (queries?.name) formatedQueries.name = { $regex: queries.name, $options: 'i' }
+    let queryCommand = User.find(formatedQueries).select('-refreshToken -password -__v -passwordResetToken -passwordResetTokenTimeout')
+    
+    //Sort
     if (req.query.sort) {
         const sortBy = req.query.sort.split(',').join(' ')
-        queryCommand = queryCommand.sort(sortBy);
-        
+        queryCommand = queryCommand.sort(sortBy)
     }
-    
 
+    // Fields limit
     if (req.query.fields) {
         const fields = req.query.fields.split(',').join(' ')
-        queryCommand = queryCommand.select(fields);
+        queryCommand = queryCommand.select(fields)
     }
 
-    
-    
-    const page = +req.query.page || 1; // page number
-    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS; //So bai trong 1 trang
-    const skip = (page - 1) * limit;  //Tong so bai da bo qua (Tong so bai o truoc trang nay)
-    queryCommand.skip(skip).limit(limit);
+    //Pagination
+    //limit: số object lấy về trong 1 api
+    // skip: 1
+    const page = +req.query.page || 1
+    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS
+    const skip = (page - 1) * limit
+    queryCommand.skip(skip).limit(limit)
 
-    //Execute command
-    queryCommand.exec(async(err, response) => {
-        if (err) throw new Error(err.message)
-        
-        const counts = await User.find(formatedQueries).countDocuments()
-    
-            return res.status(200).json({
-                
-                success: response ? true : false,
-                counts,
-                users: response ? response : "Cannot get products",
-                
-            })
-    })
+
+    //Execute query
+
+    const response = await queryCommand.exec();
+
+    if (!response || response.length === 0) {
+        return res.status(404).json({
+            success: false,
+            userData: 'Cannot get User',
+        });
+    }
+    let counts
+    counts = await User.countDocuments(formatedQueries);
+    return res.status(200).json({
+        success: true,
+        counts,
+        userData: response,
+
+    });
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -450,7 +450,7 @@ module.exports = {
     updateUserByAdmin,
     changePassword,
     addProductToCart,
-    finalRegister
+    finalRegister,
 
 }
 
