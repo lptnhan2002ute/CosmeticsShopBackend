@@ -79,7 +79,9 @@
 .my-masonry-grid_column > div {
   margin-bottom: 20px;
 }
-
+.w500 {
+    width: 500px;
+}
 .ant-input-search .ant-input-search-button {
   background-color: #4096ff;
 }
