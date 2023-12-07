@@ -37,7 +37,7 @@ export const apiGetUsers = (params) => axios({
 })
 
 export const apiUpdateCart = (data) => axios({
-    url: '/user/cart',
+    url: '/user/add/cart',
     method: 'put',
     data
 })
