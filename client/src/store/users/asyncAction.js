@@ -6,5 +6,11 @@ export const getCurrent = createAsyncThunk('user/current', async (data, { reject
     if (!response.success) return rejectWithValue(response)
     return response.rs
 
+})
 
+export const getUserCart = createAsyncThunk('user/current-cart', async (data, { rejectWithValue }) => {
+    const response = await apis.apiGetUserCart()
+
+    if (!response.success) return rejectWithValue(response)
+    return response.userCart.cart
 })

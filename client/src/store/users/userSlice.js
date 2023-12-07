@@ -7,8 +7,10 @@ export const userSlice = createSlice({
     initialState: {
         isLoggedIn: false,
         current: null,
+        cart: JSON.parse(localStorage.getItem("cart")) || [],
         token: null,
-        isLoading: false
+        isLoading: false,
+        mess: ''
     },
     reducers: {
         login: (state, action) => {
@@ -16,12 +18,20 @@ export const userSlice = createSlice({
             // state.current = action.payload.userData
             state.token = action.payload.token
         },
-        logout: (state,action) => {
-            state.isLoggedIn= false
-            state.current= null
-            state.token= null
-            state.isLoading= false
+        logout: (state, action) => {
+            state.isLoggedIn = false
+            state.current = null
+            state.token = null
+            state.isLoading = false
         },
+        updateCart: (state, action) => {
+
+            localStorage.setItem("cart", JSON.stringify(action.payload.products))
+            state.cart = action.payload.products
+        },
+        clearMessage: (state) => {
+            state.mess = ''
+        }
     },
     //Code logic xử lý async action
     extraReducers: (builder) => {
@@ -33,21 +43,24 @@ export const userSlice = createSlice({
 
         // Khi thực hiện action login thành công (Promise fulfilled)
         builder.addCase(actions.getCurrent.fulfilled, (state, action) => {
-            // console.log(action)
-            // Tắt trạng thái loading, lưu thông tin user vào store
             state.isLoading = false;
             state.current = action.payload;
+            state.isLoggedIn = true;
         });
 
         // Khi thực hiện action login thất bại (Promise rejected)
         builder.addCase(actions.getCurrent.rejected, (state, action) => {
-            // Tắt trạng thái loading, lưu thông báo lỗi vào store
             state.isLoading = false;
             state.current = null;
+            state.current = null;
+            state.isLoggedIn = false;
+            state.token = null;
+            state.mess = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!'
         });
+
+
     }
 })
-// export const { increment, decrement, incrementByAmount } = appSlice.actions
-export const { login, logout } = userSlice.actions
+export const { login, logout, clearMessage, updateCart } = userSlice.actions
 export default userSlice.reducer
 

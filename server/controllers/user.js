@@ -1,5 +1,6 @@
 const User = require('../models/user')
 const Cart = require('../models/cart')
+const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const jwt = require('jsonwebtoken')
@@ -8,7 +9,6 @@ const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
-
 
 
 const registerGuest = asyncHandler(async (req, res) => {
@@ -73,7 +73,6 @@ const finalRegister = asyncHandler(async (req, res) => {
 })
 
 
-
 //RefreshToken => Tạo mới AccessToken
 //AccessToken => Xác thực, phân quyền người dùng
 // Login for User
@@ -118,6 +117,30 @@ const getOneUser = asyncHandler(async (req, res) => {
         rs: user ? user : 'User not found'
     })
 })
+const getUserCart = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const user = await User.findById(_id).select('-refreshToken -password -__v -createdAt -updatedAt')
+    const cart = await Cart.findOne({ userId: _id }).populate({ path: 'products.product', select: 'productName price imageUrl' })
+    const userCart = {
+        user: user,
+        cart: {
+            products: cart.products.map(item => ({
+                product: {
+                    _id: item.product._id,
+                    productName: item.product.productName,
+                    price: item.product.price,
+                    image: item.product.imageUrl
+                },
+                quantity: item.quantity,
+            })),
+        },
+    };
+
+    return res.status(200).json({
+        success: true,
+        userCart: userCart,
+    });
+})
 
 const getUser = asyncHandler(async (req, res) => {
     const queries = { ...req.query }
@@ -133,7 +156,7 @@ const getUser = asyncHandler(async (req, res) => {
     //Filter
     if (queries?.name) formatedQueries.name = { $regex: queries.name, $options: 'i' }
     let queryCommand = User.find(formatedQueries).select('-refreshToken -password -__v -passwordResetToken -passwordResetTokenTimeout')
-    
+
     //Sort
     if (req.query.sort) {
         const sortBy = req.query.sort.split(',').join(' ')
@@ -181,6 +204,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     if (!uid) {
         return res.status(400).json({
             success: false,
+            mess: 'Missing inputs',
             mess: 'Missing inputs',
         });
     }
@@ -231,14 +255,14 @@ const changePassword = asyncHandler(async (req, res) => {
     if (!_id || !currentPassword || !newPassword) {
         return res.status(400).json({
             success: false,
-            message: 'Thiếu thông tin cần thiết.'
+            mess: 'Thiếu thông tin cần thiết.'
         });
     }
     const user = await User.findById(_id);
     if (!user) {
         return res.status(404).json({
             success: false,
-            message: 'Người dùng không tồn tại.'
+            mess: 'Người dùng không tồn tại.'
         });
     }
     const isPasswordValid = await user.isCorrectPassword(currentPassword);
@@ -375,7 +399,10 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 const addProductToCart = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const { pid, quantity } = req.body
-    if (!pid || !quantity) {
+    const product = await Product.findById(pid)
+    const defaultQuantity = 1;
+    const newQuantity = quantity || defaultQuantity;
+    if (!product) {
         return res.status(400).json({
             success: false,
             mess: 'Missing input!'
@@ -390,46 +417,46 @@ const addProductToCart = asyncHandler(async (req, res) => {
     }
     const existingProduct = cart?.products.find(product => product.product.toString() === pid)
     if (existingProduct) {
-        existingProduct.quantity += +quantity;
+        existingProduct.quantity += +newQuantity;
     } else {
-        cart.products.push({ product: pid, quantity });
+        cart.products.push({ product: pid, quantity: newQuantity });
     }
+
     await cart.save();
 
     return res.status(200).json({
         success: true,
-        mess: 'Product added to cart successfully'
+        mess: 'Product added to cart successfully',
+        product: cart.products
     })
 })
 
-// const updateUserAddress = asyncHandler(async (req, res) => {
-//     const { _id } = req.user;
-//     const { address } = req.body;
+const removeProductFromCart = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { pid } = req.params;
 
-//     if (!_id || !address) {
-//         return res.status(400).json({
-//             success: false,
-//             message: 'Thiếu thông tin cần thiết.'
-//         });
-//     }
-//     const user = await User.findById(_id);
-//     if (!user) {
-//         return res.status(404).json({
-//             success: false,
-//             message: 'Người dùng không tồn tại.'
-//         });
-//     }
-//     // Thêm địa chỉ vào mảng address
-//     user.address.push(address);
-//     // Lưu lại thông tin người dùng
-//     await user.save();
+    const cart = await Cart.findOne({ userId: _id });
+    if (!cart) {
+        return res.status(404).json({
+            success: false,
+            mess: 'User cart not found'
+        });
+    }
 
-//     return res.status(200).json({
-//         success: true,
-//         message: 'Địa chỉ đã được thêm hoặc thay đổi thành công.'
-//     });
-// });
-
+    const alreadyProduct = cart?.products.find(product => product.product.toString() === pid)
+    if (!alreadyProduct) {
+        return res.status(404).json({
+            success: false,
+            mess: 'Product not found in the cart'
+        })
+    }
+    cart.products.pull({ product: pid });
+    await cart.save();
+    return res.status(200).json({
+        success: true,
+        mess: 'Product remove successfully'
+    })
+});
 
 module.exports = {
     registerGuest,
@@ -446,6 +473,8 @@ module.exports = {
     changePassword,
     addProductToCart,
     finalRegister,
+    removeProductFromCart,
+    getUserCart
 
 }
 

@@ -10,6 +10,7 @@ router.post('/finalregister/:token', ctrls.finalRegister)
 router.post('/login', ctrls.loginUser)
 
 router.get('/current', verifyAccessToken, ctrls.getOneUser)
+router.get('/current-cart', verifyAccessToken, ctrls.getUserCart)
 
 router.post('/check', ctrls.resetAccessToken)
 
@@ -28,6 +29,7 @@ router.put('/customer/resetpassword', verifyAccessToken, ctrls.changePassword)
 router.put('/:uid', [verifyAccessToken, isAdmin], ctrls.updateUserByAdmin)
 // router.put('/customer/updateaddress', verifyAccessToken, ctrls.updateUserAddress)
 router.put('/cart', verifyAccessToken, ctrls.addProductToCart)
+router.delete('/remove-cart/:pid', verifyAccessToken, ctrls.removeProductFromCart)
 module.exports = router
 
 //Post + put : body
