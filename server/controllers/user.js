@@ -199,17 +199,17 @@ const getUser = asyncHandler(async (req, res) => {
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
-    const { _id } = req.query;
+    const { uid } = req.params;
 
-    if (!_id) {
+    if (!uid) {
         return res.status(400).json({
             success: false,
             mess: 'Missing inputs',
         });
     }
-    const deletedUser = await User.findByIdAndDelete(_id)
+    const deletedUser = await User.findByIdAndDelete(uid)
     if (deletedUser) {
-        await Cart.deleteOne({ userId: _id });
+        await Cart.deleteOne({ userId: uid });
         return res.status(200).json({
             success: true,
             message: `User with email ${deletedUser.email} is deleted`,
