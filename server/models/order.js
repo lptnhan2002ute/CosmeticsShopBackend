@@ -9,14 +9,14 @@ var orderSchema = new mongoose.Schema({
     status: {
         type: String,
         default: 'Pending',
-        enum: ['Cancelled','Pending','Completed'],
+        enum: ['Cancelled', 'Pending', 'Completed'],
     },
     total: Number,
     voucher: {
         type: mongoose.Types.ObjectId, ref: 'Voucher'
     },
     orderBy: {
-        type: mongoose.Types.ObjectId, 
+        type: mongoose.Types.ObjectId,
         ref: 'User',
     },
 });
