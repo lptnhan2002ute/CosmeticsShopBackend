@@ -176,20 +176,29 @@ const getUser = asyncHandler(async (req, res) => {
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
-    const { _id } = req.query;
+    const { uid } = req.params;
 
-    if (!_id) {
+    if (!uid) {
         return res.status(400).json({
             success: false,
-            message: 'Missing inputs',
+            mess: 'Missing inputs',
         });
     }
-    const user = await User.findByIdAndDelete(_id)
-    return res.status(200).json({
-        success: user ? true : false,
-        deleteUser: user ? `User with email ${user.email} is deleted` : 'No user deleted'
-    })
+    const deletedUser = await User.findByIdAndDelete(uid)
+    if (deletedUser) {
+        await Cart.deleteOne({ userId: uid });
+        return res.status(200).json({
+            success: true,
+            message: `User with email ${deletedUser.email} is deleted`,
+        });
+    } else {
+        return res.status(404).json({
+            success: false,
+            message: 'No user deleted',
+        });
+    }
 })
+
 
 
 const updateUser = asyncHandler(async (req, res) => {
@@ -354,26 +363,12 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 const updateUserByAdmin = asyncHandler(async (req, res) => {
     // req.params
-    const { uid } = req.query;
-    const updates = req.body;
-
-    if (!updates || Object.keys(updates).length === 0) {
-        return res.status(400).json({
-            success: false,
-            message: 'Thiếu thông tin cần cập nhật.'
-        });
-    }
-    const user = await User.findByIdAndUpdate(uid, updates, { new: true }).select('-refreshToken -password -role -__v')
-    if (user) {
-        return res.status(200).json({
-            success: true,
-            updateUser: user
-        })
-    }
-
-    return res.status(500).json({
-        success: false,
-        message: 'Cập nhật thông tin thất bại hoặc người dùng không tồn tại.'
+    const {uid} = req.params;
+    if(Object.keys(req.body).length === 0) throw new Error('Missing Inputs')
+    const response = await User.findByIdAndUpdate(uid, req.body, {new: true}).select("-password -role -refreshToken");
+    return res.status(200).json({
+        success: response ? true : false,
+        mes: response ? 'Update Successfully' : 'Something went wrong'
     })
 })
 
