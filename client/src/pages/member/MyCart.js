@@ -24,6 +24,15 @@ const MyCart = () => {
 
     }, [listCheckout])
 
+    React.useEffect(() => {
+
+        const newListCheckout = cart.filter(cartItem =>
+            listCheckout.some(item => item.product._id === cartItem.product._id)
+        )
+
+        setListCheckout(newListCheckout)
+    }, [cart])
+
     const toggleCheck = (cartItem) => {
 
         const check = listCheckout.find(item => item.product._id == cartItem.product._id)
@@ -82,9 +91,11 @@ const MyCart = () => {
         const response = await apiRemoveCart(pid)
 
         if (response.success) {
+
             toast.success(response.mess)
             const getCarts = await apiGetUserCart()
             dispatch(updateCart({ products: getCarts.userCart.cart.products }))
+
         }
         else toast.error(response.mess)
     }
@@ -97,7 +108,7 @@ const MyCart = () => {
                     {
                         cart?.map((cartItem) => (
                             <div key={cartItem._id} className="justify-between mb-6 rounded-lg bg-white py-6 px-[10px] shadow-md sm:flex sm:justify-start">
-                                <Checkbox onChange={() => toggleCheck(cartItem)} className="mr-[20px]" />
+                                <Checkbox checked={listCheckout.some(item => item.product._id === cartItem.product._id)} onChange={() => toggleCheck(cartItem)} className="mr-[20px]" />
                                 <img
                                     style={{
                                         objectFit: "contain",
