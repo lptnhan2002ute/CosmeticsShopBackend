@@ -7,7 +7,7 @@ export const userSlice = createSlice({
     initialState: {
         isLoggedIn: false,
         current: null,
-        cart: null,
+        cart: JSON.parse(localStorage.getItem("cart")) || [],
         token: null,
         isLoading: false,
         mess: ''
@@ -18,11 +18,16 @@ export const userSlice = createSlice({
             // state.current = action.payload.userData
             state.token = action.payload.token
         },
-        logout: (state,action) => {
-            state.isLoggedIn= false
-            state.current= null
-            state.token= null
-            state.isLoading= false
+        logout: (state, action) => {
+            state.isLoggedIn = false
+            state.current = null
+            state.token = null
+            state.isLoading = false
+        },
+        updateCart: (state, action) => {
+
+            localStorage.setItem("cart", JSON.stringify(action.payload.products))
+            state.cart = action.payload.products
         },
         clearMessage: (state) => {
             state.mess = ''
@@ -56,6 +61,6 @@ export const userSlice = createSlice({
 
     }
 })
-export const { login, logout, clearMessage } = userSlice.actions
+export const { login, logout, clearMessage, updateCart } = userSlice.actions
 export default userSlice.reducer
 

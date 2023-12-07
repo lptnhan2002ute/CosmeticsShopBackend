@@ -16,6 +16,7 @@ function App() {
     dispatch(apiGetCategories())
   }, [])
   return (
+
     <div className="font-main h-screen">
       {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>

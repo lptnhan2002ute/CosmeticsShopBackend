@@ -120,7 +120,7 @@ const getOneUser = asyncHandler(async (req, res) => {
 const getUserCart = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const user = await User.findById(_id).select('-refreshToken -password -__v -createdAt -updatedAt')
-    const cart = await Cart.findOne({ userId: _id }).populate({ path: 'products.product', select: 'productName price' })
+    const cart = await Cart.findOne({ userId: _id }).populate({ path: 'products.product', select: 'productName price imageUrl' })
     const userCart = {
         user: user,
         cart: {
@@ -129,6 +129,7 @@ const getUserCart = asyncHandler(async (req, res) => {
                     _id: item.product._id,
                     productName: item.product.productName,
                     price: item.product.price,
+                    image: item.product.imageUrl
                 },
                 quantity: item.quantity,
             })),
@@ -436,7 +437,8 @@ const addProductToCart = asyncHandler(async (req, res) => {
 
     return res.status(200).json({
         success: true,
-        mess: 'Product added to cart successfully'
+        mess: 'Product added to cart successfully',
+        product: cart.products
     })
 })
 

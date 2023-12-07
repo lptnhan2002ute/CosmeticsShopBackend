@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { apiGetProduct, apiGetProducts, apiGetProductCategory } from '../../apis'
+import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart } from '../../apis'
 import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider } from '../../components'
 import Slider from 'react-slick'
 import { fotmatPrice, formatMoney, renderStarFromNumber } from '../../ultils/helpers'
 import { productInformation } from '../../ultils/contants'
 import clsx from 'clsx'
+import { useDispatch } from 'react-redux'
+import { toast } from 'react-toastify'
+import { updateCart } from '../../store/users/userSlice'
 
 const settings = {
     dots: false,
@@ -21,9 +24,12 @@ const DetailProduct = ({ isQuickView, data }) => {
     const [product, setProduct] = useState(null)
     const [quantity, setQuantity] = useState(1)
     const [relatedProduct, setRelatedProduct] = useState(null)
-    const [pid, setPid ] = useState(null)
-    const [category, setCategory ] = useState(null)
-    const [title, setTitle ] = useState(null)
+    const [pid, setPid] = useState(null)
+    const [category, setCategory] = useState(null)
+    const [title, setTitle] = useState(null)
+
+    const dispatch = useDispatch()
+
     const fetchProductData = async () => {
         const response = await apiGetProduct(pid)
         if (response.success) setProduct(response.productData)
@@ -70,6 +76,18 @@ const DetailProduct = ({ isQuickView, data }) => {
         if (flag === 'minus') setQuantity(prev => +prev - 1)
         if (flag === 'plus') setQuantity(prev => +prev + 1)
     }, [quantity])
+
+    const handleAddToCart = async () => {
+
+        const response = await apiUpdateCart({ pid: product._id, quantity: quantity })
+        if (response.success) {
+            toast.success(response.mess)
+            const getCarts = await apiGetUserCart()
+            dispatch(updateCart({ products: getCarts.userCart.cart.products }))
+        }
+        else toast.error(response.mess)
+    }
+
     return (
         <div className={clsx('w-full')}>
             {!isQuickView && <div className='h-[81px] bg-gray-100 flex justify-center items-center bg-gray-100'>
@@ -79,8 +97,8 @@ const DetailProduct = ({ isQuickView, data }) => {
                 </div>
             </div>}
             <div onClick={e => e.stopPropagation()} className={clsx('w-main bg-white m-auto mt-4 flex', isQuickView ? 'max-w-[900px] gap-8 p-8 max-h-[80vh] overflow-y-auto' : 'w-main')}>
-                <div className={clsx('w-2/5 flex flex-col gap-4',isQuickView && 'w-1/2')}>
-                    <img src={product?.imageUrl[0]} alt='ảnh' className='h-[458px] w-[458px] object-cover border' />
+                <div className={clsx('w-2/5 flex flex-col gap-4', isQuickView && 'w-1/2')}>
+                    <img src={product?.imageUrl} alt='ảnh' className='h-[458px] w-[458px] object-cover border' />
                     <div className='w-[458px]'>
                         <Slider className='image-slider' {...settings}>
                             {product?.imageUrl?.map(el => (
@@ -112,7 +130,7 @@ const DetailProduct = ({ isQuickView, data }) => {
                                 handleChangeQuantity={handleChangeQuantity}
                             />
                         </div>
-                        <Button2 fw>
+                        <Button2 fw handleOnClick={handleAddToCart}>
                             Thêm vào giỏ hàng
                         </Button2>
                     </div>

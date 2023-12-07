@@ -8,8 +8,7 @@ import { logout } from '../store/users/userSlice'
 
 const Header = () => {
     const { RiPhoneFill, MdEmail, BiUserCircle, FaShoppingBag } = icons
-    const { current } = useSelector(state => state.user)
-    const { cart } = useSelector(state => state.cart)
+    const { current, cart } = useSelector(state => state.user)
     const [isShowOption, setIsShowOption] = useState(false)
     const dispatch = useDispatch()
     useEffect(() => {
@@ -23,6 +22,7 @@ const Header = () => {
             document.removeEventListener('click', handleClickout)
         }
     }, [])
+
     return (
         <div className='w-main flex justify-between h-[120px] py-[35px]'>
             <Link to={`/${path.HOME}`}>
@@ -46,7 +46,7 @@ const Header = () => {
                 {current && <Fragment>
                     <div className='cursor-pointer flex items-center justify-center gap-2 px-6 border-r'>
                         <FaShoppingBag color='#ff007f' />
-                        <span>{`${cart?.length || 0} item(s)`}</span>
+                        <Link to="/member/my-cart">{`${cart?.length || 0} item(s)`}</Link>
                     </div>
                     <div
                         className='cursor-pointer flex items-center justify-center px-6 relative'

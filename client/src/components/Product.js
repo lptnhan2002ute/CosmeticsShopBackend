@@ -11,17 +11,18 @@ import Swal from 'sweetalert2'
 import withBaseComponent from '../hocs/withBaseComponent'
 import { showModal } from '../store/appSlice'
 import DetailProduct from '../pages/public/DetailProduct'
-import { apiUpdateCart } from '../apis'
+import { apiUpdateCart, apiGetUserCart } from '../apis'
 import { toast } from 'react-toastify'
 import { getUserCart, getCurrent } from '../store/users/asyncAction'
 import { useSelector } from 'react-redux'
+import { updateCart } from "../store/users/userSlice"
 
 
 const { BsCartPlus, AiFillEye, BsFillSuitHeartFill } = icons
 
 const Product = ({ productData, isNew, navigate, dispatch }) => {
     const [isShowOption, setIsShowOption] = useState(false)
-    const { current} = useSelector(state => state.user)
+    const { current } = useSelector(state => state.user)
     const handleClickOptions = async (e, flag) => {
         e.stopPropagation()
 
@@ -32,14 +33,15 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                 icon: 'info',
                 cancelButtonText: 'Not now!',
                 showCancelButton: true,
-                confirmButtonText:'Go login page!'
-            }).then((rs)=>{
-                if(rs.isConfirmed) navigate(`/${path.LOGIN}`)
+                confirmButtonText: 'Go login page!'
+            }).then((rs) => {
+                if (rs.isConfirmed) navigate(`/${path.LOGIN}`)
             })
             const response = await apiUpdateCart({ pid: productData._id })
             if (response.success) {
                 toast.success(response.mess)
-                dispatch(getCurrent())
+                const getCarts = await apiGetUserCart()
+                dispatch(updateCart({ products: getCarts.userCart.cart.products }))
             }
             else toast.error(response.mess)
         }
