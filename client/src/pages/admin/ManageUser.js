@@ -1,27 +1,47 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { apiGetUsers } from '../../apis/user'
+import React, { useCallback, useEffect, useState} from 'react'
+import { apiGetUsers, apiUpdateUser } from '../../apis/user'
 import moment from 'moment' 
-import { InputField } from '../../components'
+import { InputField, InputForm, Select, ButtonAdmin } from '../../components'
+import { useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
+
 
 const ManageUser = () => {
+    const {handleSubmit, register, formState: { errors }} = useForm({
+        email: '',
+        name: '',
+        role: '',
+        phone: '',
+        status: ''
+    })
     const [users, setUsers] = useState(null)
     const [queries, setQueries] = useState({
         name: ""
     })
+    const [update, setUpdate] = useState(false)
     const[editE, seteditE] = useState(null)
     const fetchUsers = async (params) => {
         const response = await apiGetUsers(params)
         if (response.success) setUsers(response)
         else setUsers([])
     }
-
+    const render = useCallback(() => {
+        setUpdate(!update)
+    },[update])
     useEffect(() => { 
       if (queries.name !== '')  fetchUsers(queries)
       else fetchUsers()
-    },[queries])
-console.log(editE)
+    },[queries, update])
+   const handleUpdate = async (data) => {
+    const response = await apiUpdateUser(data, editE._id)
+    if (response.success) {
+        seteditE(null)
+        render()
+        toast.success(response.mes)
+    }else toast.error(response.mes)
+   }
     return(
-        <div className='w-full'>
+        <div className='w-full pl-8'>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
                 <span>Quản Lí Thành Viên</span>
             </h1>
@@ -36,6 +56,8 @@ console.log(editE)
                     isHideLabel
                     />
                 </div>
+                <form onSubmit={handleSubmit(handleUpdate)} >
+                   {editE && <ButtonAdmin type='submit'>Cập nhật</ButtonAdmin> }
                 <table className='table-auto mb-6 text-left w-full'>
                     <thead className='font-bold bg-gray-700 text-[13px] text-white'>
                        <tr className='border border-gray-500'>
@@ -51,22 +73,48 @@ console.log(editE)
                     </thead>
                     <tbody>
                        {users?.userData?.map((el, index) => (
-                        <tr key={el._id} className='border border-gray-500 '>
+                            <tr key={el._id} className='border border-gray-500 '>
                             <td className='py-2 px-4'>{index+1}</td>
                             <td className='py-2 px-4'>{el.email}</td>
-                            <td className='py-2 px-4'>{el.name}</td>
-                            <td className='py-2 px-4'>{el.role}</td>
-                            <td className='py-2 px-4'>{el.phone}</td>
-                            <td className='py-2 px-4'>{el.status ? 'Active' : 'Blocked'}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id 
+                            ? <InputForm 
+                            fw
+                            register={register}
+                            errols={errors}
+                            defaultValue={editE?.name}
+                            id={'name'}
+                            validate={{required: 'Yêu cầu nhập '}}
+                            /> : <span>{el.name}</span>}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id ? <Select /> : <span>{el.role}</span>}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id 
+                            ? <InputForm 
+                            fw
+                            register={register}
+                            errols={errors}
+                            defaultValue={editE?.phone}
+                            id={'phone'}
+                            validate={{
+                                required: 'Yêu cầu nhập ',
+                                pattern: {
+                                    value: /^[62|0]+\d{9}/gi,
+                                    message:'Nhập lại số diện thoại'
+                                }
+                        
+                            }}
+                            /> : <span>{el.phone}</span>}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id ? <Select /> : <span>{el.status ? 'Active' : 'Blocked'}</span>}</td>
                             <td className='py-2 px-4'>{moment(el.createdAt).format('DD/MM/YYYY')}</td>
                             <td className='py-2 px-4'>
-                                <span onClick={() => seteditE(el)} className='px-2 text-main hover:underline cursor-pointer'>Edit</span>
+                                {editE?._id === el._id ? <span onClick={() => seteditE(null)} className='px-2 text-main hover:underline cursor-pointer'>Back</span>
+                                : <span onClick={() => seteditE(el)} className='px-2 text-main hover:underline cursor-pointer'>Edit</span>}
                                 <span className='px-2 text-main hover:underline cursor-pointer'>Delete</span>
                             </td>
                         </tr>
                        ))}
                     </tbody>
                 </table>
+                </form>
+                
             </div>
         </div>
     )

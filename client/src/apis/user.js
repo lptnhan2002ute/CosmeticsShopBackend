@@ -37,7 +37,7 @@ export const apiGetUsers = (params) => axios({
 })
 
 export const apiUpdateCart = (data) => axios({
-    url: '/user/cart',
+    url: '/user/add/cart',
     method: 'put',
     data
 })
@@ -49,4 +49,9 @@ export const apiRemoveCart = (pid) => axios({
 export const apiGetUserCart = () => axios({
     url: '/user/current-cart',
     method: 'get',
+})
+export const apiUpdateUser = (data, uid) => axios({
+    url: '/user/'+uid,
+    method: 'put',
+    data
 })
