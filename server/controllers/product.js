@@ -5,14 +5,38 @@ const slugify = require('slugify')
 const Category = require('../models/productCategory');
 
 const createProduct = asyncHandler(async (req, res) => {
-    if (Object.keys(req.body).length === 0) throw new Error('Missing input!!')
-    if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName)
-    const newProduct = await Product.create(req.body)
-    return res.status(200).json({
-        success: newProduct ? true : false,
-        newProduct: newProduct ? newProduct : 'Cannot create product'
-    })
-})
+    if (Object.keys(req.body).length === 0) throw new Error('Missing input!!');
+
+    // Tạo sản phẩm từ req.body
+    if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName);
+    const newProduct = await Product.create(req.body);
+
+    // Kiểm tra xem sản phẩm đã tạo thành công hay không
+    if (!newProduct) throw new Error('Cannot create product');
+
+    // Tiến hành tải ảnh lên cho sản phẩm
+    if (!req.files || req.files.length === 0) {
+        throw new Error('No images uploaded');
+    }
+
+    const { _id: pid } = newProduct; // Lấy id của sản phẩm mới tạo
+
+    // Cập nhật thông tin ảnh cho sản phẩm bằng hàm uploadImageProduct
+    const product = await Product.findByIdAndUpdate(
+        pid,
+        { $push: { imageUrl: { $each: req.files.map(ele => ele.path) } } },
+        { new: true }
+    ).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id');
+
+    // Kiểm tra và trả về kết quả tải ảnh
+    if (product) {
+        // Nếu tải ảnh thành công, trả về thông tin sản phẩm đã được cập nhật
+        return res.status(200).json({ success: true, updatedProduct: product });
+    } else {
+        // Nếu có lỗi khi tải ảnh, trả về thông báo lỗi
+        throw new Error('Failed to upload images');
+    }
+});
 
 const getProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
