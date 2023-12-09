@@ -15,18 +15,13 @@ const userConfig = {
   whitelist: ['isLoggedIn', 'token', 'current']
 }
 
-// const cartConfig = {
-//   ...commonConfig,
-//   whitelist: ['isLoggedIn', 'token', 'cart']
-// }
-
 
 export const store = configureStore({
   reducer: {
     app: appSlice,
     products: productSlice,
     user: persistReducer(userConfig, userSlice),
-    // cart: persistReducer(cartConfig, cartSlice),
+  
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
