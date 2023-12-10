@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { InputField, Button, Loading } from '../../components'
 import { apiRegister, apiLogin, apiForgetPassword } from '../../apis/user'
 import Swal from 'sweetalert2'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { validate } from '../../ultils/helpers'
 import path from '../../ultils/path'
 import { login } from '../../store/users/userSlice'
@@ -16,6 +16,8 @@ import 'react-toastify/dist/ReactToastify.css'
 const Login = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const [searchParams] = useSearchParams()
+    console.log(searchParams.get('redirect'))
     const [payload, setPayload] = useState({
         email: '',
         password: '',
@@ -73,15 +75,18 @@ const Login = () => {
                 const res = await apiLogin(data)
                 dispatch(showModal({ isShowModal: false, modalChildren: null }))
                 if (res.success) {
-                    if (res.success) {
+                    if (res.userData.status) {
                         dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
                         setTimeout(async () => {
-                            await navigate(`/${path.HOME}`);
+                            searchParams.get('redirect') ? await navigate(searchParams.get('redirect')): await navigate(`/${path.HOME}`);
                         }, 100); // 100ms
                     }
                     else {
-                        Swal.fire('OOPS@', res.mess, 'error')
+                        Swal.fire('OOPS@', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!', 'error')
                     }
+                }
+                else {
+                    Swal.fire('OOPS@', res.mess, 'error')
                 }
             }
         }
