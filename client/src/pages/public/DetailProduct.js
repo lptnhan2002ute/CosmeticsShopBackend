@@ -1,14 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { memo, useCallback, useEffect, useState } from 'react'
+import { createSearchParams, useParams, useSearchParams } from 'react-router-dom'
 import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart } from '../../apis'
 import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider } from '../../components'
 import Slider from 'react-slick'
 import { fotmatPrice, formatMoney, renderStarFromNumber } from '../../ultils/helpers'
 import { productInformation } from '../../ultils/contants'
 import clsx from 'clsx'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { updateCart } from '../../store/users/userSlice'
+import Swal from 'sweetalert2'
+import path from '../../ultils/path'
+import withBaseComponent from '../../hocs/withBaseComponent'
 
 const settings = {
     dots: false,
@@ -18,17 +21,17 @@ const settings = {
     slidesToScroll: 1
 };
 
-const DetailProduct = ({ isQuickView, data }) => {
+const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
     const params = useParams()
     // const { pid, title, category } = useParams()
+    const { current } = useSelector(state => state.user)
     const [product, setProduct] = useState(null)
     const [quantity, setQuantity] = useState(1)
     const [relatedProduct, setRelatedProduct] = useState(null)
     const [pid, setPid] = useState(null)
     const [category, setCategory] = useState(null)
     const [title, setTitle] = useState(null)
-
-    const dispatch = useDispatch()
+   
 
     const fetchProductData = async () => {
         const response = await apiGetProduct(pid)
@@ -78,7 +81,19 @@ const DetailProduct = ({ isQuickView, data }) => {
     }, [quantity])
 
     const handleAddToCart = async () => {
-
+        if (!current) return Swal.fire({
+            title: 'Almost...',
+            text: ' Please login first',
+            icon: 'info',
+            cancelButtonText: 'Not now!',
+            showCancelButton: true,
+            confirmButtonText: 'Go login page!'
+        }).then(async (rs) => {
+            if (rs.isConfirmed) navigate({
+                pathname: `/${path.LOGIN}`,
+                search: createSearchParams({redirect: location.pathname}).toString()
+            })
+        })
         const response = await apiUpdateCart({ pid: product._id, quantity: quantity })
         if (response.success) {
             toast.success(response.mess)
@@ -157,4 +172,4 @@ const DetailProduct = ({ isQuickView, data }) => {
     )
 }
 
-export default DetailProduct
+export default withBaseComponent(memo(DetailProduct))
