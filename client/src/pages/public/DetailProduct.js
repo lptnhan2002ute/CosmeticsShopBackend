@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from 'react'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { createSearchParams, useParams, useSearchParams } from 'react-router-dom'
 import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart } from '../../apis'
 import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider } from '../../components'
@@ -22,6 +22,7 @@ const settings = {
 };
 
 const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
+    const titleRef = useRef()
     const params = useParams()
     // const { pid, title, category } = useParams()
     const { current } = useSelector(state => state.user)
@@ -51,7 +52,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
             fetchProductData()
             fetchProducts()
         }
-
+        titleRef.current.scrollIntoView({block: 'center'})
     }, [pid])
 
     useEffect(() => {
@@ -106,7 +107,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
     return (
         <div className={clsx('w-full')}>
             {!isQuickView && <div className='h-[81px] bg-gray-100 flex justify-center items-center bg-gray-100'>
-                <div className='w-main '>
+                <div ref={titleRef} className='w-main '>
                     <h3 className='font-semibold'>{title}</h3>
                     <Breadcrumb title={title} category={Array.isArray(relatedProduct) ? relatedProduct[0].category.categoryName : ""} />
                 </div>

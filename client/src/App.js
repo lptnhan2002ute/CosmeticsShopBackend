@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom'
 import { Login, Home, Public, FAQ, Services, DetailProduct, Products, FinalRegister, ResetPassword } from './pages/public'
 import { AdminLayout, ManageOrder, ManageProduct, ManageUser, CreateProduct, Dashboard } from './pages/admin';
-import { MemberLayout, Personal, History, Wishlist, MyCart } from './pages/member';
+import { MemberLayout, Personal, History, Wishlist, MyCart, Checkout } from './pages/member';
 import path from './ultils/path';
 import { apiGetCategories } from './store/asyncActions'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,6 +20,7 @@ function App() {
     <div className="font-main h-screen">
       {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>
+        <Route path={path.CHECKOUT} element={<Checkout />} />
         <Route path={path.PUBLIC} element={<Public />} >
           <Route path={path.HOME} element={<Home />} />
           <Route path={path.FAQS} element={<FAQ />} />
