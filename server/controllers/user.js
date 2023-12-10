@@ -404,7 +404,7 @@ const addProductToCart = asyncHandler(async (req, res) => {
             mess: 'User cart not found'
         });
     }
-    const existingProduct = cart?.products.find(product => product.product.toString() === pid)
+    const existingProduct = cart?.products?.find(product => product.product.toString() === pid)
     if (existingProduct) {
         existingProduct.quantity += +newQuantity;
     } else {
