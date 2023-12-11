@@ -23,11 +23,13 @@ var userSchema = new mongoose.Schema({
         required: true,
     },
     address: {
+        default: '',
         type: String,
         // required: true,
     },
     birthday: {
         type: Date,
+        default: Date.now,
 
     },
     phone: {
@@ -42,6 +44,7 @@ var userSchema = new mongoose.Schema({
         },
     },
     avatar: {
+        default: '',
         type: String,
     },
     wishlist: [{ type: mongoose.Types.ObjectId, ref: 'Product' }],

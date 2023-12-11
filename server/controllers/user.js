@@ -227,14 +227,24 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async(req, res) => {
     const {_id} = req.user;
-    const {firstname, lastname, email, avatar, mobile} = req.body
-    const data = {firstname, lastname, email, avatar, mobile}
-    if (req.file) data.avatar = req.file.path
+    const { name, phone, address, birthday } = req.body
     if(!_id || Object.keys(req.body).length === 0) throw new Error('Missing Inputs')
-    const response = await User.findByIdAndUpdate(_id, data, {new: true}).select("-password -role -refreshToken");
+    const response = await User.findByIdAndUpdate(_id, req.body, { new: true }).select("-__v -password -role -refreshToken");
     return res.status(200).json({
         success: response ? true : false,
         updatedUser: response ? response : 'Something went wrong'
+    })
+})
+const uploadAvatar = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    if (!req.file) {
+        throw new Error('Missing inputs')
+    }
+    const avatarPath = req.file.path;
+    const user = await User.findByIdAndUpdate(_id, { $set: { avatar: avatarPath } }, { new: true })
+    return res.status(200).json({
+        status: user ? true : false,
+        updated: user ? user : 'Cannot upload images'
     })
 })
 
@@ -464,7 +474,8 @@ module.exports = {
     addProductToCart,
     finalRegister,
     removeProductFromCart,
-    getUserCart
+    getUserCart,
+    uploadAvatar
 
 }
 
