@@ -51,16 +51,16 @@ export const apiGetUserCart = () => axios({
     method: 'get',
 })
 export const apiUpdateUser = (data, uid) => axios({
-    url: '/user/'+uid,
+    url: '/user/' + uid,
     method: 'put',
     data
 })
 export const apiDeleteUser = (uid) => axios({
-    url:'/user/'+uid,
+    url: '/user/' + uid,
     method: 'delete',
 })
 export const apiUpdateUser1 = (data) => axios({
-    url:'/user/currentUser',
+    url: '/user/customer',
     method: 'put',
     data
 })
