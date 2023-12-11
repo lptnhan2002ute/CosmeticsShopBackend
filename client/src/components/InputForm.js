@@ -1,9 +1,9 @@
 import React, { memo } from 'react'
 import clsx from 'clsx'
 
-const InputForm = ({label, disabled, register, errols, id, validate, type='text', placeholder, fw, defaultValue}) => {
+const InputForm = ({style, label, disabled, register, errols, id, validate, type='text', placeholder, fw, defaultValue}) => {
     return (
-        <div className='flex flex-col h-[78px] gap-2'>
+        <div className={clsx('flex flex-col h-[78px] gap-2', style)}>
             {label && <label htmlFor={id}>{label}</label>}
             <input 
             type={type}
@@ -11,7 +11,7 @@ const InputForm = ({label, disabled, register, errols, id, validate, type='text'
             {...register(id, validate)}
             disabled={disabled}
             placeholder={placeholder}
-            className={clsx('form-input', fw && 'w-full')}
+            className={clsx('form-input px-[20px] my-auto border border-main', fw && 'w-full', style)}
             defaultValue={defaultValue}
             />
             {errols[id] && <small className='text-xs text-red-500'>{errols[id]?.message}</small>}

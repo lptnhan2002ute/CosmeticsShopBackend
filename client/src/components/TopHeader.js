@@ -31,7 +31,7 @@ const TopHeader = () => {
         })
     }, [mess])
     return (
-        <div className='w-full h-[38px] bg-main flex justify-center items-center'>
+        <div className='w-full h-[38px] bg-main flex justify-center items-center pt-3 pb-3'>
             <div className='w-main flex  items-center justify-between text-xs text-white '>
                 <span className='hover:text-black cursor-pointer'>ĐẶT HÀNG TRỰC TUYẾN HOẶC GỌI CHO CHÚNG TÔI (+1800) 000 2008</span>
                 {isLoggedIn && current ? (

@@ -1,68 +1,62 @@
-import React,{useEffect, useState} from 'react'
+import React,{memo, useEffect, useState} from 'react'
 import { InputForm, Select, ButtonAdmin } from '../../components'
 import { useForm } from 'react-hook-form'
 import {useSelector } from 'react-redux'
-import { apiGetAllBrand, apiCreateProduct } from '../../apis'
+import { apiGetAllBrand, apiUpdateProduct } from '../../apis'
 import { toast } from 'react-toastify'
 import {Spin} from 'antd'
+import { useNavigate } from 'react-router-dom'
 
-const CreateProduct = () => {
+
+
+const UpdateProduct = ({editProduct, render, setEditProduct}) => {
     const{categories} = useSelector(state => state.app)
     const[brand, setBrand] = useState([])
-    const [avatar, setAvatar] = useState(null)
-    const [imageError, setImageError] = useState(null)
     const [loading, setLoading] = useState(false)
-    const handleChooseImage = (e) => {
-        const file = e.target.files[0]
-        file.preview = URL.createObjectURL(file)
-
-        setAvatar(file)
-        console.log('1')
-    }
     const fetchBrands = async () => { 
         const response = await apiGetAllBrand()
         if (response.success) setBrand(response.brandList)
     }
+    const handleBack = () => {
+        setEditProduct(null)
+    }
+    useEffect(() =>{
+        reset({
+            productName: editProduct?.productName || '',
+            price: editProduct?.price || '',
+            description: editProduct?.description || '',
+            stockQuantity: editProduct?.stockQuantity || '',
+            category: editProduct?.category.categoryName || '',
+            brand: editProduct?.brand.brandName || ''
+        })
+    },[editProduct])
     useEffect(() => {
         fetchBrands()
-      },[])
-    useEffect(() => {
-        return () => {
-            avatar && URL.revokeObjectURL(avatar.preview)
-        }
-    }, [avatar]);  
-    
+      },[]) 
     const {register, formState: {errors}, reset, handleSubmit, setError} = useForm()
     const handleCreateProduct = async (data) => {
-        if (avatar){
-            const formData = new FormData()
-            formData.append('images', avatar)
-            Object.keys(data).forEach(key => formData.append(key, data[key]))
             setLoading(true)
             try {
-                const response = await apiCreateProduct(formData)
+                const response = await apiUpdateProduct(data, editProduct._id)
                 if (response.success){
-                 toast.success('Thêm sản phẩm thành công')
-                 reset() 
-                 setAvatar(null)
+                 toast.success('Sửa sản phẩm thành công')
+                 setEditProduct(null)
+                 render()
                 } else toast.error(response.mess)
                 setLoading(false)
             } catch (error) {
                 setLoading(false)
             }
-        } else{
-              setImageError('Không được để trống ảnh')
-
-        }
     }
     return (
         <Spin size='large' spinning={loading}>
-            <div className='w-full'>
-            <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
-                <span>Tạo sản phẩm</span>
-            </h1>
-            <div className='p-4 '>
-                <form onSubmit={handleSubmit(handleCreateProduct)}>
+             <div className='w-full flex flex-col gap-4 relative'>
+            <div className='h-[69px] w-full'></div>
+            <div className='p-4 border-b w-full flex justify-between items-center border-main fixed top-0 bg-gray-100'>
+            <h1 className='text-3xl font-bold tracking-tight '>Cập nhật sản phẩm</h1>
+            </div>
+
+            <form onSubmit={handleSubmit(handleCreateProduct)}>
                     <InputForm 
                     label='Tên sản phẩm'
                     register={register}
@@ -117,7 +111,7 @@ const CreateProduct = () => {
                         />
                         <Select 
                         label='Brand'
-                        options={brand?.map(el => ({code: el._id, value: el.brandName}))}
+                        options={brand?.map(el => ({code: el?._id, value: el?.brandName}))}
                         register={register}
                         id='brand'
                         validate={{required: 'Vui lòng nhập trường này'}}
@@ -140,25 +134,15 @@ const CreateProduct = () => {
                     />
                         </div>
                     </div>
-                    <div className='flex flex-col gap-2 mt-8'>
-                        <label className='font-semibold' htmlFor='images'>Tải ảnh lên</label>
-                        <input type='file' id='images'
-                        onChange={(e) => handleChooseImage(e)}
-                        register={register}
-                        />
-                        {imageError && <small className='text-xs text-red-500'>{imageError}</small>}
-                        {
-	                      avatar && <img className='h-[150px] w-[150px]' src={avatar.preview} />
-                        }
-                    </div>
-                    <div className='my-6'>
-                    <ButtonAdmin type='submit'>Tạo sản phẩm mới</ButtonAdmin>
+                    <div className='my-6 flex items-center'>
+                    <ButtonAdmin type='submit'>Cập nhật sản phẩm</ButtonAdmin>
+                    <div onClick={handleBack} className='px-[10px] py-[8px] w-[80px] bg-orange-500 text-white rounded-[6px] ml-[50px] cursor-pointer flex items-center justify-center'>Trở về</div>
                     </div>
                 </form>
-            </div>
         </div>
         </Spin>
+        
     )
 }
 
-export default CreateProduct
+export default memo(UpdateProduct) 

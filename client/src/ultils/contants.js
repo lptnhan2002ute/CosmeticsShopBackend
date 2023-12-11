@@ -19,12 +19,12 @@ export const navigation = [
     },
     {
         id: 4,
-        value: 'OUR SERVICES',
+        value: 'FREE SHIPPING',
         path: `/${path.OUR_SERVICES}`
     },
     {
         id: 5,
-        value: 'FAQS',
+        value: 'QUESTIONS',
         path: `/${path.FAQS}`
     }
 ]
@@ -93,7 +93,7 @@ export  const adminSidebar = [
                path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
             },
             {
-                text: 'Manege product',
+                text: 'Manage product',
                 path: `/${path.ADMIN}/${path.MANAGE_PRODUCT}`
             }
         ]
