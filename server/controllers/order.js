@@ -81,6 +81,12 @@ const updateStatus = asyncHandler(async (req, res) => {
     if (!status) throw new Error('Missing inputs')
     const orderBeforeUpdate = await Order.findById(oid).populate('products.product');
     const currentStatus = orderBeforeUpdate.status;
+    if (currentStatus === 'Cancelled') {
+        return res.status(400).json({
+            success: false,
+            mess: 'Cannot update a cancelled order',
+        });
+    }
     if (status === 'Cancelled' && currentStatus !== 'Cancelled') {
         // Cập nhật stockQuantity và soldQuantity của từng sản phẩm trong đơn hàng
         await Promise.all(
