@@ -114,7 +114,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
             </div>}
             <div onClick={e => e.stopPropagation()} className={clsx('w-main bg-white m-auto mt-4 flex', isQuickView ? 'max-w-[900px] gap-8 p-8 max-h-[80vh] overflow-y-auto' : 'w-main')}>
                 <div className={clsx('w-2/5 flex flex-col gap-4', isQuickView && 'w-1/2')}>
-                    <img src={product?.imageUrl} alt='ảnh' className='h-[458px] w-[458px] object-cover border' />
+                    <img src={product?.imageUrl[0]} alt='ảnh' className='h-[458px] w-[458px] object-cover border' />
                     <div className='w-[458px]'>
                         <Slider className='image-slider' {...settings}>
                             {product?.imageUrl?.map(el => (

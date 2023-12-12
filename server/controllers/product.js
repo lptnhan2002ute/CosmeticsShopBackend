@@ -127,13 +127,13 @@ const updateProduct = asyncHandler(async (req, res) => {
     })
 })
 
-const deleteProduct = asyncHandler(async (req, res) => {
-    const { pid } = req.params
-    if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName)
-    const deletedProduct = await Product.findByIdAndDelete(pid)
+const deleteProduct = asyncHandler(async(req, res) => {
+    const {pid} = req.params
+    if (!pid) throw new Error("Missing Inputs")
+    const deletedProduct = await Product.findByIdAndDelete(pid);
     return res.status(200).json({
         success: deletedProduct ? true : false,
-        deletedProduct: deletedProduct ? deletedProduct : 'Delete product is failed'
+        deletedProduct: deletedProduct ? deletedProduct : "Cannot delete product"
     })
 })
 

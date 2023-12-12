@@ -15,7 +15,7 @@ const AdminLayout = () => {
                 <AdminSidebar />
             </div>
             <div className='w-[327px]'></div>
-            <div className='flex-auto'>
+            <div className='flex-1 overflow-x-scroll'>
                 <Outlet />
             </div>
         </div>

@@ -225,14 +225,42 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 
 
-const updateUser = asyncHandler(async(req, res) => {
-    const {_id} = req.user;
-    const { name, phone, address, birthday } = req.body
-    if(!_id || Object.keys(req.body).length === 0) throw new Error('Missing Inputs')
-    const response = await User.findByIdAndUpdate(_id, req.body, { new: true }).select("-__v -password -role -refreshToken");
+const updateUser = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+
+    // Update user information (except avatar)
+    const { name, phone, address, birthday } = req.body;
+    const updatedUserData = { name, phone, address, birthday };
+
+    if (!_id || Object.keys(updatedUserData).length === 0) {
+        throw new Error('Missing input for user update!!');
+    }
+    const updateQuery = {
+        ...updatedUserData,
+        ...(req.file && { avatar: req.file.path }), // Add avatar only if file is provided
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(_id, updateQuery, { new: true }).select("-__v -password -role -refreshToken");
+
+    if (!updatedUser) {
+        throw new Error('Something went wrong while updating user information');
+    }
+
     return res.status(200).json({
-        success: response ? true : false,
-        updatedUser: response ? response : 'Something went wrong'
+        success: true,
+        updatedUser,
+    });
+})
+const uploadAvatar = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    if (!req.file) {
+        throw new Error('Missing inputs')
+    }
+    const avatarPath = req.file.path;
+    const user = await User.findByIdAndUpdate(_id, { $set: { avatar: avatarPath } }, { new: true })
+    return res.status(200).json({
+        status: user ? true : false,
+        updated: user ? user : 'Cannot upload images'
     })
 })
 const uploadAvatar = asyncHandler(async (req, res) => {
@@ -387,9 +415,9 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 const updateUserByAdmin = asyncHandler(async (req, res) => {
     // req.params
-    const {uid} = req.params;
-    if(Object.keys(req.body).length === 0) throw new Error('Missing Inputs')
-    const response = await User.findByIdAndUpdate(uid, req.body, {new: true}).select("-password -role -refreshToken");
+    const { uid } = req.params;
+    if (Object.keys(req.body).length === 0) throw new Error('Missing Inputs')
+    const response = await User.findByIdAndUpdate(uid, req.body, { new: true }).select("-password -role -refreshToken");
     return res.status(200).json({
         success: response ? true : false,
         mes: response ? 'Update Successfully' : 'Something went wrong'

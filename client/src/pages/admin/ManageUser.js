@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState} from 'react'
-import { apiGetUsers, apiUpdateUser } from '../../apis/user'
+import { apiGetUsers, apiUpdateUser, apiDeleteUser } from '../../apis/user'
 import moment from 'moment' 
-import { InputField, InputForm, Select, ButtonAdmin } from '../../components'
+import { InputField, InputForm, ButtonAdmin } from '../../components'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-
+import Swal from 'sweetalert2'
+import clsx from 'clsx'
 
 const ManageUser = () => {
     const {handleSubmit, register, formState: { errors }} = useForm({
@@ -40,8 +41,23 @@ const ManageUser = () => {
         toast.success(response.mes)
     }else toast.error(response.mes)
    }
+   const handlerDeleteUser = (uid) => {
+      Swal.fire({
+        title: 'Bạn có chắc chắn muốn xóa???',
+        text: 'Bạn đã sẵn sàng xóa chưa???',
+        showCancelButton: true
+      }).then(async(result) => {
+        if(result.isConfirmed) {
+            const response = await apiDeleteUser(uid)
+            if (response.success){
+            render()
+            toast.success(response.message)
+         } else toast.error(response.message)
+        }
+      })
+}
     return(
-        <div className='w-full pl-8'>
+        <div className={clsx('w-full', editE && 'pl-16')}>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
                 <span>Quản Lí Thành Viên</span>
             </h1>
@@ -58,10 +74,10 @@ const ManageUser = () => {
                 </div>
                 <form onSubmit={handleSubmit(handleUpdate)} >
                    {editE && <ButtonAdmin type='submit'>Cập nhật</ButtonAdmin> }
-                <table className='table-auto mb-6 text-left w-full'>
+                <table className='table-auto mb-6 text-left w-full ml-4'>
                     <thead className='font-bold bg-gray-700 text-[13px] text-white'>
                        <tr className='border border-gray-500'>
-                       <th className='px-4 py-2 '>#</th>
+                       <th className='px-4 py-2 '>STT</th>
                        <th className='px-4 py-2 '>Địa chỉ email</th>
                        <th className='px-4 py-2 '>Tên người dùng</th>
                        <th className='px-4 py-2 '>Quyền</th>
@@ -85,7 +101,14 @@ const ManageUser = () => {
                             id={'name'}
                             validate={{required: 'Yêu cầu nhập '}}
                             /> : <span>{el.name}</span>}</td>
-                            <td className='py-2 px-4'>{editE?._id === el._id ? <Select /> : <span>{el.role}</span>}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id ? <InputForm
+                            fw
+                            register={register}
+                            errols={errors}
+                            defaultValue={editE?.role}
+                            id={'role'}
+                            validate={{required: 'Yêu cầu nhập '}}
+                            /> : <span>{el.role}</span>}</td>
                             <td className='py-2 px-4'>{editE?._id === el._id 
                             ? <InputForm 
                             fw
@@ -102,12 +125,20 @@ const ManageUser = () => {
                         
                             }}
                             /> : <span>{el.phone}</span>}</td>
-                            <td className='py-2 px-4'>{editE?._id === el._id ? <Select /> : <span>{el.status ? 'Active' : 'Blocked'}</span>}</td>
+                            <td className='py-2 px-4'>{editE?._id === el._id 
+                            ? <InputForm
+                            fw
+                            register={register}
+                            errols={errors}
+                            defaultValue={editE?.status}
+                            id={'status'}
+                            validate={{required: 'Yêu cầu nhập '}}     
+                            /> : <span>{el.status ? 'Hoạt động' : 'Khóa'}</span>}</td>
                             <td className='py-2 px-4'>{moment(el.createdAt).format('DD/MM/YYYY')}</td>
                             <td className='py-2 px-4'>
                                 {editE?._id === el._id ? <span onClick={() => seteditE(null)} className='px-2 text-main hover:underline cursor-pointer'>Back</span>
                                 : <span onClick={() => seteditE(el)} className='px-2 text-main hover:underline cursor-pointer'>Edit</span>}
-                                <span className='px-2 text-main hover:underline cursor-pointer'>Delete</span>
+                                <span onClick={() => handlerDeleteUser(el._id)} className='px-2 text-main hover:underline cursor-pointer'>Delete</span>
                             </td>
                         </tr>
                        ))}

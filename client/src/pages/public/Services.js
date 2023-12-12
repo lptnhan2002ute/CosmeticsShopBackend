@@ -2,7 +2,7 @@ import React from 'react'
 
 const Services = () => {
     return (
-        <div>Services</div>
+        <div>Miễn phí vận chuyển 0 đồng</div>
     )
 }
 
