@@ -196,15 +196,16 @@ const MyCart = () => {
                             </p>
                         </div>
                     </div>
-                    <button disabled={total === 0} className="mt-6 disabled: disabled:bg-slate-200 disabled:text-[#333] w-full rounded-md bg-blue-500 py-1.5 font-medium text-blue-50 hover:bg-blue-600">
-                        <Link
-                            disabled={true}
-                            to={`/${path.CHECKOUT}`}
-                            state={{ listCheckout }}
-                        >
+                    <Link
+                        disabled={true}
+                        to={`/${path.CHECKOUT}`}
+                        state={{ listCheckout }}
+                    >
+                        <button disabled={total === 0} className="mt-6 disabled: disabled:bg-slate-200 disabled:text-[#333] w-full rounded-md bg-blue-500 py-1.5 font-medium text-blue-50 hover:bg-blue-600">
                             Thanh toán
-                        </Link>
-                    </button>
+                        </button>
+                    </Link>
+
                 </div>
             </div>
         </div>

@@ -13,6 +13,18 @@ const createVoucher = asyncHandler(async (req, res) => {
         newVoucher: voucher ? voucher : 'Can not be created new voucher'
     })
 })
+
+const findByName = asyncHandler(async (req, res) => {
+    const { name } = req.body
+
+    const voucher = await Voucher.findOne({ name }).exec()
+
+    return res.status(201).json({
+        success: voucher ? true : false,
+        result: voucher ? "" : 'voucher is not existing'
+    })
+})
+
 const getAllVouchers = asyncHandler(async (req, res) => {
     const voucher = await Voucher.find().select('name _id discount expire')
     return res.status(200).json({
@@ -47,5 +59,6 @@ module.exports = {
     createVoucher,
     getAllVouchers,
     updateVoucher,
-    deleteVoucher
+    deleteVoucher,
+    findByName
 }

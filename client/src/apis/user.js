@@ -64,3 +64,14 @@ export const apiUpdateUser1 = (data) => axios({
     method: 'put',
     data
 })
+
+export const apiOrder = (data) => axios({
+    url: "/bill",
+    method: "post",
+    data
+})
+
+export const apiGetOrderUser = () => axios({
+    url: "/bill",
+    method: "get"
+})

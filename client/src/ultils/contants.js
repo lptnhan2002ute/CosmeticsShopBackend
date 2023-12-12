@@ -138,4 +138,4 @@ export const memberSidebar = [
     }
 ]
 
-export const cash = "cash"
+export const cash = "Cash"

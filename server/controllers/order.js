@@ -5,28 +5,29 @@ const asyncHandler = require('express-async-handler')
 
 const createOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const userCart = await Cart.findOne({ userId: _id }).select('userId products').populate('products.product', 'productName price');
-    const orderedProducts = req.body.products || [];
-    const existingProducts = userCart.products.filter(productItem =>
-        orderedProducts.find(orderedItem => orderedItem.product.toString() === productItem.product._id.toString())
-    );
-    // Kiểm tra xem số lượng sản phẩm trong yêu cầu đặt hàng có vượt quá số lượng trong giỏ hàng hay không
-    for (const orderedItem of orderedProducts) {
-        const cartProduct = userCart.products.find(productItem => productItem.product._id.toString() === orderedItem.product);
-        if (!cartProduct || cartProduct.quantity < orderedItem.quantity) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid quantity for one or more products',
-            });
-        }
-    }
-    let total = 0;
-    const paidProducts = [];
-    existingProducts.forEach((productItem) => {
-        total += productItem.product.price * productItem.quantity;
-        paidProducts.push(productItem.product._id);
-    });
+    // const userCart = await Cart.findOne({ userId: _id }).select('userId products').populate('products.product', 'productName price');
+    // const orderedProducts = req.body.products || [];
+    // const existingProducts = userCart.products.filter(productItem =>
+    //     orderedProducts.find(orderedItem => orderedItem.product.toString() === productItem.product._id.toString())
+    // );
+    // // Kiểm tra xem số lượng sản phẩm trong yêu cầu đặt hàng có vượt quá số lượng trong giỏ hàng hay không
+    // for (const orderedItem of orderedProducts) {
+    //     const cartProduct = userCart.products.find(productItem => productItem.product._id.toString() === orderedItem.product);
+    //     if (!cartProduct || cartProduct.quantity < orderedItem.quantity) {
+    //         return res.status(400).json({
+    //             success: false,
+    //             message: 'Invalid quantity for one or more products',
+    //         });
+    //     }
+    // }
+    // let total = 0;
+    // const paidProducts = [];
+    // existingProducts.forEach((productItem) => {
+    //     total += productItem.product.price * productItem.quantity;
+    //     paidProducts.push(productItem.product._id);
+    // });
     const voucher = req.body.voucher;
+    let total = req.body.total;
     if (voucher) {
         const selectedVoucher = await Voucher.findById(voucher);
         if (!selectedVoucher) {
@@ -38,12 +39,12 @@ const createOrder = asyncHandler(async (req, res) => {
         total *= 1 - selectedVoucher.discount / 100;
         total = Math.round(total / 1000) * 1000;
     }
-    const productsToOrder = existingProducts.map(item => ({
-        product: item.product._id,
-        count: item.quantity,
-    }));
+    // const productsToOrder = existingProducts.map(item => ({
+    //     product: item.product._id,
+    //     count: item.quantity,
+    // }));
     const data = {
-        products: productsToOrder,
+        products: req.body.products,
         orderBy: _id,
         total: total,
         voucher: voucher || null,
@@ -53,6 +54,12 @@ const createOrder = asyncHandler(async (req, res) => {
         note: req.body.note || '',
         paymentMethod: req.body.paymentMethod || 'Cash',
     };
+
+    const paidProducts = [];
+
+    data.products.forEach((productItem) => {
+        paidProducts.push(productItem.product)
+    });
 
     // Tạo đơn hàng
     const result = await Order.create(data);
@@ -79,7 +86,7 @@ const updateStatus = asyncHandler(async (req, res) => {
 
 const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const result = await Order.find({ orderBy: _id })
+    const result = await Order.find({ orderBy: _id }).populate('products.product').exec()
     return res.json({
         success: result ? true : false,
         result: result ? result : 'Error for order'

@@ -263,18 +263,6 @@ const uploadAvatar = asyncHandler(async (req, res) => {
         updated: user ? user : 'Cannot upload images'
     })
 })
-const uploadAvatar = asyncHandler(async (req, res) => {
-    const { _id } = req.user;
-    if (!req.file) {
-        throw new Error('Missing inputs')
-    }
-    const avatarPath = req.file.path;
-    const user = await User.findByIdAndUpdate(_id, { $set: { avatar: avatarPath } }, { new: true })
-    return res.status(200).json({
-        status: user ? true : false,
-        updated: user ? user : 'Cannot upload images'
-    })
-})
 
 const changePassword = asyncHandler(async (req, res) => {
     const { _id } = req.user;
