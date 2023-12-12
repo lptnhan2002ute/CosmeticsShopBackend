@@ -66,8 +66,8 @@ export const productInformation = [
 
     }
 ]
-const {AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine} = icons
-export  const adminSidebar = [
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine } = icons
+export const adminSidebar = [
     {
         id: 1,
         type: 'single',
@@ -89,8 +89,8 @@ export  const adminSidebar = [
         icon: <TbBrandProducthunt />,
         submenu: [
             {
-               text: 'Create product',
-               path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
+                text: 'Create product',
+                path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
             },
             {
                 text: 'Manege product',
@@ -107,7 +107,7 @@ export  const adminSidebar = [
     }
 ]
 
-export  const memberSidebar = [
+export const memberSidebar = [
     {
         id: 1,
         type: 'single',
@@ -137,3 +137,5 @@ export  const memberSidebar = [
         icon: <RiBillLine />
     }
 ]
+
+export const cash = "cash"

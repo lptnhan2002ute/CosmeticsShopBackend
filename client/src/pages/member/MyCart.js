@@ -7,7 +7,7 @@ import { updateCart } from '../../store/users/userSlice';
 import { CloseOutlined } from '@ant-design/icons';
 import path from '../../ultils/path';
 import withBaseComponent from '../../hocs/withBaseComponent';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MyCart = () => {
     const navigate = useNavigate()
@@ -196,8 +196,14 @@ const MyCart = () => {
                             </p>
                         </div>
                     </div>
-                    <button disabled={total === 0} onClick={() => {window.open(`/${path.CHECKOUT}`, '_blank').focus()}} className="mt-6 disabled:bg-slate-200 disabled:text-[#333] w-full rounded-md bg-blue-500 py-1.5 font-medium text-blue-50 hover:bg-blue-600">
-                        Thanh toán
+                    <button disabled={total === 0} className="mt-6 disabled: disabled:bg-slate-200 disabled:text-[#333] w-full rounded-md bg-blue-500 py-1.5 font-medium text-blue-50 hover:bg-blue-600">
+                        <Link
+                            disabled={true}
+                            to={`/${path.CHECKOUT}`}
+                            state={{ listCheckout }}
+                        >
+                            Thanh toán
+                        </Link>
                     </button>
                 </div>
             </div>
