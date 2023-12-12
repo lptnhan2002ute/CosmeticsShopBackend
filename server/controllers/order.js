@@ -94,7 +94,7 @@ const getUserOrder = asyncHandler(async (req, res) => {
 })
 
 const getAllOrders = asyncHandler(async (req, res) => {
-    const result = await Order.find()
+    const result = await Order.find().populate('products.product').exec()
     return res.json({
         success: result ? true : false,
         result: result ? result : 'Error for order'

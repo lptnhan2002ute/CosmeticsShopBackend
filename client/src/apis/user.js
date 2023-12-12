@@ -75,3 +75,14 @@ export const apiGetOrderUser = () => axios({
     url: "/bill",
     method: "get"
 })
+
+export const apiGetAllOrder = () => axios({
+    url: "/bill/admin",
+    method: "get"
+})
+
+export const apiUpdateOrder = (data, oid) => axios({
+    url: `/bill/status/${oid}`,
+    method: "put",
+    data
+})
