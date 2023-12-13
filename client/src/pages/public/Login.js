@@ -79,7 +79,7 @@ const Login = () => {
                         dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
                         setTimeout(async () => {
                             searchParams.get('redirect') ? await navigate(searchParams.get('redirect')): await navigate(`/${path.HOME}`);
-                        }, 100); // 100ms
+                        }, 200); // 200ms
                     }
                     else {
                         Swal.fire('OOPS@', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!', 'error')
