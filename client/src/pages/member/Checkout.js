@@ -59,7 +59,7 @@ const Checkout = () => {
                     onOk() { navigate("/products") },
                 });
             } else {
-                toast.error("Lỗi", response.mess)
+                toast.error(response.mess)
             }
             setLoading(false)
         } catch (err) {
