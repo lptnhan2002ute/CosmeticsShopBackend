@@ -39,10 +39,10 @@ const createOrder = asyncHandler(async (req, res) => {
     });
 
     // Tạo đơn hàng
-    
-    const orderedProducts = data.products
 
-    // Cập nhật stockQuantity và soldQuantity của từng sản phẩm trong đơn hàng
+    const orderedProducts = data.products
+    const soldOutProducts = []
+
     await Promise.all(
         orderedProducts.map(async (productItem) => {
             const productId = productItem.product;
@@ -57,22 +57,30 @@ const createOrder = asyncHandler(async (req, res) => {
                     // Lưu cập nhật của sản phẩm
                     await product.save();
                 }
-                else
-                    return res.status(400).json({
-                        success: false,
-                        mess: 'Không đủ số lượng sản phẩm để mua',
-                        product: product
-                    }); 
+                else {
+                    soldOutProducts.push(product);
+                }
             }
         })
-    );
-    const result = await Order.create(data);
-    await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
+    )
 
-    return res.status(201).json({
-        success: result ? true : false,
-        result: result ? result : 'Error for order'
-    });
+    if (soldOutProducts.length > 0) {
+        return res.status(400).json({
+            success: false,
+            status: "soldout",
+            mess: 'Không đủ số lượng sản phẩm để mua',
+            product: soldOutProducts
+        });
+    } else {
+
+        const result = await Order.create(data);
+        await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
+
+        return res.status(201).json({
+            success: result ? true : false,
+            result: result ? result : 'Error for order'
+        })
+    }
 })
 
 const updateStatus = asyncHandler(async (req, res) => {

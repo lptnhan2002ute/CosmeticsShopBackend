@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import logo from "../../assets/logo.svg.png"
 import { cash } from '../../ultils/contants'
 import { useLocation, useNavigate } from "react-router-dom"
-import { Button, Form, Input, Modal } from 'antd';
+import { Button, Form, Input, message, Modal } from 'antd';
 import { apiGetUserCart, apiOrder } from '../../apis'
 import { toast } from 'react-toastify'
 import { useDispatch } from 'react-redux'
@@ -19,16 +19,22 @@ const Checkout = () => {
     const location = useLocation()
     const { listCheckout } = location.state || []
     const [loading, setLoading] = React.useState(false)
+    const [list, setList] = React.useState([])
 
     React.useEffect(() => {
 
-        const result = listCheckout.reduce((acc, curr) => acc + curr.quantity * curr.product.price, 0)
-        setTotal(result)
+        setList(listCheckout)
     }, [])
+
+    React.useEffect(() => {
+
+        const result = list.reduce((acc, curr) => acc + curr.quantity * curr.product.price, 0)
+        setTotal(result)
+    }, [list])
 
     const onFinish = async (values) => {
 
-        const products = listCheckout.map(item => ({
+        const products = list.map(item => ({
             product: item.product._id,
             count: item.quantity,
         }))
@@ -43,7 +49,6 @@ const Checkout = () => {
         try {
             setLoading(true)
             const response = await apiOrder(dataOrder)
-            console.log(response)
             if (response.success) {
 
                 const getCarts = await apiGetUserCart()
@@ -59,7 +64,63 @@ const Checkout = () => {
                     onOk() { navigate("/products") },
                 });
             } else {
-                toast.error(response.mess)
+                if (response.status == "soldout") {
+
+                    if (response.product.length == listCheckout.length) {
+
+                        Modal.warning({
+                            title: 'Lưu ý',
+                            content: (
+                                <div className='flex flex-col items-center justify-center'>
+                                    {
+                                        response.product.map(productItem => (
+                                            <p key={productItem._id} className='text-[16px] text-[#333] font-[500]'>
+                                                {productItem.productName}
+                                            </p>
+                                        ))
+                                    }
+                                    <p>Hiện tại đã hết hàng. Vui lòng chọn sản phẩm khác để đặt hàng</p>
+                                </div>
+                            ),
+                            onOk() { navigate("/products") },
+                        });
+                    } else {
+
+                        Modal.confirm({
+                            title: 'Lưu ý',
+                            content: (
+                                <div className='flex flex-col'>
+                                    {
+                                        response.product.map(productItem => (
+                                            <p key={productItem._id} className='text-[16px] text-[#333] font-[500]'>
+                                                {productItem.productName}
+                                            </p>
+                                        ))
+                                    }
+                                    <p>Hiện tại đã hết hàng. Vui lòng</p>
+                                    <p>Nhấn <span className='font-[600]'>[Tiếp tục]</span> để đặt các sản phẩm còn lại</p>
+                                    <p>Nhấn <span className='font-[600]'>[Hủy]</span> để hủy đặt hàng</p>
+                                </div>
+                            ),
+                            onOk() {
+
+                                const newList = list.filter(listItem => !response.product.some(pItem => pItem._id == listItem.product._id))
+                                console.log(newList)
+                                setList(newList)
+                                message.info("Tiếp tục mua hàng")
+                            },
+                            onCancel() {
+                                navigate("/")
+                                message.info("Đã hủy đặt hàng")
+                            },
+                            okText: "Tiếp tục",
+                            cancelText: "Hủy"
+                        });
+                    }
+                } else {
+
+                    toast.error(response.mess)
+                }
             }
             setLoading(false)
         } catch (err) {
@@ -87,7 +148,7 @@ const Checkout = () => {
                         <div class="mt-8 space-y-3 rounded-lg border bg-white px-2 py-4 sm:px-6">
 
                             {
-                                listCheckout.map(item => (
+                                list.map(item => (
                                     <div key={item.product._id} class="flex flex-col rounded-lg bg-white sm:flex-row">
                                         <img class="m-2 h-24 w-28 rounded-md border object-contain" src={item.product.image[0]} alt="" />
                                         <div class="flex w-[350px] flex-col px-4 py-4">

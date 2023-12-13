@@ -8,11 +8,19 @@ const History = () => {
 
     const [allListOrder, setAllListOrder] = React.useState([])
     const [filterListOrder, setFilterListOrder] = React.useState([])
+    const [key, setKey] = React.useState("All")
+    const [fetch, setFetch] = React.useState(false)
 
     useEffect(() => {
 
         fetchOrder()
-    }, [])
+    }, [fetch])
+
+    useEffect(() => {
+
+        const newList = allListOrder.filter(order => order.status == key)
+        setFilterListOrder(newList)
+    }, [allListOrder, key])
 
     const fetchOrder = async () => {
         const response = await apiGetOrderUser()
@@ -23,10 +31,7 @@ const History = () => {
 
     const callback = (key) => {
 
-        if (key !== "All") {
-            const newList = allListOrder.filter(order => order.status == key)
-            setFilterListOrder(newList)
-        }
+        setKey(key)
     }
 
     return (
@@ -40,19 +45,19 @@ const History = () => {
 
                         <Tabs className='text-[16px] text-[#333]' defaultActiveKey="1" onChange={callback}>
                             <TabPane tab="Tất cả" key="All">
-                                <HistoryOrderItem listOrder={allListOrder} />
+                                <HistoryOrderItem setFetch={setFetch} listOrder={allListOrder} />
                             </TabPane>
                             <TabPane tab="Chờ xác nhận" key="Pending">
-                                <HistoryOrderItem listOrder={filterListOrder} />
+                                <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
                             </TabPane>
                             <TabPane tab="Đang giao" key="Confirmed">
-                                <HistoryOrderItem listOrder={filterListOrder} />
+                                <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
                             </TabPane>
                             <TabPane tab="Hoàn thành" key="Shipped">
-                                <HistoryOrderItem listOrder={filterListOrder} />
+                                <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
                             </TabPane>
                             <TabPane tab="Đã hủy" key="Cancelled">
-                                <HistoryOrderItem listOrder={filterListOrder} />
+                                <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
                             </TabPane>
                         </Tabs>
 
