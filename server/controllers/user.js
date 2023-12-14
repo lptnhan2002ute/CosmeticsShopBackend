@@ -59,7 +59,7 @@ const registerGuest = asyncHandler(async (req, res) => {
 });
 const finalRegister = asyncHandler(async (req, res) => {
   const { token } = req.params;
-  const user = User.findOne({ secretToken: token.trim() });
+  const user = await User.findOne({ secretToken: token.trim() });
   console.log(user)
   if (user) {
     user.status = true;
