@@ -17,6 +17,7 @@ export const userSlice = createSlice({
             state.isLoggedIn = action.payload.isLoggedIn
             // state.current = action.payload.userData
             state.token = action.payload.token
+            state.cart = JSON.parse(localStorage.getItem("cart")) || []
         },
         logout: (state, action) => {
             state.isLoggedIn = false

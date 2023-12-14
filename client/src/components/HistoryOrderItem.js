@@ -1,7 +1,9 @@
 import { Button } from 'antd'
 import React from 'react'
+import { toast } from 'react-toastify';
+import { apiUpdateOrder } from '../apis';
 
-function HistoryOrderItem({ listOrder }) {
+function HistoryOrderItem({ setFetch, listOrder }) {
 
     const formatDate = (dataDate) => {
 
@@ -11,6 +13,20 @@ function HistoryOrderItem({ listOrder }) {
         const formattedTime = date.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
         return formattedTime + ' ' + formattedDate;
+    }
+
+    const handleCancel = async (oid) => {
+
+        const response = await apiUpdateOrder({ status: 'Cancelled' }, oid)
+
+        if (response.success) {
+
+            setFetch(prev => !prev)
+            toast.success("Hủy thành công")
+        } else {
+
+            toast.success(response.mess)
+        }
     }
 
     return (
@@ -68,8 +84,8 @@ function HistoryOrderItem({ listOrder }) {
                                     </div>
                                 ))
                             }
-                            <div className='mt-[20px]'>
-                                <Button className='cursor-default ' type='primary'>
+                            <div className='mt-[20px] flex items-center gap-[40px]'>
+                                <Button className='cursor-default '>
                                     {
                                         order.status === "Pending" ? "Đang chờ xác nhận"
                                             : order.status === "Confirmed" ? "Đang giao"
@@ -78,6 +94,14 @@ function HistoryOrderItem({ listOrder }) {
                                                         : ""
                                     }
                                 </Button>
+                                {
+                                    order.status === "Pending" ?
+                                        <Button onClick={() => handleCancel(order._id)} danger type='primary'>
+                                            Hủy đơn hàng
+                                        </Button>
+                                        : ""
+                                }
+
                             </div>
                         </div>
                     ))
