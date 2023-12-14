@@ -51,6 +51,7 @@ const registerGuest = asyncHandler(async (req, res) => {
 const finalRegister = asyncHandler(async (req, res) => {
     const cookie = req.cookies
     const { token } = req.params
+    console.log(cookie,cookie?.dataregister?.token, token)
     if (!cookie || cookie?.dataregister?.token !== token) {
         res.clearCookie('dataregister')
         return res.redirect(`${process.env.CLIENT_URL}/finalregister/failed`)
