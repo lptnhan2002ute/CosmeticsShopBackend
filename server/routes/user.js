@@ -5,7 +5,7 @@ const uploader = require('../config/cloudinary.config')
 
 router.post('/register', ctrls.registerGuest)
 
-router.post('/finalregister/:token', ctrls.finalRegister)
+router.get('/finalregister/:token', ctrls.finalRegister)
 
 router.post('/login', ctrls.loginUser)
 
