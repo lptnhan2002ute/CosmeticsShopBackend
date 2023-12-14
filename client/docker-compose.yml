@@ -1,11 +1,11 @@
 version: '3.8'
-
 services:
-  react-app:
+  web:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./
+      target: runner
+    volumes:
+      - .:/app
+    command: npm start
     ports:
       - "3000:3000"
-    volumes:
-      - ".:/app"
