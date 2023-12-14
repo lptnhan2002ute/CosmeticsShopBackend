@@ -1,4 +1,3 @@
-
 FROM node:14-alpine AS runner
 WORKDIR /app
 COPY package*.json ./

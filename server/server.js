@@ -10,7 +10,7 @@ const cors = require('cors')
 
 
 const app = express()
-app.use(enforce.HTTPS({ trustProtoHeader: true }));
+// app.use(enforce.HTTPS({ trustProtoHeader: true }));
 app.use(cors({
     origin: process.env.CLIENT_URL,
     methods: ['POST', 'PUT', 'GET', 'DELETE'],
