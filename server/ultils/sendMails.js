@@ -20,21 +20,30 @@ const getAccessToken = async () => {
 
 const sendMail = asyncHandler(async (data) => {
     const { email, html, subject } = data
-    const accessTokenObject = await myOAuth2Client.getAccessToken();
-    const accessToken = accessTokenObject.token;
+    // const accessTokenObject = await myOAuth2Client.getAccessToken();
+    const accessToken = getAccessToken()
 
+    // const transporter = nodemailer.createTransport({
+    //     service: 'Gmail',
+    //     auth: {
+    //         type: 'OAuth2',
+    //         user: process.env.EMAIL_USER,
+    //         clientId: process.env.GOOGLE_MAILER_CLIENT_ID,
+    //         clientSecret: process.env.GOOGLE_MAILER_CLIENT_SECRET,
+    //         refreshToken: process.env.GOOGLE_MAILER_REFRESH_TOKEN,
+    //         accessToken: accessToken,
+    //     },
+    // });
 
     const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-            type: 'OAuth2',
+        host:'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth:{
             user: process.env.EMAIL_USER,
-            clientId: process.env.GOOGLE_MAILER_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_MAILER_CLIENT_SECRET,
-            refreshToken: process.env.GOOGLE_MAILER_REFRESH_TOKEN,
-            accessToken: accessToken,
-        },
-    });
+            pass: process.env.EMAIL_PASSWORD
+        }
+    })
 
     // async..await is not allowed in global scope, must use a wrapper
     const mailOptions = {

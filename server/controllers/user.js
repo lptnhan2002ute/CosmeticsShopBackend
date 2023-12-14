@@ -33,6 +33,7 @@ const registerGuest = asyncHandler(async (req, res) => {
         html,
         subject: 'Final Registration'
     }
+    console.log(data)
     try {
         await sendMail(data); // Sử dụng hàm sendMail để gửi email
         // Trả về result từ hàm sendMail
