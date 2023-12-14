@@ -50,9 +50,13 @@ var userSchema = new mongoose.Schema({
     wishlist: [{ type: mongoose.Types.ObjectId, ref: 'Product' }],
     status: {
         type: Boolean,
-        default: true, // Giá trị mặc định là true
+        default: false, // Giá trị mặc định là true
     },
     refreshToken: {
+        type: String,
+    },
+
+    secretToken:{
         type: String,
     },
 
