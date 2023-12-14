@@ -27,10 +27,10 @@ const registerGuest = asyncHandler(async (req, res) => {
     }
     const token = createToken()
     const newUser = await User.create({
-        email: cookie?.dataregister?.email,
-        password: cookie?.dataregister?.password,
-        name: cookie?.dataregister?.name,
-        phone: cookie?.dataregister?.phone,
+        email: email,
+        password: password,
+        name: name,
+        phone: phone,
         secretToken: token,
         status: true
     })
