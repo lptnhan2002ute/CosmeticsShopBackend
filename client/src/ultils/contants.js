@@ -146,3 +146,4 @@ export const memberSidebar = [
 ]
 
 export const cash = "Cash"
+export const paypal = "Paypal"
