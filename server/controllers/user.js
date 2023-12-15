@@ -111,7 +111,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const getOneUser = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const user = await User.findById(_id).select('-refreshToken -password -__v')
+    const user = await User.findById(_id).select('-refreshToken -password -__v').populate('wishlist', 'productName price imageUrl')
     return res.status(200).json({
         success: user ? true : false,
         rs: user ? user : 'User not found'
@@ -474,6 +474,36 @@ const removeProductFromCart = asyncHandler(async (req, res) => {
     })
 });
 
+const updateWishlist = asyncHandler(async (req, res) => {
+    const { pid } = req.params
+    const { _id } = req.user
+    const user = await User.findById(_id)
+    const alreadyInWishlist = user.wishlist?.find((el) => el.toString() === pid)
+    if (alreadyInWishlist) {
+        const respone = await User.findByIdAndUpdate(
+            _id,
+            { $pull: { wishlist: pid } },
+            { new: true }
+        )
+        return res.json({
+            success: respone ? true : false,
+            mess: respone ? 'Updated your wishlist!' : 'Failed to update your wishlist!'
+        })
+    }else{
+        const respone = await User.findByIdAndUpdate(
+            _id,
+            { $push: { wishlist: pid } },
+            { new: true }
+        )
+        return res.json({
+            success: respone ? true : false,
+            mess: respone ? 'Updated your wishlist!' : 'Failed to update your wishlist!'
+        })
+    }
+
+})
+
+
 module.exports = {
     registerGuest,
     loginUser,
@@ -491,7 +521,8 @@ module.exports = {
     finalRegister,
     removeProductFromCart,
     getUserCart,
-    uploadAvatar
+    uploadAvatar,
+    updateWishlist
 
 }
 

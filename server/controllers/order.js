@@ -30,6 +30,7 @@ const createOrder = asyncHandler(async (req, res) => {
         recipient: req.body.recipient || '',
         note: req.body.note || '',
         paymentMethod: req.body.paymentMethod || 'Cash',
+        status: req.body.status || 'Pending'
     };
 
     const paidProducts = [];

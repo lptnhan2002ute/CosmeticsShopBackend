@@ -13,6 +13,7 @@ import Swal from 'sweetalert2'
 import path from '../../ultils/path'
 import withBaseComponent from '../../hocs/withBaseComponent'
 
+
 const settings = {
     dots: false,
     infinite: false,
@@ -32,7 +33,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
     const [pid, setPid] = useState(null)
     const [category, setCategory] = useState(null)
     const [title, setTitle] = useState(null)
-   
+
 
     const fetchProductData = async () => {
         const response = await apiGetProduct(pid)
@@ -52,7 +53,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
             fetchProductData()
             fetchProducts()
         }
-        titleRef.current.scrollIntoView({block: 'center'})
+        // titleRef.current.scrollIntoView({ block: 'center' })
     }, [pid])
 
     useEffect(() => {
@@ -92,7 +93,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
         }).then(async (rs) => {
             if (rs.isConfirmed) navigate({
                 pathname: `/${path.LOGIN}`,
-                search: createSearchParams({redirect: location.pathname}).toString()
+                search: createSearchParams({ redirect: location.pathname }).toString()
             })
         })
         const response = await apiUpdateCart({ pid: product._id, quantity: quantity })

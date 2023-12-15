@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import logo from "../../assets/logo.svg.png"
 import { cash } from '../../ultils/contants'
@@ -9,18 +9,26 @@ import { toast } from 'react-toastify'
 import { useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import { updateCart } from '../../store/users/userSlice'
+import PayPal from '../../components/PayPal'
 
 const Checkout = () => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const [paymentMethod, setPaymentMethod] = React.useState(cash)
-    const [total, setTotal] = React.useState(0)
+    const [paymentMethod, setPaymentMethod] = useState(cash)
+    const [total, setTotal] = useState(0)
     const location = useLocation()
     const { listCheckout } = location.state || []
-    const [loading, setLoading] = React.useState(false)
-    const [list, setList] = React.useState([])
-
+    const [loading, setLoading] = useState(false)
+    const [list, setList] = useState([])
+    const [isSuccess, setIsSuccess] = useState(false)
+    const [form] = Form.useForm();
+    const [formData, setFormData] = useState({
+        recipient: '',
+        phone: '',
+        address: '',
+        note: '',
+    });
     React.useEffect(() => {
 
         setList(listCheckout)
@@ -32,6 +40,9 @@ const Checkout = () => {
         setTotal(result)
     }, [list])
 
+    // React.useEffect(() => {
+    //     if(isSuccess) dispatch
+    // }, [isSuccess])
     const onFinish = async (values) => {
 
         const products = list.map(item => ({
@@ -45,7 +56,7 @@ const Checkout = () => {
             total,
             ...values
         }
-
+        // setOrderInfo(values);
         try {
             setLoading(true)
             const response = await apiOrder(dataOrder)
@@ -64,9 +75,9 @@ const Checkout = () => {
                     onOk() { navigate("/products") },
                 });
             } else {
-                if (response.status == "soldout") {
+                if (response.status === "soldout") {
 
-                    if (response.product.length == listCheckout.length) {
+                    if (response.product.length === listCheckout.length) {
 
                         Modal.warning({
                             title: 'Lưu ý',
@@ -103,8 +114,7 @@ const Checkout = () => {
                                 </div>
                             ),
                             onOk() {
-
-                                const newList = list.filter(listItem => !response.product.some(pItem => pItem._id == listItem.product._id))
+                                const newList = list.filter(listItem => !response.product.some(pItem => pItem._id === listItem.product._id))
                                 console.log(newList)
                                 setList(newList)
                                 message.info("Tiếp tục mua hàng")
@@ -129,8 +139,30 @@ const Checkout = () => {
 
     }
 
+
+    const handleFormChange = (_, allValues) => {
+        setFormData(allValues);
+    };
+
+    const handlePayPalPayment = () => {
+        const payload = {
+            products: list.map(item => ({
+                product: item.product._id,
+                count: item.quantity,
+            })),
+            paymentMethod: "PayPal",
+            total,
+            ...formData
+        };
+
+        // Tiến hành xử lý thanh toán PayPal tại đây
+        // Ví dụ: gọi component PayPal hoặc gửi dữ liệu đến server
+        console.log("Payload for PayPal:", payload);
+    };
+
     return (
         <Spin spinning={loading} size={"large"}>
+
             <div className="pb-[50px]">
                 <div class="flex flex-col items-center border-b bg-white sm:flex-row sm:px-10 lg:px-20 xl:px-32">
                     <Link to="/">
@@ -180,6 +212,13 @@ const Checkout = () => {
                                     </div>
                                 </label>
                             </div>
+                            <div className='w-full mx-auto'>
+                                <Button onClick={handlePayPalPayment}>Thanh toán bằng PayPal</Button>
+                                <PayPal
+                                    payload={handlePayPalPayment()}
+                                    setIsSuccess={setIsSuccess}
+                                    amount={(total / 24250).toFixed(2)} />
+                            </div>
                         </form>
                         <p class="mt-8 text-lg">Voucher</p>
                         <div className="flex items-center mt-[20px]">
@@ -193,11 +232,13 @@ const Checkout = () => {
                         <div class="">
                             {/* Thông tin người đặt */}
                             <Form
+                                form={form}
                                 style={{
                                     width: '100%'
                                 }}
                                 layout="vertical"
                                 onFinish={onFinish}
+                                onValuesChange={handleFormChange}
                                 autoComplete="off"
                             >
                                 <Form.Item
