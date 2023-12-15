@@ -58,7 +58,7 @@ const Footer = () => {
                     </div>
                     <div className='flex-1 flex flex-col gap-2'>
                     <h3 className='mb-[20px] text-[15px] font-medium border-l-2 border-main pl-[15px] '>Thành viên sáng lập</h3>
-                       <span className='opacity-70'>Thành Nhân</span>
+                       <span className='opacity-70'>Thành Danh</span>
                        <span className='opacity-70'>Võ Ngọc Quý</span>
                     </div>
                 </div>
