@@ -53,7 +53,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
             fetchProductData()
             fetchProducts()
         }
-        // titleRef.current.scrollIntoView({ block: 'center' })
+        if (!isQuickView) titleRef.current.scrollIntoView({ block: 'center' })
     }, [pid])
 
     useEffect(() => {
