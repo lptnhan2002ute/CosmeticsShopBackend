@@ -56,7 +56,6 @@ const Checkout = () => {
             total,
             ...values
         }
-        // setOrderInfo(values);
         try {
             setLoading(true)
             const response = await apiOrder(dataOrder)
@@ -139,12 +138,10 @@ const Checkout = () => {
 
     }
 
-
     const handleFormChange = (_, allValues) => {
         setFormData(allValues);
     };
-
-    const handlePayPalPayment = () => {
+    const createPayPalPayload = () => {
         const payload = {
             products: list.map(item => ({
                 product: item.product._id,
@@ -152,12 +149,10 @@ const Checkout = () => {
             })),
             paymentMethod: "PayPal",
             total,
+            // Add additional form data here
             ...formData
         };
-
-        // Tiến hành xử lý thanh toán PayPal tại đây
-        // Ví dụ: gọi component PayPal hoặc gửi dữ liệu đến server
-        console.log("Payload for PayPal:", payload);
+        return payload;
     };
 
     return (
@@ -213,9 +208,8 @@ const Checkout = () => {
                                 </label>
                             </div>
                             <div className='w-full mx-auto'>
-                                <Button onClick={handlePayPalPayment}>Thanh toán bằng PayPal</Button>
                                 <PayPal
-                                    payload={handlePayPalPayment()}
+                                    payload={createPayPalPayload()}
                                     setIsSuccess={setIsSuccess}
                                     amount={(total / 24250).toFixed(2)} />
                             </div>

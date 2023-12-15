@@ -6,10 +6,15 @@ import {
 import { useEffect } from "react";
 import { apiOrder } from "../apis";
 import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import path from "../ultils/path";
+import { updateCart } from "../store/users/userSlice";
 
 
 // This value is from the props in the UI
 const style = { "layout": "vertical" };
+
 function onApprove(data) {
     // replace this url with your server
     return fetch("https://react-paypal-js-storybook.fly.dev/api/paypal/capture-order", {
@@ -29,6 +34,7 @@ function onApprove(data) {
 
 // Custom component to wrap the PayPalButtons and show loading spinner
 const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess }) => {
+    const navigate = useNavigate()
     const [{ isPending, options }, dispatch] = usePayPalScriptReducer();
     useEffect(() => {
         dispatch({
@@ -37,19 +43,20 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
                 ...options, currency: currency
             }
         })
-    }, [currency, showSpinner])
+    }, [currency, showSpinner, payload])
 
     const handleSaveOrder = async () => {
         const response = await apiOrder({ ...payload, status: 'Confirmed' })
-        if(response.success)
-        {
+        if (response.success) {
             setIsSuccess(true)
             setTimeout(() => {
                 Swal.fire('Congratulations!', 'Order is created successfully', 'success').then(() => {
                     window.close()
-                })  
+                    dispatch(updateCart({ products: payload.products }))
+                    navigate("/products")
+                })
             }, 1000)
-           
+
         }
         console.log(response)
     }
@@ -69,7 +76,7 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
                 }).then(orderId => orderId)}
                 onApprove={(data, actions) => actions.order.capture().then(async (response) => {
                     if (response.status === 'COMPLETED') {
-                       handleSaveOrder()
+                        handleSaveOrder()
                     }
                 })}
             />
