@@ -60,21 +60,21 @@ function HistoryOrderItem({ setFetch, listOrder }) {
                                         Tổng tiền
                                     </p>
                                     <p className="text-[14px] uppercase text-[#999] font-[500]">
-                                        {order?.total?.toLocaleString('vi-VN', {
+                                        {order.total ? order?.total?.toLocaleString('vi-VN', {
                                             style: 'currency',
                                             currency: 'VND',
-                                        })}
+                                        }) : "0"}
                                     </p>
                                 </div>
                             </div>
                             {
                                 order.products.map(product => (
                                     <div key={product.product._id} className="flex pt-[10px]">
-                                        <img className="m-2 h-24 w-28 rounded-md border object-contain" src={product.product.imageUrl[0]} alt="" />
+                                        <img className="m-2 h-24 w-28 rounded-md border object-contain" src={product.product?.imageUrl[0]} alt="" />
                                         <div className="flex w-[350px] flex-col px-4 py-4">
-                                            <span className="font-semibold text-[18px] text-[#333]">{product.product.productName}</span>
+                                            <span className="font-semibold text-[18px] text-[#333]">{product.product?.productName}</span>
                                             <p className="text-[16px] font-bold">
-                                                {(product.product.price).toLocaleString('vi-VN', {
+                                                {(product.product?.price).toLocaleString('vi-VN', {
                                                     style: 'currency',
                                                     currency: 'VND',
                                                 })}

@@ -20,7 +20,7 @@ const MemberSidebar = () => {
     return (
         <div className=' bg-white h-full py-4 w-[250px] flex-none'>
             <div className='flex flex-col w-full py-4 justify-center items-center'>
-                <img src='https://api.multiavatar.com/default.png'
+                <img src={current?.avatar || 'https://api.multiavatar.com/default.png'}
                     alt='logo' className='w-16 h-16 object-cover'></img>
                 <small className='font-semibold text-sm'>{`${current?.name}`}</small>
             </div>

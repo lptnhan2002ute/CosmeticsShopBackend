@@ -16,6 +16,7 @@ const UpdateProduct = ({editProduct, render, setEditProduct}) => {
     const fetchBrands = async () => { 
         const response = await apiGetAllBrand()
         if (response.success) setBrand(response.brandList)
+        console.log(response)
     }
     const handleBack = () => {
         setEditProduct(null)
@@ -26,8 +27,9 @@ const UpdateProduct = ({editProduct, render, setEditProduct}) => {
             price: editProduct?.price || '',
             description: editProduct?.description || '',
             stockQuantity: editProduct?.stockQuantity || '',
-            category: editProduct?.category.categoryName || '',
-            brand: editProduct?.brand.brandName || ''
+            brand: editProduct?.brand._id || '' ,
+            category: editProduct?.category._id || '',
+            
         })
     },[editProduct])
     useEffect(() => {
@@ -111,7 +113,7 @@ const UpdateProduct = ({editProduct, render, setEditProduct}) => {
                         />
                         <Select 
                         label='Brand'
-                        options={brand?.map(el => ({code: el?._id, value: el?.brandName}))}
+                        options={brand?.map(el => ({code: el._id, value: el.brandName}))}
                         register={register}
                         id='brand'
                         validate={{required: 'Vui lòng nhập trường này'}}
