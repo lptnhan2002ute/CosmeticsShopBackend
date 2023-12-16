@@ -6,9 +6,7 @@ import {
 import { useEffect } from "react";
 import { apiOrder } from "../apis";
 import Swal from "sweetalert2";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import path from "../ultils/path";
 import { updateCart } from "../store/users/userSlice";
 
 
@@ -44,14 +42,14 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
             }
         })
     }, [currency, showSpinner, payload])
-
+    console.log(payload)
     const handleSaveOrder = async () => {
         const response = await apiOrder({ ...payload, status: 'Confirmed' })
+        console.log(payload)
         if (response.success) {
             setIsSuccess(true)
             setTimeout(() => {
                 Swal.fire('Congratulations!', 'Order is created successfully', 'success').then(() => {
-                    window.close()
                     dispatch(updateCart({ products: payload.products }))
                     navigate("/products")
                 })

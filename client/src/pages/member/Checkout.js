@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import logo from "../../assets/logo.svg.png"
 import { cash } from '../../ultils/contants'
@@ -10,25 +10,39 @@ import { useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import { updateCart } from '../../store/users/userSlice'
 import PayPal from '../../components/PayPal'
+import { useDebounce } from 'use-debounce';
 
 const Checkout = () => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const location = useLocation()
+    const [form] = Form.useForm();
     const [paymentMethod, setPaymentMethod] = useState(cash)
     const [total, setTotal] = useState(0)
-    const location = useLocation()
     const { listCheckout } = location.state || []
     const [loading, setLoading] = useState(false)
     const [list, setList] = useState([])
     const [isSuccess, setIsSuccess] = useState(false)
-    const [form] = Form.useForm();
+    const [payPalPayload, setPayPalPayload] = useState({
+        products: [],
+        paymentMethod: "PayPal",
+        total: 0,
+        recipient: '',
+        phone: '',
+        address: '',
+        note: '',
+        // Khởi tạo các trường khác nếu cần
+    });
     const [formData, setFormData] = useState({
         recipient: '',
         phone: '',
         address: '',
         note: '',
     });
+    // const [debouncedFormData] = useDebounce(formData, 5000); // 3000ms là thời gian trì hoãn
+
+
     React.useEffect(() => {
 
         setList(listCheckout)
@@ -142,7 +156,7 @@ const Checkout = () => {
         setFormData(allValues);
     };
     const createPayPalPayload = () => {
-        const payload = {
+        const data = {
             products: list.map(item => ({
                 product: item.product._id,
                 count: item.quantity,
@@ -151,9 +165,20 @@ const Checkout = () => {
             total,
             // Add additional form data here
             ...formData
+            // ...debouncedFormData
         };
-        return payload;
+        console.log(data);
+        return data;
     };
+
+    React.useEffect(() => {
+        const newPayload = createPayPalPayload();
+        const timeoutId = setTimeout(() => {
+            setPayPalPayload(newPayload);
+        }, 3500);
+
+        return () => clearTimeout(timeoutId);
+    }, [formData, list]);
 
     return (
         <Spin spinning={loading} size={"large"}>
@@ -209,7 +234,7 @@ const Checkout = () => {
                             </div>
                             <div className='w-full mx-auto'>
                                 <PayPal
-                                    payload={createPayPalPayload()}
+                                    payload={payPalPayload}
                                     setIsSuccess={setIsSuccess}
                                     amount={(total / 24250).toFixed(2)} />
                             </div>
