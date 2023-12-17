@@ -1,4 +1,5 @@
 const ProductCategory = require('../models/productCategory')
+const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 
 const createCategory = asyncHandler(async (req, res) => {
@@ -28,7 +29,9 @@ const updateCategory = asyncHandler(async (req, res) => {
 
 const deleteCategory = asyncHandler(async (req, res) => {
     const { pcid } = req.params
+    await Product.deleteMany({ category: pcid });
     const category = await ProductCategory.findByIdAndDelete(pcid)
+    console.log(category)
     return res.status(201).json({
         success: category ? true : false,
         deletedCategory: category ? category : 'Can not be delete category'
