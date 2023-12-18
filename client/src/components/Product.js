@@ -5,17 +5,16 @@ import labelBlue from '../assets/label.png'
 import { renderStarFromNumber } from '../ultils/helpers'
 import { SelectOption } from './'
 import icons from '../ultils/icon'
-import { Link } from 'react-router-dom'
 import path from '../ultils/path'
 import Swal from 'sweetalert2'
 import withBaseComponent from '../hocs/withBaseComponent'
 import { showModal } from '../store/appSlice'
 import DetailProduct from '../pages/public/DetailProduct'
-import { apiUpdateCart, apiGetUserCart } from '../apis'
+import { apiUpdateCart, apiGetUserCart, apiUpdateWishlist } from '../apis'
 import { toast } from 'react-toastify'
-import { getUserCart, getCurrent } from '../store/users/asyncAction'
 import { useSelector } from 'react-redux'
 import { updateCart } from "../store/users/userSlice"
+import { getCurrent } from '../store/users/asyncAction'
 
 
 const { BsCartPlus, AiFillEye, BsFillSuitHeartFill } = icons
@@ -45,7 +44,13 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
             }
             else toast.error(response.mess)
         }
-        if (flag === 'WISHLIST') console.log('WISHLIST')
+        if (flag === 'WISHLIST') {
+            const response = await apiUpdateWishlist(productData._id)
+            if (response.success) {
+                await dispatch(getCurrent())
+                toast.success(response.mess)
+            } else toast.error(response.mess)
+        }
         if (flag === 'QUICK_VIEW') {
             dispatch(showModal({ isShowModal: true, modalChildren: <DetailProduct data={{ pid: productData?._id, category: productData?.category?.categoryName }} isQuickView /> }))
         }
@@ -70,7 +75,11 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                     >
                         <span title='Quick view' onClick={(e) => handleClickOptions(e, 'QUICK_VIEW')}><SelectOption icon={<AiFillEye />} /> </span>
                         <span title='Add to Cart' onClick={(e) => handleClickOptions(e, 'CART')}><SelectOption icon={<BsCartPlus />} /> </span>
-                        <span title='Add wishList' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill />} /></span>
+                        <span title='Add wishList' onClick={(e) => handleClickOptions(e, 'WISHLIST')}>
+                            <SelectOption icon={
+                                <BsFillSuitHeartFill color={current?.wishlist?.some(item => item._id === productData?._id) ? 'red' : 'gray'} />
+                            } />
+                        </span>
                     </div>}
                     <img src={productData?.imageUrl[0] || 'https://www.panzerwrecks.com/wp-content/uploads/2022/09/No-product.png'}
                         alt=''

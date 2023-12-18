@@ -17,7 +17,6 @@ const Login = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const [searchParams] = useSearchParams()
-    console.log(searchParams.get('redirect'))
     const [payload, setPayload] = useState({
         email: '',
         password: '',
@@ -78,8 +77,8 @@ const Login = () => {
                     if (res.userData.status) {
                         dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
                         setTimeout(async () => {
-                            searchParams.get('redirect') ? await navigate(searchParams.get('redirect')): await navigate(`/${path.HOME}`);
-                        }, 100); // 100ms
+                            searchParams.get('redirect') ? await navigate(searchParams.get('redirect')) : await navigate(`/${path.HOME}`);
+                        }, 200); // 200ms
                     }
                     else {
                         Swal.fire('OOPS@', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!', 'error')

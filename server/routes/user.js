@@ -31,6 +31,8 @@ router.put('/:uid', [verifyAccessToken, isAdmin], ctrls.updateUserByAdmin)
 // router.put('/customer/updateaddress', verifyAccessToken, ctrls.updateUserAddress)
 router.put('/add/cart', verifyAccessToken, ctrls.addProductToCart)
 router.delete('/remove-cart/:pid', verifyAccessToken, ctrls.removeProductFromCart)
+
+router.put('/wishlist/:pid', verifyAccessToken, ctrls.updateWishlist)
 module.exports = router
 
 //Post + put : body

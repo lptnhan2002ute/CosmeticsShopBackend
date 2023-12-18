@@ -35,7 +35,7 @@ var orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         default: 'Cash',
-        enum: ['Cash', 'Momo', 'Bank'],
+        enum: ['Cash', 'VnPay', 'PayPal'],
     }}, { timestamps: true }); 
 
 //Export the model

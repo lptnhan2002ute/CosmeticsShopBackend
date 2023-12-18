@@ -40,7 +40,13 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const getProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
-    const product = await Product.findById(pid).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
+    const product = await Product.findById(pid).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id').populate({
+        path: 'ratings',
+        populate: {
+            path: 'postedBy',
+            select: 'name avatar'
+        }
+    })
     return res.status(200).json({
         success: product ? true : false,
         productData: product ? product : 'Cannot find product'
@@ -127,8 +133,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     })
 })
 
-const deleteProduct = asyncHandler(async(req, res) => {
-    const {pid} = req.params
+const deleteProduct = asyncHandler(async (req, res) => {
+    const { pid } = req.params
     if (!pid) throw new Error("Missing Inputs")
     const deletedProduct = await Product.findByIdAndDelete(pid);
     return res.status(200).json({
@@ -139,7 +145,7 @@ const deleteProduct = asyncHandler(async(req, res) => {
 
 const rating = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const { star, comment, pid } = req.body
+    const { star, comment, pid, updatedAt } = req.body
     if (!star || !pid) throw new Error('Missing input')
     const product = await Product.findById(pid)
     if (!product) throw new Error('Product not found')
@@ -149,8 +155,10 @@ const rating = asyncHandler(async (req, res) => {
     if (existingRating) {
         existingRating.star = star
         existingRating.comment = comment
+        existingRating.updatedAt = updatedAt
+        // existingRating.updatedAt = Date.now()
     } else {
-        product.ratings.push({ star, comment, postedBy: _id })
+        product.ratings.push({ star, comment, postedBy: _id, updatedAt})
     }
     await product.save()
     //Sum ratings
@@ -161,7 +169,8 @@ const rating = asyncHandler(async (req, res) => {
     await product.save()
 
     return res.status(200).json({
-        status: true
+        status: true,
+        product
     })
 
 })

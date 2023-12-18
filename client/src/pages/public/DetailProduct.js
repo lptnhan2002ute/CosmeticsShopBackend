@@ -1,17 +1,19 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { createSearchParams, useParams, useSearchParams } from 'react-router-dom'
-import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart } from '../../apis'
-import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider } from '../../components'
+import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart, apiRatings } from '../../apis'
+import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider, VoteBar, VoteOption, Button, Comment } from '../../components'
 import Slider from 'react-slick'
 import { fotmatPrice, formatMoney, renderStarFromNumber } from '../../ultils/helpers'
 import { productInformation } from '../../ultils/contants'
 import clsx from 'clsx'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { updateCart } from '../../store/users/userSlice'
 import Swal from 'sweetalert2'
 import path from '../../ultils/path'
 import withBaseComponent from '../../hocs/withBaseComponent'
+import { showModal } from '../../store/appSlice'
+
 
 const settings = {
     dots: false,
@@ -21,7 +23,7 @@ const settings = {
     slidesToScroll: 1
 };
 
-const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
+const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalRatings }) => {
     const titleRef = useRef()
     const params = useParams()
     // const { pid, title, category } = useParams()
@@ -32,7 +34,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
     const [pid, setPid] = useState(null)
     const [category, setCategory] = useState(null)
     const [title, setTitle] = useState(null)
-   
+    const [updated, setUpdated] = useState(false)
 
     const fetchProductData = async () => {
         const response = await apiGetProduct(pid)
@@ -47,13 +49,22 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
 
         if (response?.success) setRelatedProduct(response.productData)
     }
+    const rerender = useCallback(() => {
+        setUpdated(!updated)
+    }, [updated])
     useEffect(() => {
         if (pid) {
             fetchProductData()
             fetchProducts()
         }
-        titleRef.current.scrollIntoView({block: 'center'})
+        if (!isQuickView) titleRef.current.scrollIntoView({ block: 'center' })
     }, [pid])
+
+    useEffect(() => {
+        if (pid) {
+            fetchProductData()
+        }
+    }, [updated])
 
     useEffect(() => {
         if (data) {
@@ -92,7 +103,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
         }).then(async (rs) => {
             if (rs.isConfirmed) navigate({
                 pathname: `/${path.LOGIN}`,
-                search: createSearchParams({redirect: location.pathname}).toString()
+                search: createSearchParams({ redirect: location.pathname }).toString()
             })
         })
         const response = await apiUpdateCart({ pid: product._id, quantity: quantity })
@@ -103,9 +114,44 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
         }
         else toast.error(response.mess)
     }
+    const handleSubmitVoteOption = async (value) => {
+        console.log(value)
+        if (!value.comment || !value.star) {
+            alert('Vui lòng thêm nhận xét của bạn')
+            return
+        }
+        const response = await apiRatings({ star: value.star, comment: value.comment, pid: product?._id, updatedAt: Date.now() })
+        console.log(response)
+        dispatch(showModal({ isShowModal: false, modalChildren: null }))
+        rerender()
 
+    }
+    const handleVoteNow = () => {
+        if (!current) return Swal.fire({
+            title: 'Almost...',
+            text: ' Please login first to vote',
+            icon: 'info',
+            cancelButtonText: 'Not now!',
+            showCancelButton: true,
+            confirmButtonText: 'Go login page!'
+        }).then(async (rs) => {
+            if (rs.isConfirmed) navigate({
+                pathname: `/${path.LOGIN}`,
+                search: createSearchParams({ redirect: location.pathname }).toString()
+            })
+        })
+        else {
+            dispatch(showModal({
+                isShowModal: true,
+                modalChildren: <VoteOption
+                    productName={product?.productName}
+                    handleSubmitVoteOption={handleSubmitVoteOption}
+                />
+            }))
+        }
+    }
     return (
-        <div className={clsx('w-full')}>
+        <div className={clsx('w-full relative')}>
             {!isQuickView && <div className='h-[81px] bg-gray-100 flex justify-center items-center bg-gray-100'>
                 <div ref={titleRef} className='w-main '>
                     <h3 className='font-semibold'>{title}</h3>
@@ -160,8 +206,44 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location }) => {
                             sub={el.sub}
                         />
                     ))}
-                </div>}
+                </div>
+                }
             </div>
+            {!isQuickView && <div className='flex p-4 flex-col'>
+                <div className='flex'>
+                    <div className='flex-4 border flex-col flex items-center justify-center border-red-500'>
+                        <span className='font-semibold text-3xl'>{`${product?.totalRatings}/5`}</span>
+                        <span className='flex items-center gap-1'>{renderStarFromNumber(product?.totalRatings)?.map((el, index) => (
+                            <span key={index}>{el}</span>
+                        ))}</span>
+                        <span className='text-sm'>{`${product?.ratings?.length} Người đánh giá`}</span>
+                    </div>
+                    <div className='flex-6 border gap-5 flex flex-col p-4 items-center'>
+                        {Array.from(Array(5).keys()).reverse().map(el => (
+                            <VoteBar
+                                key={el}
+                                number={el + 1}
+                                ratingTotal={product?.totalRatings}
+                                ratingCount={product?.ratings?.filter(i => i.star === el + 1)?.length}
+                            />
+                        ))}
+                    </div>
+                </div>
+                <div className='p-4 flex flex-col gap-2 items-center justify-center text-sm'>
+                    <span>Bạn có muốn đánh giá sản phẩm này không?</span>
+                    <Button name='Đánh giá ngay!' handleOnClick={handleVoteNow}>Đánh giá ngay!</Button>
+                </div>
+                <div className='flex flex-col gap-4'>
+                    {product?.ratings?.map(el => (
+                        <Comment
+                            key={el._id}
+                            star={el.star}
+                            updatedAt={el.updatedAt}
+                            comment={el.comment}
+                            name={el.postedBy?.name}
+                        />
+                    ))}</div>
+            </div>}
             {!isQuickView && <>
                 <div className='w-main m-auto mt-8'>
                     <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Người dùng khác cũng mua:</h3>

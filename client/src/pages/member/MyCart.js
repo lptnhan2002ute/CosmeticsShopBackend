@@ -38,7 +38,7 @@ const MyCart = () => {
 
     const toggleCheck = (cartItem) => {
 
-        const check = listCheckout.find(item => item.product._id == cartItem.product._id)
+        const check = listCheckout.find(item => item.product._id === cartItem.product._id)
 
         if (check) {
 

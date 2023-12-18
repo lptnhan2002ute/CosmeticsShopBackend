@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import logo from "../../assets/logo.svg.png"
 import { cash } from '../../ultils/contants'
@@ -9,17 +9,39 @@ import { toast } from 'react-toastify'
 import { useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import { updateCart } from '../../store/users/userSlice'
+import PayPal from '../../components/PayPal'
+import { useDebounce } from 'use-debounce';
 
 const Checkout = () => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const [paymentMethod, setPaymentMethod] = React.useState(cash)
-    const [total, setTotal] = React.useState(0)
     const location = useLocation()
+    const [form] = Form.useForm();
+    const [paymentMethod, setPaymentMethod] = useState(cash)
+    const [total, setTotal] = useState(0)
     const { listCheckout } = location.state || []
-    const [loading, setLoading] = React.useState(false)
-    const [list, setList] = React.useState([])
+    const [loading, setLoading] = useState(false)
+    const [list, setList] = useState([])
+    const [isSuccess, setIsSuccess] = useState(false)
+    const [payPalPayload, setPayPalPayload] = useState({
+        products: [],
+        paymentMethod: "PayPal",
+        total: 0,
+        recipient: '',
+        phone: '',
+        address: '',
+        note: '',
+        // Khởi tạo các trường khác nếu cần
+    });
+    const [formData, setFormData] = useState({
+        recipient: '',
+        phone: '',
+        address: '',
+        note: '',
+    });
+    // const [debouncedFormData] = useDebounce(formData, 5000); // 3000ms là thời gian trì hoãn
+
 
     React.useEffect(() => {
 
@@ -32,6 +54,9 @@ const Checkout = () => {
         setTotal(result)
     }, [list])
 
+    // React.useEffect(() => {
+    //     if(isSuccess) dispatch
+    // }, [isSuccess])
     const onFinish = async (values) => {
 
         const products = list.map(item => ({
@@ -45,7 +70,6 @@ const Checkout = () => {
             total,
             ...values
         }
-
         try {
             setLoading(true)
             const response = await apiOrder(dataOrder)
@@ -64,9 +88,9 @@ const Checkout = () => {
                     onOk() { navigate("/products") },
                 });
             } else {
-                if (response.status == "soldout") {
+                if (response.status === "soldout") {
 
-                    if (response.product.length == listCheckout.length) {
+                    if (response.product.length === listCheckout.length) {
 
                         Modal.warning({
                             title: 'Lưu ý',
@@ -103,8 +127,7 @@ const Checkout = () => {
                                 </div>
                             ),
                             onOk() {
-
-                                const newList = list.filter(listItem => !response.product.some(pItem => pItem._id == listItem.product._id))
+                                const newList = list.filter(listItem => !response.product.some(pItem => pItem._id === listItem.product._id))
                                 console.log(newList)
                                 setList(newList)
                                 message.info("Tiếp tục mua hàng")
@@ -129,8 +152,37 @@ const Checkout = () => {
 
     }
 
+    const handleFormChange = (_, allValues) => {
+        setFormData(allValues);
+    };
+    const createPayPalPayload = () => {
+        const data = {
+            products: list.map(item => ({
+                product: item.product._id,
+                count: item.quantity,
+            })),
+            paymentMethod: "PayPal",
+            total,
+            // Add additional form data here
+            ...formData
+            // ...debouncedFormData
+        };
+        console.log(data);
+        return data;
+    };
+
+    React.useEffect(() => {
+        const newPayload = createPayPalPayload();
+        const timeoutId = setTimeout(() => {
+            setPayPalPayload(newPayload);
+        }, 3500);
+
+        return () => clearTimeout(timeoutId);
+    }, [formData, list]);
+
     return (
         <Spin spinning={loading} size={"large"}>
+
             <div className="pb-[50px]">
                 <div class="flex flex-col items-center border-b bg-white sm:flex-row sm:px-10 lg:px-20 xl:px-32">
                     <Link to="/">
@@ -180,6 +232,12 @@ const Checkout = () => {
                                     </div>
                                 </label>
                             </div>
+                            <div className='w-full mx-auto'>
+                                <PayPal
+                                    payload={payPalPayload}
+                                    setIsSuccess={setIsSuccess}
+                                    amount={(total / 24250).toFixed(2)} />
+                            </div>
                         </form>
                         <p class="mt-8 text-lg">Voucher</p>
                         <div className="flex items-center mt-[20px]">
@@ -193,11 +251,13 @@ const Checkout = () => {
                         <div class="">
                             {/* Thông tin người đặt */}
                             <Form
+                                form={form}
                                 style={{
                                     width: '100%'
                                 }}
                                 layout="vertical"
                                 onFinish={onFinish}
+                                onValuesChange={handleFormChange}
                                 autoComplete="off"
                             >
                                 <Form.Item

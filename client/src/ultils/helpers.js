@@ -1,16 +1,29 @@
 import icons from "./icon"
-const { AiFillStar, AiOutlineStar } = icons
+const { AiFillStar, AiOutlineStar, BsStarHalf } = icons
 
 export const createSlug = string => string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(' ').join('-')
 export const formatMoney = number => Number(number?.toFixed(1)).toLocaleString()
 
-export const renderStarFromNumber = (number, size) => {
-    if (!Number(number)) return
-    const stars = []
-    for (let i = 0; i < +number; i++) stars.push(<AiFillStar color="orange" size={size || 16} />)
-    for (let i = 5; i > +number; i--) stars.push(<AiOutlineStar color="orange" size={size || 16} />)
-    return stars
-}
+export const renderStarFromNumber = (number, size = 16) => {
+    const stars = [];
+    const fullStars = Math.floor(number);
+    const halfStar = (number - fullStars) >= 0.25 && (number - fullStars) < 0.75;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    for (let i = 0; i < fullStars; i++) {
+        stars.push(<AiFillStar key={`full-${i}`} color="orange" size={size} />);
+    }
+
+    if (halfStar) {
+        stars.push(<BsStarHalf key={`half-${fullStars}`} color="orange" size={size} />);
+    }
+
+    for (let i = 0; i < emptyStars; i++) {
+        stars.push(<AiOutlineStar key={`empty-${fullStars + (halfStar ? 1 : 0) + i}`} color="orange" size={size} />);
+    }
+
+    return stars;
+};
 
 
 export const validate = (payload, setInvalidFields) => {
@@ -33,12 +46,24 @@ export const validate = (payload, setInvalidFields) => {
                 }
                 break;
             case 'password':
-
                 if (arr[1].length < 6) {
                     invalids++
                     setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Password min longer than 6 characters' }])
                 }
-
+                break;
+            case 'phone':
+                const phoneRegex = /^\d{10}$/;
+                if (!phoneRegex.test(arr[1])) {
+                    invalids++;
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Phone number must be 10 digits' }]);
+                }
+                break;
+            case 'name':
+                const nameRegex = /^[a-zA-Z ]{2,}$/;
+                if (!nameRegex.test(arr[1])) {
+                    invalids++;
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Name must be at least 2 characters and only contain letters' }]);
+                }
                 break;
             default:
                 break;
