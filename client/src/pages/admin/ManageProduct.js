@@ -98,7 +98,7 @@ const ManageProduct = () => {
 </div>
 <table className='table-auto'>
 <thead className='border bg-main text-white border-white '>
-      <tr>
+      <tr className='border border-main'>
         <th className='text-center py-2'>STT</th>
         <th className='text-center py-2'>Avatar</th>
         <th className='text-center py-2'>Name</th>
@@ -114,7 +114,7 @@ const ManageProduct = () => {
 </thead>
 <tbody>
     {products?.map((el, index) => (
-        <tr className='border-b border-main' key={el._id}>
+        <tr className='border border-main' key={el._id}>
              <td className='text-center py-2'>{index+1}</td>
              <td className='text-center py-2'>
                 <img src={el.imageUrl[0]} alt='avatar' className='w-12 h-12 object-cover'/>

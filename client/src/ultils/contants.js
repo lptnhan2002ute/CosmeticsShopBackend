@@ -66,7 +66,7 @@ export const productInformation = [
 
     }
 ]
-const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine } = icons
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory } = icons
 export const adminSidebar = [
     {
         id: 1,
@@ -78,22 +78,22 @@ export const adminSidebar = [
     {
         id: 2,
         type: 'single',
-        text: 'Manage users',
+        text: 'Quản lí người dùng',
         path: `/${path.ADMIN}/${path.MANAGE_USER}`,
         icon: <MdGroups />
     },
     {
         id: 3,
         type: 'parent',
-        text: 'Manage products',
+        text: 'Quản lí sản phẩm',
         icon: <TbBrandProducthunt />,
         submenu: [
             {
-                text: 'Create product',
+                text: 'Tạo sản phẩm',
                 path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
             },
             {
-                text: 'Manage product',
+                text: 'Quản lí sản phẩm',
                 path: `/${path.ADMIN}/${path.MANAGE_PRODUCT}`
             }
         ]
@@ -101,9 +101,16 @@ export const adminSidebar = [
     {
         id: 4,
         type: 'single',
-        text: 'Manage orders',
+        text: 'Quản lí đơn hàng',
         path: `/${path.ADMIN}/${path.MANAGE_ORDER}`,
         icon: <RiBillLine />
+    },
+    {
+        id: 5,
+        type: 'single',
+        text: 'Quản lí danh mục',
+        path: `/${path.ADMIN}/${path.MANAGE_CATEGORY}`,
+        icon: <MdOutlineCategory />
     }
 ]
 

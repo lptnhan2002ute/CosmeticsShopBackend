@@ -95,16 +95,16 @@ const Login = () => {
         <div className='w-screen h-screen relative'>
             {isForgetPassword && <div className='absolute animate-slide-right top-0 left-0 bottom-0 right-0 bg-overlay flex flex-col items-center py-8 z-50'>
                 <div className='flex flex-col gap-4 '>
-                    <label htmlFor="email">Enter your email:</label>
+                    <label className='text-white' htmlFor="email">Enter your email:</label>
                     <input type="text"
                         id="email"
-                        className='w-[800px] pb-2 border-b outline-none placeholder:text-sm'
+                        className='rounded w-[1000px] h-[50px] pl-2 text-main items-center border border-main outline-none placeholder:text-sm placeholder:text-main'
                         placeholder='Exp: email@gmail.com'
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                     />
                 </div>
-                <div className='flex items-center justify-end mt-4 w-full gap-4'>
+                <div className='flex items-center justify-end mt-4 w-main gap-4'>
                     <Button
                         name='Submit'
                         handleOnClick={handleForgetPassword}

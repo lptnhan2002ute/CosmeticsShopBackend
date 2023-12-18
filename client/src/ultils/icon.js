@@ -1,5 +1,5 @@
 import { RiPhoneFill, RiTruckFill, RiBillLine } from 'react-icons/ri'
-import { MdEmail, MdGroups } from 'react-icons/md'
+import { MdEmail, MdGroups, MdOutlineCategory } from 'react-icons/md'
 import { FaShoppingBag, FaTty } from 'react-icons/fa'
 import { BiUserCircle } from 'react-icons/bi'
 import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFillGift, AiOutlineDown, AiOutlineLogout, AiOutlineDashboard } from 'react-icons/ai'
@@ -33,7 +33,8 @@ const icons = {
     MdGroups,
     TbBrandProducthunt,
     RiBillLine,
-    BsCartPlus
+    BsCartPlus,
+    MdOutlineCategory
 
 
 }

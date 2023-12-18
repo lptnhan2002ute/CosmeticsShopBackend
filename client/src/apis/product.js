@@ -44,3 +44,23 @@ export const apiDeleteProduct = (pid) => axios({
     url: '/product/'+pid,
     method: 'delete',
 })
+export const apiGetCategory = (params) => axios({
+    url: '/productCategory',
+    method: 'get',
+    params
+})
+export const apiUpdateCategory = (data, pcid) => axios({
+    url: '/productCategory/' + pcid,
+    method: 'put',
+    data
+})
+export const apiDeleteCategory = (pcid) => axios({
+    url: '/productCategory/' + pcid,
+    method: 'delete',
+})
+export const apiCreateCategory = (data) => axios({
+    url:'/productCategory',
+    method: 'post',
+    data
+})
+

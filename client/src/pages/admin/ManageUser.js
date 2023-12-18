@@ -57,7 +57,7 @@ const ManageUser = () => {
       })
 }
     return(
-        <div className={clsx('w-full', editE && 'pl-16')}>
+        <div className={clsx('w-full', editE && 'pl-2')}>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
                 <span>Quản Lí Thành Viên</span>
             </h1>
@@ -74,9 +74,9 @@ const ManageUser = () => {
                 </div>
                 <form onSubmit={handleSubmit(handleUpdate)} >
                    {editE && <ButtonAdmin type='submit'>Cập nhật</ButtonAdmin> }
-                <table className='table-auto mb-6 text-left w-full ml-4'>
-                    <thead className='font-bold bg-gray-700 text-[13px] text-white'>
-                       <tr className='border border-gray-500'>
+                <table className='table-auto mb-6 text-left w-full'>
+                    <thead className='font-bold bg-main text-[13px] text-white'>
+                       <tr className='border border-main'>
                        <th className='px-4 py-2 '>STT</th>
                        <th className='px-4 py-2 '>Địa chỉ email</th>
                        <th className='px-4 py-2 '>Tên người dùng</th>
@@ -84,12 +84,12 @@ const ManageUser = () => {
                        <th className='px-4 py-2 '>Số điện thoại</th>
                        <th className='px-4 py-2 '>Trạng thái</th>
                        <th className='px-4 py-2 '>Ngày tạo</th>
-                       <th className='px-4 py-2 '>Action</th>
+                       <th className='px-8 py-2 '>Lựa chọn</th>
                        </tr>
                     </thead>
                     <tbody>
                        {users?.userData?.map((el, index) => (
-                            <tr key={el._id} className='border border-gray-500 '>
+                            <tr key={el._id} className='border border-main '>
                             <td className='py-2 px-4'>{index+1}</td>
                             <td className='py-2 px-4'>{el.email}</td>
                             <td className='py-2 px-4'>{editE?._id === el._id 
@@ -136,9 +136,9 @@ const ManageUser = () => {
                             /> : <span>{el.status ? 'Hoạt động' : 'Khóa'}</span>}</td>
                             <td className='py-2 px-4'>{moment(el.createdAt).format('DD/MM/YYYY')}</td>
                             <td className='py-2 px-4'>
-                                {editE?._id === el._id ? <span onClick={() => seteditE(null)} className='px-2 text-main hover:underline cursor-pointer'>Back</span>
-                                : <span onClick={() => seteditE(el)} className='px-2 text-main hover:underline cursor-pointer'>Edit</span>}
-                                <span onClick={() => handlerDeleteUser(el._id)} className='px-2 text-main hover:underline cursor-pointer'>Delete</span>
+                                {editE?._id === el._id ? <span onClick={() => seteditE(null)} className='px-2 text-main hover:underline cursor-pointer'>Hủy</span>
+                                : <span onClick={() => seteditE(el)} className='px-2 text-main hover:underline cursor-pointer'>Sửa</span>}
+                                <span onClick={() => handlerDeleteUser(el._id)} className='px-2 text-main hover:underline cursor-pointer'>Xóa</span>
                             </td>
                         </tr>
                        ))}
