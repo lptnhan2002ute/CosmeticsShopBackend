@@ -209,7 +209,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                 </div>
                 }
             </div>
-            <div className='flex p-4 flex-col'>
+            {!isQuickView && <div className='flex p-4 flex-col'>
                 <div className='flex'>
                     <div className='flex-4 border flex-col flex items-center justify-center border-red-500'>
                         <span className='font-semibold text-3xl'>{`${product?.totalRatings}/5`}</span>
@@ -243,7 +243,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                             name={el.postedBy?.name}
                         />
                     ))}</div>
-            </div>
+            </div>}
             {!isQuickView && <>
                 <div className='w-main m-auto mt-8'>
                     <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Người dùng khác cũng mua:</h3>
