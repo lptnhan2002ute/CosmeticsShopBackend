@@ -46,12 +46,24 @@ export const validate = (payload, setInvalidFields) => {
                 }
                 break;
             case 'password':
-
                 if (arr[1].length < 6) {
                     invalids++
                     setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Password min longer than 6 characters' }])
                 }
-
+                break;
+            case 'phone':
+                const phoneRegex = /^\d{10}$/;
+                if (!phoneRegex.test(arr[1])) {
+                    invalids++;
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Phone number must be 10 digits' }]);
+                }
+                break;
+            case 'name':
+                const nameRegex = /^[a-zA-Z ]{2,}$/;
+                if (!nameRegex.test(arr[1])) {
+                    invalids++;
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Name must be at least 2 characters and only contain letters' }]);
+                }
                 break;
             default:
                 break;
