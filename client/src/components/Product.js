@@ -45,10 +45,9 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
             else toast.error(response.mess)
         }
         if (flag === 'WISHLIST') {
-            console.log(productData._id)
             const response = await apiUpdateWishlist(productData._id)
             if (response.success) {
-                dispatch(getCurrent())
+                await dispatch(getCurrent())
                 toast.success(response.mess)
             } else toast.error(response.mess)
         }
@@ -76,7 +75,11 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                     >
                         <span title='Quick view' onClick={(e) => handleClickOptions(e, 'QUICK_VIEW')}><SelectOption icon={<AiFillEye />} /> </span>
                         <span title='Add to Cart' onClick={(e) => handleClickOptions(e, 'CART')}><SelectOption icon={<BsCartPlus />} /> </span>
-                        <span title='Add wishList' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill color={current?.wishlist?.some(i => i === productData._id) ? 'red' : 'gray'} />} /></span>
+                        <span title='Add wishList' onClick={(e) => handleClickOptions(e, 'WISHLIST')}>
+                            <SelectOption icon={
+                                <BsFillSuitHeartFill color={current?.wishlist?.some(item => item._id === productData?._id) ? 'red' : 'gray'} />
+                            } />
+                        </span>
                     </div>}
                     <img src={productData?.imageUrl[0] || 'https://www.panzerwrecks.com/wp-content/uploads/2022/09/No-product.png'}
                         alt=''
