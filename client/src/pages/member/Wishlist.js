@@ -6,10 +6,10 @@ const Wishlist = () => {
     const { current } = useSelector(state => state.user)
     return (
         <div className='w-full relative px-4'>
-            <header className='text-3xl font-semibold py-4 border-b border-b-main'>
+            <header className='text-3xl font-semibold py-4 border-b border-main'>
                 My Wishlist
             </header>
-            <div className='p-4 w-full grid gird-cols-5 gap-4'>
+            <div className='py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
                 {current?.wishlist?.map((ele) => (
                     <div key={ele._id}>
                         <Product
