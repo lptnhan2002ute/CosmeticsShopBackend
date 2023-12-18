@@ -8,7 +8,7 @@ const VoteBar = ({ number, ratingCount, ratingTotal }) => {
     percentRef.current.style.cssText = `right: ${100 - percent}%`
   }, [ratingCount, ratingTotal])
   return (
-    <div className='flex items-center gap-3 text-gray-600 p-2'>
+    <div className='flex container items-center gap-3 text-gray-600 p-2'>
       <div className='flex items-center justify-center gap-1 text-lg'>
         <span>{number}</span>
         <AiFillStar color='orange' size={20} />
@@ -19,7 +19,7 @@ const VoteBar = ({ number, ratingCount, ratingTotal }) => {
         </div>
       </div>
       <div className='w-[15%] flex justify-end text-xs text-400'>
-        {`${ratingCount || 0} Reviewers`}
+        {`${ratingCount || 0} đánh giá`}
       </div>
     </div>
   )

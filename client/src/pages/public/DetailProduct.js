@@ -216,7 +216,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                         <span className='flex items-center gap-1'>{renderStarFromNumber(product?.totalRatings)?.map((el, index) => (
                             <span key={index}>{el}</span>
                         ))}</span>
-                        <span className='text-sm'>{`${product?.ratings?.length} Reviewers`}</span>
+                        <span className='text-sm'>{`${product?.ratings?.length} Người đánh giá`}</span>
                     </div>
                     <div className='flex-6 border gap-5 flex flex-col p-4 items-center'>
                         {Array.from(Array(5).keys()).reverse().map(el => (
@@ -230,8 +230,8 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                     </div>
                 </div>
                 <div className='p-4 flex flex-col gap-2 items-center justify-center text-sm'>
-                    <span>Do you review this product?</span>
-                    <Button name='Vote now!' handleOnClick={handleVoteNow}>Vote Now!</Button>
+                    <span>Bạn có muốn đánh giá sản phẩm này không?</span>
+                    <Button name='Đánh giá ngay!' handleOnClick={handleVoteNow}>Đánh giá ngay!</Button>
                 </div>
                 <div className='flex flex-col gap-4'>
                     {product?.ratings?.map(el => (
