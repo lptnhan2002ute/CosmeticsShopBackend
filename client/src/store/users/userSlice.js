@@ -22,6 +22,7 @@ export const userSlice = createSlice({
         logout: (state, action) => {
             state.isLoggedIn = false
             state.current = null
+            state.cart = null
             state.token = null
             state.isLoading = false
         },
