@@ -91,6 +91,11 @@ export const apiUpdateWishlist = (pid) => axios({
     url: '/user/wishlist/' + pid,
     method: "put",
 })
+
+export const apiResetAccessToken = () => axios({
+    url: "/user/check",
+    method: "post",
+})
 export const apiChangePassword = (data) => axios({
     url: '/user/customer/resetpassword',
     method: 'put',
