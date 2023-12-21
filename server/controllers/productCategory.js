@@ -1,5 +1,6 @@
 const Product = require('../models/product')
 const ProductCategory = require('../models/productCategory')
+const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 
 const createCategory = asyncHandler(async (req, res) => {

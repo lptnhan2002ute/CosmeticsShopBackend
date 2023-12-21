@@ -70,3 +70,10 @@ export const apiCreateCategory = (data) => axios({
     data
 })
 
+
+
+export const apiRatings = (data) => axios({
+    url: '/product/ratings',
+    method: 'put',
+    data
+})

@@ -34,8 +34,8 @@ const icons = {
     TbBrandProducthunt,
     RiBillLine,
     BsCartPlus,
+    MdOutlineCategory,
     BsStarHalf,
-    MdOutlineCategory
 
 
 }
