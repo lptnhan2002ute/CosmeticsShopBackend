@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { InputField, Button, Loading } from '../../components'
-import { apiRegister, apiLogin, apiForgetPassword } from '../../apis/user'
+import { apiRegister, apiLogin, apiForgetPassword, apiGetUserCart } from '../../apis/user'
 import Swal from 'sweetalert2'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { validate } from '../../ultils/helpers'
 import path from '../../ultils/path'
-import { login } from '../../store/users/userSlice'
+import { login, updateCart } from '../../store/users/userSlice'
 import { showModal } from '../../store/appSlice'
 import { useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
@@ -78,6 +78,8 @@ const Login = () => {
                         dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
                         setTimeout(async () => {
                             searchParams.get('redirect') ? await navigate(searchParams.get('redirect')) : await navigate(`/${path.HOME}`);
+                            const getCarts = await apiGetUserCart()
+                            dispatch(updateCart({ products: getCarts.userCart.cart.products }))
                         }, 200); // 200ms
                     }
                     else {

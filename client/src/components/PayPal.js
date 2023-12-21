@@ -4,10 +4,11 @@ import {
     usePayPalScriptReducer
 } from "@paypal/react-paypal-js";
 import { useEffect } from "react";
-import { apiOrder } from "../apis";
+import { apiGetUserCart, apiOrder } from "../apis";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { updateCart } from "../store/users/userSlice";
+import { useDispatch } from 'react-redux'
 
 
 // This value is from the props in the UI
@@ -34,6 +35,7 @@ function onApprove(data) {
 const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess }) => {
     const navigate = useNavigate()
     const [{ isPending, options }, dispatch] = usePayPalScriptReducer();
+    const dispatchRedux = useDispatch()
     useEffect(() => {
         dispatch({
             type: 'resetOptions',
@@ -42,21 +44,23 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
             }
         })
     }, [currency, showSpinner, payload])
-    console.log(payload)
+
     const handleSaveOrder = async () => {
         const response = await apiOrder({ ...payload, status: 'Confirmed' })
-        console.log(payload)
+
         if (response.success) {
             setIsSuccess(true)
+            const getCarts = await apiGetUserCart()
+
+            dispatchRedux(updateCart({ products: getCarts.userCart.cart.products }))
             setTimeout(() => {
                 Swal.fire('Congratulations!', 'Order is created successfully', 'success').then(() => {
-                    dispatch(updateCart({ products: payload.products }))
                     navigate("/products")
                 })
             }, 1000)
 
         }
-        console.log(response)
+
     }
 
     return (
@@ -74,7 +78,7 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
                 }).then(orderId => orderId)}
                 onApprove={(data, actions) => actions.order.capture().then(async (response) => {
                     if (response.status === 'COMPLETED') {
-                        handleSaveOrder()
+                        await handleSaveOrder()
                     }
                 })}
             />

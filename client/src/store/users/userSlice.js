@@ -14,12 +14,13 @@ export const userSlice = createSlice({
     },
     reducers: {
         login: (state, action) => {
+
             state.isLoggedIn = action.payload.isLoggedIn
             // state.current = action.payload.userData
             state.token = action.payload.token
-            state.cart = JSON.parse(localStorage.getItem("cart")) || []
         },
         logout: (state, action) => {
+            localStorage.removeItem("cart")
             state.isLoggedIn = false
             state.current = null
             state.cart = null
@@ -28,6 +29,7 @@ export const userSlice = createSlice({
         },
         updateCart: (state, action) => {
 
+            console.log("update laij")
             localStorage.setItem("cart", JSON.stringify(action.payload.products))
             state.cart = action.payload.products
         },
