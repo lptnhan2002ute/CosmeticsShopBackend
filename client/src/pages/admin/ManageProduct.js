@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { apiDeleteProduct, apiGetProductCategory } from '../../apis/product'
+import { apiDeleteProduct, apiGetAllBrand, apiGetProductCategory } from '../../apis/product'
 import moment from 'moment'
 import UpdateProduct from './UpdateProduct'
 import Swal from 'sweetalert2'
@@ -19,6 +19,18 @@ const ManageProduct = () => {
     const [editProduct, setEditProduct] = useState(null)
     const [update, setUpdate] = useState(false)
     const [page, setPage] = useState(1)
+    const [brand, setBrand] = useState([])
+
+    const fetchBrands = async () => {
+        const response = await apiGetAllBrand()
+        if (response.success) setBrand(response.brandList)
+        console.log(response)
+    }
+
+    useEffect(() => {
+        fetchBrands()
+    }, [])
+
     const render = useCallback(() => {
         setUpdate(!update)
     })
@@ -79,7 +91,7 @@ const ManageProduct = () => {
     return (
         <div className='w-full flex flex-col gap-3 relative overflow-x-scroll'>
             {editProduct && <div className='absolute inset-0 min-h-screen bg-gray-100 z-50 '>
-                <UpdateProduct editProduct={editProduct} render={render} setEditProduct={setEditProduct} />
+                <UpdateProduct brand={brand} editProduct={editProduct} render={render} setEditProduct={setEditProduct} />
             </div>}
             <div className='h-[69px] w-full'></div>
             <div className='p-4 border-b w-full flex justify-between items-center border-main fixed top-0 bg-gray-100'>
