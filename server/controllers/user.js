@@ -285,7 +285,7 @@ const changePassword = asyncHandler(async (req, res) => {
     if (!isPasswordValid) {
         return res.status(400).json({
             success: false,
-            message: 'Mật khẩu hiện tại không chính xác.'
+            mess: 'Mật khẩu hiện tại không chính xác.'
         });
     }
 
@@ -297,7 +297,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
     return res.status(200).json({
         success: true,
-        message: 'Mật khẩu đã được thay đổi thành công.'
+        mess: 'Mật khẩu đã được thay đổi thành công.'
     });
 })
 

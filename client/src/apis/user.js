@@ -91,3 +91,8 @@ export const apiUpdateWishlist = (pid) => axios({
     url: '/user/wishlist/' + pid,
     method: "put",
 })
+export const apiChangePassword = (data) => axios({
+    url: '/user/customer/resetpassword',
+    method: 'put',
+    data
+})
