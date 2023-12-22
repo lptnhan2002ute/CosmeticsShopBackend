@@ -22,11 +22,11 @@ export const apiGetProductCategory = (params) => axios({
 })
 
 export const apiGetAllBrand = () => axios({
-    url:'/brand',
+    url: '/brand',
     method: 'get',
 })
 export const apiCreateProduct = (formData) => axios({
-    url:'/product',
+    url: '/product',
     method: 'post',
     data: formData,
 })
@@ -36,13 +36,19 @@ export const apiGetProductsSearch = (params) => axios({
     params
 })
 export const apiUpdateProduct = (data, pid) => axios({
-    url: '/product/'+pid,
+    url: '/product/' + pid,
     method: 'put',
     data
 })
 export const apiDeleteProduct = (pid) => axios({
-    url: '/product/'+pid,
+    url: '/product/' + pid,
     method: 'delete',
+})
+
+export const apiRatings = (data) => axios({
+    url: '/product/ratings',
+    method: 'put',
+    data
 })
 export const apiGetCategory = (params) => axios({
     url: '/productCategory',
@@ -59,15 +65,7 @@ export const apiDeleteCategory = (pcid) => axios({
     method: 'delete',
 })
 export const apiCreateCategory = (data) => axios({
-    url:'/productCategory',
+    url: '/productCategory',
     method: 'post',
-    data
-})
-
-
-
-export const apiRatings = (data) => axios({
-    url: '/product/ratings',
-    method: 'put',
     data
 })
