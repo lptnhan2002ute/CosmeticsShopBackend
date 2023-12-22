@@ -13,7 +13,7 @@ const createOrder = asyncHandler(async (req, res) => {
         if (!selectedVoucher) {
             return res.status(400).json({
                 success: false,
-                mess: 'Selected voucher does not exist',
+                mess: 'Voucher không tồn tại',
             });
         }
         total *= 1 - selectedVoucher.discount / 100;
@@ -79,7 +79,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
         return res.status(201).json({
             success: result ? true : false,
-            result: result ? result : 'Error for order'
+            result: result ? result : 'Tạo đơn hàng bị lỗi'
         })
     }
 })
@@ -87,13 +87,13 @@ const createOrder = asyncHandler(async (req, res) => {
 const updateStatus = asyncHandler(async (req, res) => {
     const { oid } = req.params
     const { status } = req.body
-    if (!status) throw new Error('Missing inputs')
+    if (!status) throw new Error('Lỗi dữ liệu truyền vào')
     const orderBeforeUpdate = await Order.findById(oid).populate('products.product');
     const currentStatus = orderBeforeUpdate.status;
     if (currentStatus === 'Cancelled') {
         return res.status(400).json({
             success: false,
-            mess: 'Cannot update a cancelled order',
+            mess: 'Không thể mua lại đơn hàng đã hủy',
         });
     }
     if (status === 'Cancelled' && currentStatus !== 'Cancelled') {
@@ -122,18 +122,18 @@ const updateStatus = asyncHandler(async (req, res) => {
 
 const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const result = await Order.find({ orderBy: _id }).populate('products.product').exec()
+    const result = await Order.find({ orderBy: _id }).populate('products.product').sort({ updatedAt: -1 }).exec()
     return res.json({
         success: result ? true : false,
-        result: result ? result : 'Error for order'
+        result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
 
 const getAllOrders = asyncHandler(async (req, res) => {
-    const result = await Order.find().populate('products.product').exec()
+    const result = await Order.find().populate('products.product').sort({ updatedAt: -1 }).exec()
     return res.json({
         success: result ? true : false,
-        result: result ? result : 'Error for order'
+        result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
 

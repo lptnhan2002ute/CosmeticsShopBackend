@@ -344,7 +344,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     if (!email) {
         return res.status(400).json({
             success: false,
-            mess: 'Email not found'
+            mess: 'Không có Email'
         });
     }
 
@@ -352,7 +352,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     if (!user) {
         return res.status(404).json({
             success: false,
-            mess: 'User not found'
+            mess: 'Người dùng không tồn tại'
         });
     }
 
@@ -396,7 +396,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     await user.save()
     return res.status(200).json({
         success: user ? true : false,
-        mess: user ? 'Updated successfully' : 'Something were wrong'
+        mess: user ? 'Cập nhật thành công' : 'Đã có lỗi xảy ra'
     })
 })
 
@@ -408,7 +408,7 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
     const response = await User.findByIdAndUpdate(uid, req.body, { new: true }).select("-password -role -refreshToken");
     return res.status(200).json({
         success: response ? true : false,
-        mes: response ? 'Update Successfully' : 'Something went wrong'
+        mes: response ? 'Cập nhật thành công' : 'Đã có lỗi xảy ra'
     })
 })
 
@@ -421,28 +421,28 @@ const addProductToCart = asyncHandler(async (req, res) => {
     if (!product) {
         return res.status(400).json({
             success: false,
-            mess: 'Missing input!'
+            mess: 'Dữ liệu truyền vào bị lỗi'
         });
     }
     const cart = await Cart.findOne({ userId: _id })
     if (!cart) {
         return res.status(404).json({
             success: false,
-            mess: 'User cart not found'
+            mess: 'Không tìm thấy giỏ hàng'
         });
     }
     const existingProduct = cart?.products?.find(product => product.product.toString() === pid)
     if (existingProduct) {
         existingProduct.quantity += +newQuantity;
     } else {
-        cart.products.push({ product: pid, quantity: newQuantity });
+        cart.products.unshift({ product: pid, quantity: newQuantity });
     }
 
     await cart.save();
 
     return res.status(200).json({
         success: true,
-        mess: 'Product added to cart successfully',
+        mess: 'Đã thêm sản phẩm vào giỏ hàng',
         product: cart.products
     })
 })
@@ -489,7 +489,7 @@ const updateWishlist = asyncHandler(async (req, res) => {
             success: respone ? true : false,
             mess: respone ? 'Updated your wishlist!' : 'Failed to update your wishlist!'
         })
-    }else{
+    } else {
         const respone = await User.findByIdAndUpdate(
             _id,
             { $push: { wishlist: pid } },
