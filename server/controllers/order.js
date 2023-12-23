@@ -136,10 +136,53 @@ const getAllOrders = asyncHandler(async (req, res) => {
         result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
+const getOrdersByTime = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const convertDate = (dateStr, isEndDate = false) => {
+        if (!dateStr) return undefined;
+        const parts = dateStr.split('/');
+        const date = new Date(parts[2], parts[1] - 1, parts[0]);
+        if (isEndDate) {
+            date.setHours(23, 59, 59, 999);
+        } else {
+            date.setHours(0, 0, 0, 0);
+        }
+        return date;
+    };
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ message: 'Cần cung cấp ngày bắt đầu và kết thúc' });
+    }
+
+    const start = convertDate(startDate);
+    const end = convertDate(endDate, true);
+
+    if (!start || !end) {
+        return res.status(400).json({ message: 'Ngày bắt đầu hoặc kết thúc không được cung cấp hoặc không hợp lệ' });
+    }
+
+    try {
+        const orders = await Order.find({
+            status: 'Shipped',
+            updatedAt: { $gte: start, $lte: end }
+        }).populate({ path: 'products.product', select: 'productName price imageUrl' });
+
+        if (orders.length === 0) {
+            return res.status(404).json({ mess: 'Không tìm thấy đơn hàng nào trong khoảng thời gian này.' });
+        }
+
+        return res.json({ success: true, orders });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mess: 'Lỗi máy chủ khi truy vấn đơn hàng.' });
+    }
+});
+
 
 module.exports = {
     createOrder,
     updateStatus,
     getUserOrder,
-    getAllOrders
+    getAllOrders,
+    getOrdersByTime
 }
