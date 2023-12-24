@@ -29,7 +29,6 @@ export const renderStarFromNumber = (number, size = 16) => {
 export const validate = (payload, setInvalidFields) => {
     let invalids = 0
     const formatPayload = Object.entries(payload)
-    console.log(formatPayload)
     for (let arr of formatPayload) {
         if (arr[1].trim() === '') {
             invalids++
@@ -59,7 +58,7 @@ export const validate = (payload, setInvalidFields) => {
                 }
                 break;
             case 'name':
-                const nameRegex = /^[a-zA-Z ]{2,}$/;
+                const nameRegex = /^[a-zA-ZÀ-ỹ ]{2,}$/;
                 if (!nameRegex.test(arr[1])) {
                     invalids++;
                     setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Name must be at least 2 characters and only contain letters' }]);

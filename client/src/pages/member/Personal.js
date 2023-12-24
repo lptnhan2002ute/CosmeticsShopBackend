@@ -3,16 +3,39 @@ import { useForm } from 'react-hook-form'
 import { ButtonAdmin, InputForm } from '../../components'
 import { useDispatch, useSelector } from 'react-redux'
 import moment from 'moment'
-import { apiUpdateUser1 } from '../../apis'
+import { apiUpdateUser1, apiChangePassword } from '../../apis'
 import { getCurrent } from '../../store/users/asyncAction'
 import { toast } from 'react-toastify'
+import { Dialog } from '@mui/material'
+import { Button, Checkbox } from 'antd'
 
 const Personal = () => {
 
     const [avatar, setAvatar] = useState(null)
     const {register, formState: {errors, isDirty}, handleSubmit, reset} = useForm()
     const { current } = useSelector(state => state.user)
+    const[showDialog, setShowDialog] = useState(false)
+    const [password, setPassword] = useState(null)
+    const [isShowPassword, setIsShowPassWord] = useState(false)
+    const [ compare , setCompare] = useState(true)
+    const [newPassword , setNewPassword] = useState(null)
 
+    const handleResetPassword = async () => {
+        const response = await apiChangePassword({currentPassword: password, newPassword})
+        if (response.success) {
+          toast.success(response.mess)
+          setShowDialog(false)
+        }
+        else {
+          // setIsForgetPassword(false)
+          toast.error(response.mess)
+        }
+      }
+
+
+    const handleShowdialog = () => {
+        setShowDialog(true)
+    }
     const handleChooseImage = (e) => {
         const file = e.target.files[0]
         file.preview = URL.createObjectURL(file)
@@ -47,6 +70,38 @@ const Personal = () => {
     }
     return (
         <div className='w-full relative px-4'>
+            <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
+            <div className='w-[500px] p-[20px]'>
+            <div className='flex flex-col gap-4 '>
+        <label htmlFor="password">Vui lòng nhập mật khẩu</label>
+        <input type={isShowPassword ? "text" : "password"}
+          id="currentPassword"
+          className='w-full h-[50px] pl-2 border rounded border-main outline-none placeholder:text-sm placeholder:text-main'
+          placeholder='Mật khẩu hiện tại'
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <input type={isShowPassword ? "text" : "password"}
+          id="newPassword"
+          className='w-full h-[50px] pl-2 border rounded border-main outline-none placeholder:text-sm placeholder:text-main'
+          placeholder='Mật khẩu mới'
+          value={newPassword}
+          onChange={e => setNewPassword(e.target.value)}
+        />
+      </div >
+      <div className='mt-2 flex justify-end w-full'>
+      <Checkbox  checked={isShowPassword} onChange={() => setIsShowPassWord(prev => !prev)}>
+        Show
+      </Checkbox>
+      </div>
+      <div className='flex items-center justify-end z-10 mt-4 w-full gap-4'>
+        <Button 
+          onClick={handleResetPassword} >
+          Xác nhận
+        </Button>
+      </div>
+            </div>
+            </Dialog>
             <header className='text-3xl font-semibold py-4 border-b border-b-main'>
                 Thông tin cá nhân
             </header>
@@ -112,6 +167,7 @@ const Personal = () => {
                    <span className='font-medium'>Ngày tạo tài khoản:</span>
                    <span className='text-main'>{moment(current?.createdAt).format('DD/MM/YYYY')}</span>
                 </div>
+                
                 <div className='flex flex-col gap-2 mt-4'>
                         <label className='font-semibold' htmlFor='images'>Tải ảnh lên</label>
                         <input type='file' id='images'
@@ -121,6 +177,7 @@ const Personal = () => {
 	                     <img className='h-[150px] w-[150px]' src={avatar ? avatar.preview : current.avatar !=='' ? current.avatar : 'https://api.multiavatar.com/default.png'} />
                         }
                     </div>
+                    <div className='w-[120px] h-[40px] bg-main text-white rounded text-center justify-center items-center flex cursor-pointer' onClick={handleShowdialog}>Đổi mật khẩu</div>
                 {isDirty || avatar ? <div className='w-full flex justify-end'><ButtonAdmin type='submit'>Cập nhật thông tin</ButtonAdmin></div> : ''}
             </form>
         </div>

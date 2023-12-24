@@ -13,7 +13,7 @@ const createOrder = asyncHandler(async (req, res) => {
         if (!selectedVoucher) {
             return res.status(400).json({
                 success: false,
-                mess: 'Selected voucher does not exist',
+                mess: 'Voucher không tồn tại',
             });
         }
         total *= 1 - selectedVoucher.discount / 100;
@@ -79,7 +79,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
         return res.status(201).json({
             success: result ? true : false,
-            result: result ? result : 'Error for order'
+            result: result ? result : 'Tạo đơn hàng bị lỗi'
         })
     }
 })
@@ -87,13 +87,13 @@ const createOrder = asyncHandler(async (req, res) => {
 const updateStatus = asyncHandler(async (req, res) => {
     const { oid } = req.params
     const { status } = req.body
-    if (!status) throw new Error('Missing inputs')
+    if (!status) throw new Error('Lỗi dữ liệu truyền vào')
     const orderBeforeUpdate = await Order.findById(oid).populate('products.product');
     const currentStatus = orderBeforeUpdate.status;
     if (currentStatus === 'Cancelled') {
         return res.status(400).json({
             success: false,
-            mess: 'Cannot update a cancelled order',
+            mess: 'Không thể mua lại đơn hàng đã hủy',
         });
     }
     if (status === 'Cancelled' && currentStatus !== 'Cancelled') {
@@ -122,24 +122,67 @@ const updateStatus = asyncHandler(async (req, res) => {
 
 const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const result = await Order.find({ orderBy: _id }).populate('products.product').exec()
+    const result = await Order.find({ orderBy: _id }).populate('products.product').sort({ updatedAt: -1 }).exec()
     return res.json({
         success: result ? true : false,
-        result: result ? result : 'Error for order'
+        result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
 
 const getAllOrders = asyncHandler(async (req, res) => {
-    const result = await Order.find().populate('products.product').exec()
+    const result = await Order.find().populate('products.product').sort({ updatedAt: -1 }).exec()
     return res.json({
         success: result ? true : false,
-        result: result ? result : 'Error for order'
+        result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
+const getOrdersByTime = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const convertDate = (dateStr, isEndDate = false) => {
+        if (!dateStr) return undefined;
+        const parts = dateStr.split('/');
+        const date = new Date(parts[2], parts[1] - 1, parts[0]);
+        if (isEndDate) {
+            date.setHours(23, 59, 59, 999);
+        } else {
+            date.setHours(0, 0, 0, 0);
+        }
+        return date;
+    };
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ message: 'Cần cung cấp ngày bắt đầu và kết thúc' });
+    }
+
+    const start = convertDate(startDate);
+    const end = convertDate(endDate, true);
+
+    if (!start || !end) {
+        return res.status(400).json({ message: 'Ngày bắt đầu hoặc kết thúc không được cung cấp hoặc không hợp lệ' });
+    }
+
+    try {
+        const orders = await Order.find({
+            status: 'Shipped',
+            updatedAt: { $gte: start, $lte: end }
+        }).populate({ path: 'products.product', select: 'productName price imageUrl' });
+
+        if (orders.length === 0) {
+            return res.status(404).json({ mess: 'Không tìm thấy đơn hàng nào trong khoảng thời gian này.' });
+        }
+
+        return res.json({ success: true, orders });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mess: 'Lỗi máy chủ khi truy vấn đơn hàng.' });
+    }
+});
+
 
 module.exports = {
     createOrder,
     updateStatus,
     getUserOrder,
-    getAllOrders
+    getAllOrders,
+    getOrdersByTime
 }
