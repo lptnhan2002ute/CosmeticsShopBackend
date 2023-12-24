@@ -158,7 +158,7 @@ const rating = asyncHandler(async (req, res) => {
         existingRating.updatedAt = updatedAt
         // existingRating.updatedAt = Date.now()
     } else {
-        product.ratings.push({ star, comment, postedBy: _id, updatedAt})
+        product.ratings.push({ star, comment, postedBy: _id, updatedAt })
     }
     await product.save()
     //Sum ratings

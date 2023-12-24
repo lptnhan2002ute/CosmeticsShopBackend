@@ -81,6 +81,11 @@ export const apiGetAllOrder = () => axios({
     method: "get"
 })
 
+export const apiGetAllOrderByTime = (query) => axios({
+    url: `/bill/list${query}`,
+    method: "get"
+})
+
 export const apiUpdateOrder = (data, oid) => axios({
     url: `/bill/status/${oid}`,
     method: "put",
@@ -90,6 +95,11 @@ export const apiUpdateOrder = (data, oid) => axios({
 export const apiUpdateWishlist = (pid) => axios({
     url: '/user/wishlist/' + pid,
     method: "put",
+})
+
+export const apiResetAccessToken = () => axios({
+    url: "/user/check",
+    method: "post",
 })
 export const apiChangePassword = (data) => axios({
     url: '/user/customer/resetpassword',

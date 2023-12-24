@@ -22,6 +22,13 @@ const TopHeader = () => {
         }
     };
     useEffect(() => {
+        // const setTimeoutId = setTimeout(() => {
+        //     if (isLoggedIn) dispatch(getCurrent())
+        // }, 5)
+
+        // return () => {
+        //     clearTimeout(setTimeoutId)
+        // }
         if (isLoggedIn) dispatch(getCurrent())
     }, [dispatch, isLoggedIn])
     useEffect(() => {
