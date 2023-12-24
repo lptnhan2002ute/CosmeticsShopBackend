@@ -244,7 +244,7 @@ const Dashboard = () => {
                 <div className='mt-[20px] flex flex-col items-center'>
                     <p className='text-[13px] mb-[10px] text-[#333] font-[500]'>{dateFilter.label}</p>
                     <p className='text-[1.4rem] uppercase font-[500] text-[#333]'>
-                        {numeral(incomes).format("0,0")} đ
+                        {numeral(incomes).format("0,0")} VNĐ
                     </p>
                 </div>
             </div>
