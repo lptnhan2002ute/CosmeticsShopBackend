@@ -96,9 +96,18 @@ const loginUser = asyncHandler(async (req, res) => {
         await User.findByIdAndUpdate(respone._id, { refreshToken: newRefreshToken }, { new: true })
         // Lưu refresh token vào cookie
         res.cookie('refreshToken', newRefreshToken, { httpOnly: true, maxAge: 604800000 })
+        if (role === "Admin") {
+            const { password, refreshToken, ...userData } = respone.toObject()
+            return res.status(200).json({
+                success: true,
+                mess: 'Đăng nhập tài khoản Admin thành công',
+                accessToken,
+                userData
+            })
+        }
         return res.status(200).json({
             success: true,
-            mess: 'Login successful',
+            mess: 'Đăng nhập thành công',
             accessToken,
             userData
         })
