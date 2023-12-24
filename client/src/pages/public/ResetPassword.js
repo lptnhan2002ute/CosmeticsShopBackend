@@ -63,7 +63,7 @@ const ResetPassword = () => {
 
     useEffect(() => {
         if (conFirm) {
-            if (conFirm == "") {
+            if (conFirm === "") {
                 setError(prev => {
                     return {
                         ...prev,
@@ -91,7 +91,7 @@ const ResetPassword = () => {
 
     useEffect(() => {
         if (password) {
-            if (password == "") {
+            if (password === "") {
                 setError(prev => {
                     return {
                         ...prev,

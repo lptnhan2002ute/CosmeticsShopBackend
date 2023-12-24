@@ -32,7 +32,7 @@ export const validate = (payload, setInvalidFields) => {
     for (let arr of formatPayload) {
         if (arr[1].trim() === '') {
             invalids++
-            setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Required this field' }])
+            setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Ô này không được để trống' }])
         }
     }
     for (let arr of formatPayload) {
@@ -41,27 +41,27 @@ export const validate = (payload, setInvalidFields) => {
                 const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
                 if (!regex.test(arr[1])) {
                     invalids++
-                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Email Invalid' }])
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Định dạng email không đúng' }])
                 }
                 break;
             case 'password':
                 if (arr[1].length < 6) {
                     invalids++
-                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Password min longer than 6 characters' }])
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Mật khẩu phải lớn hơn hoặc bằng 6 kí tự' }])
                 }
                 break;
             case 'phone':
                 const phoneRegex = /^\d{10}$/;
                 if (!phoneRegex.test(arr[1])) {
                     invalids++;
-                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Phone number must be 10 digits' }]);
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Số điện thoại phải có 10 chữ số' }]);
                 }
                 break;
             case 'name':
                 const nameRegex = /^[a-zA-ZÀ-ỹ ]{2,}$/;
                 if (!nameRegex.test(arr[1])) {
                     invalids++;
-                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Name must be at least 2 characters and only contain letters' }]);
+                    setInvalidFields(prev => [...prev, { name: arr[0], mess: 'Tên phải có ít nhất 2 ký tự và không chứa ký tự đặc biệt' }]);
                 }
                 break;
             default:
