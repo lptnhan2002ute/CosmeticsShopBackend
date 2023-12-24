@@ -137,7 +137,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     })
 })
 const getOrdersByTime = asyncHandler(async (req, res) => {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, toDay } = req.query;
     const convertDate = (dateStr, isEndDate = false) => {
         if (!dateStr) return undefined;
         const parts = dateStr.split('/');
@@ -150,25 +150,33 @@ const getOrdersByTime = asyncHandler(async (req, res) => {
         return date;
     };
 
-    if (!startDate || !endDate) {
-        return res.status(400).json({ message: 'Cần cung cấp ngày bắt đầu và kết thúc' });
-    }
-
     const start = convertDate(startDate);
     const end = convertDate(endDate, true);
 
-    if (!start || !end) {
-        return res.status(400).json({ message: 'Ngày bắt đầu hoặc kết thúc không được cung cấp hoặc không hợp lệ' });
-    }
-
     try {
-        const orders = await Order.find({
-            status: 'Shipped',
-            updatedAt: { $gte: start, $lte: end }
-        }).populate({ path: 'products.product', select: 'productName price imageUrl' });
 
-        if (orders.length === 0) {
-            return res.status(404).json({ mess: 'Không tìm thấy đơn hàng nào trong khoảng thời gian này.' });
+        let orders;
+        if (!start || !end) {
+
+            if (toDay) {
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                orders = await Order.find({
+                    status: 'Shipped',
+                    updatedAt: { $gte: today, $lte: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
+                }).populate({ path: 'products.product', select: 'productName price imageUrl' })
+            } else {
+
+                orders = await Order.find({
+                    status: 'Shipped'
+                }).populate({ path: 'products.product', select: 'productName price imageUrl' })
+            }
+        } else {
+
+            orders = await Order.find({
+                status: 'Shipped',
+                updatedAt: { $gte: start, $lte: end }
+            }).populate({ path: 'products.product', select: 'productName price imageUrl' });
         }
 
         return res.json({ success: true, orders });
