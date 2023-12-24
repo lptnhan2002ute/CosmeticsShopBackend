@@ -14,9 +14,8 @@ export const userSlice = createSlice({
     },
     reducers: {
         login: (state, action) => {
-
             state.isLoggedIn = action.payload.isLoggedIn
-            // state.current = action.payload.userData
+            state.current = action.payload.userData
             state.token = action.payload.token
         },
         logout: (state, action) => {
@@ -28,8 +27,6 @@ export const userSlice = createSlice({
             state.isLoading = false
         },
         updateCart: (state, action) => {
-
-            console.log("update laij")
             localStorage.setItem("cart", JSON.stringify(action.payload.products))
             state.cart = action.payload.products
         },
