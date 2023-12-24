@@ -75,12 +75,22 @@ const Login = () => {
                 dispatch(showModal({ isShowModal: false, modalChildren: null }))
                 if (res.success) {
                     if (res.userData.status) {
-                        dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
-                        setTimeout(async () => {
-                            searchParams.get('redirect') ? await navigate(searchParams.get('redirect')) : await navigate(`/${path.HOME}`);
-                            const getCarts = await apiGetUserCart()
-                            dispatch(updateCart({ products: getCarts.userCart.cart.products }))
-                        }, 200); // 200ms
+                        if (res.userData.role !== 'Admin') {
+                            dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
+                            Swal.fire('Congratulations!', res.mess, 'success')
+                            setTimeout(async () => {
+                                searchParams.get('redirect') ? await navigate(searchParams.get('redirect')) : await navigate(`/${path.HOME}`);
+                                const getCarts = await apiGetUserCart()
+                                dispatch(updateCart({ products: getCarts.userCart.cart.products }))
+                            }, 200); // 200ms
+                        }
+                        else {
+                            dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
+                            Swal.fire('Congratulations!', res.mess, 'success')
+                            setTimeout(async () => {
+                                await navigate(`/${path.ADMIN}`);
+                            }, 500);
+                        }
                     }
                     else {
                         Swal.fire('OOPS@', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!', 'error')
