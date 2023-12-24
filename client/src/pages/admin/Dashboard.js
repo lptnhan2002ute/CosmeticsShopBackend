@@ -91,7 +91,7 @@ const getRevenueLast4Years = (orders) => {
     const formattedOrders = [];
 
     const currentDate = new Date();
-    const sevenYearsAgo = new Date(currentDate.getFullYear() - 6, currentDate.getMonth(), currentDate.getDate());
+    const sevenYearsAgo = new Date(currentDate.getFullYear() - 3, currentDate.getMonth(), currentDate.getDate());
 
     for (let i = 0; i < 4; i++) {
         const date = new Date(sevenYearsAgo.getFullYear() + i, sevenYearsAgo.getMonth(), sevenYearsAgo.getDate());
