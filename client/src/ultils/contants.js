@@ -165,7 +165,7 @@ export const voteOptions = [
         id: 5,
         text: 'Perfect'
     },
-   
+
 ]
 export const cash = "Cash"
 export const paypal = "Paypal"
