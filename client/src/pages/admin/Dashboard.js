@@ -7,25 +7,17 @@ import { apiGetAllOrderByTime } from '../../apis/user'
 
 const { RangePicker } = DatePicker
 
-// const data = [
-//     { name: 'Page A', uv: 400 },
-//     { name: 'Page B', uv: 200 },
-//     { name: 'Page C', uv: 100 },
-//     { name: 'Page D', uv: 600 },
-//     { name: 'Page E', uv: 300 }
-// ]
-
 const options = [
     {
         label: "7 ngày gần nhất",
         value: "dates"
     },
     {
-        label: "7 tháng gần nhất",
+        label: "6 tháng gần nhất",
         value: "months"
     },
     {
-        label: "7 năm gần nhất",
+        label: "4 năm gần nhất",
         value: "years"
     }
 ]
@@ -65,13 +57,13 @@ const getRevenueLast7Days = (orders) => {
     return formattedOrders
 }
 
-const getRevenueLast7Months = (orders) => {
+const getRevenueLast6Months = (orders) => {
     const formattedOrders = [];
 
     const currentDate = new Date();
-    const sevenMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 6, currentDate.getDate());
+    const sevenMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, currentDate.getDate());
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
         const date = new Date(sevenMonthsAgo.getFullYear(), sevenMonthsAgo.getMonth() + i, sevenMonthsAgo.getDate());
         const formattedDate = formatDate(date);
         let totalRevenue = 0;
@@ -95,13 +87,13 @@ const getRevenueLast7Months = (orders) => {
     return formattedOrders;
 }
 
-const getRevenueLast7Years = (orders) => {
+const getRevenueLast4Years = (orders) => {
     const formattedOrders = [];
 
     const currentDate = new Date();
     const sevenYearsAgo = new Date(currentDate.getFullYear() - 6, currentDate.getMonth(), currentDate.getDate());
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 4; i++) {
         const date = new Date(sevenYearsAgo.getFullYear() + i, sevenYearsAgo.getMonth(), sevenYearsAgo.getDate());
         const formattedDate = formatDate(date);
         let totalRevenue = 0;
@@ -216,14 +208,14 @@ const Dashboard = () => {
         if (chartFilter.value === "dates") {
             dataChart = getRevenueLast7Days(listAllOrders)
         } else if (chartFilter.value === "months") {
-            dataChart = getRevenueLast7Months(listAllOrders)
+            dataChart = getRevenueLast6Months(listAllOrders)
         } else {
-            dataChart = getRevenueLast7Years(listAllOrders)
+            dataChart = getRevenueLast4Years(listAllOrders)
         }
         console.log(dataChart)
         setData(dataChart)
 
-    }, [chartFilter])
+    }, [chartFilter, listAllOrders])
 
     return (
         <div className='w-full flex gap-[20px] p-[20px] h-full items-center justify-center'>

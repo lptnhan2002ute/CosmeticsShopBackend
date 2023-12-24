@@ -57,7 +57,7 @@ const Header = () => {
                         <span>Profile</span>
                         {isShowOption && <div
                             onClick={e => e.stopPropagation()}
-                            className='flex flex-col absolute top-full left-[16px] bg-gray-100 border min-w-[150px] py-2'>
+                            className='flex z-[100] flex-col absolute top-full left-[16px] bg-gray-100 border min-w-[150px] py-2'>
                             <Link className='w-full p-2 hover:bg-sky-100' to={`/${path.MEMBER}/${path.PERSONAL}`}>Thông tin cá nhân
                             </Link>
                             {current?.role === 'Admin' && <Link className='w-full p-2 hover:bg-sky-100' to={`/${path.ADMIN}/${path.DASHBOARD}`}>Trang Quản Lí
