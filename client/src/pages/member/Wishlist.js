@@ -7,7 +7,7 @@ const Wishlist = () => {
     return (
         <div className='w-full relative px-4'>
             <header className='text-3xl font-semibold py-4 border-b border-main'>
-                My Wishlist
+                Danh sách yêu thích
             </header>
             <div className='py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
                 {current?.wishlist?.map((ele) => (

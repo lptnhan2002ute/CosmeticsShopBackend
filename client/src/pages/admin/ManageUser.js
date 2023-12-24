@@ -59,7 +59,7 @@ const ManageUser = () => {
     return(
         <div className={clsx('w-full', editE && 'pl-2')}>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
-                <span>Quản Lí Thành Viên</span>
+                <span>Quản Lý Thành Viên</span>
             </h1>
             <div className='w-full p-4'>
                 <div className='flex justify-end p-4'>

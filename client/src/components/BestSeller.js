@@ -56,12 +56,12 @@ const BestSeller = () => {
                 <img
                     src='https://topprint.vn/wp-content/uploads/2021/07/banner-my-pham-dep-11.png'
                     alt='banner'
-                    className='flex-1 object-cover w-full h-[200px]'
+                    className='flex-1 object-cover w-full h-[200px] rounded-2xl'
                 />
                 <img
                     src='https://myphamhanskinaz.com/wp-content/uploads/2021/09/kinh-doanh-online-nen-lay-hang-o-dau1.jpg'
                     alt='banner'
-                    className='flex-1 object-cover w-full h-[200px]'
+                    className='flex-1 object-cover w-full h-[200px] rounded-2xl'
                 />
             </div>
         </div>

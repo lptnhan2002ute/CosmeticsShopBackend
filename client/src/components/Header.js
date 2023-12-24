@@ -58,13 +58,13 @@ const Header = () => {
                         {isShowOption && <div
                             onClick={e => e.stopPropagation()}
                             className='flex flex-col absolute top-full left-[16px] bg-gray-100 border min-w-[150px] py-2'>
-                            <Link className='w-full p-2 hover:bg-sky-100' to={`/${path.MEMBER}/${path.PERSONAL}`}>Thông tin cá nhân
+                            <Link className='w-full p-2 hover:bg-pink-200' to={`/${path.MEMBER}/${path.PERSONAL}`}>Thông tin cá nhân
                             </Link>
-                            {current?.role === 'Admin' && <Link className='w-full p-2 hover:bg-sky-100' to={`/${path.ADMIN}/${path.DASHBOARD}`}>Trang Quản Lí
+                            {current?.role === 'Admin' && <Link className='w-full p-2 hover:bg-pink-200' to={`/${path.ADMIN}/${path.DASHBOARD}`}>Trang Quản Lý
                             </Link>}
                             <span
                                 onClick={() => dispatch(logout())}
-                                className='w-full p-2 hover:bg-sky-100'>Đăng xuất</span>
+                                className='w-full p-2 hover:bg-pink-200'>Đăng xuất</span>
                         </div>}
                     </div>
                 </Fragment>}
