@@ -9,7 +9,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
         jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
             if (err) return res.status(401).json({
                 success: false,
-                mess: 'Access token is invalid'
+                mess: 'Trạng thái đăng nhập đã hết hạn. Vui lòng đăng nhập!!'
             })
             req.user = decode
             next()
@@ -17,7 +17,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
     } else {
         return res.status(401).json({
             success: false,
-            mess: 'Require authentication'
+            mess: 'Yêu cầu đăng nhập để sử dụng chức năng trên'
         })
     }
 })
@@ -28,7 +28,7 @@ const isAdmin = asyncHandler((req, res, next) => {
     if (role !== 'Admin')
         return res.status(401).json({
             success: false,
-            mess: 'You are not admin'
+            mess: 'Bạn cần là Admin để sử dụng chức năng này'
         })
     next()
 })
