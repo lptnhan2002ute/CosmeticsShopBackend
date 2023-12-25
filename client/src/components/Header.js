@@ -5,12 +5,26 @@ import { Link } from 'react-router-dom'
 import path from '../ultils/path'
 import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../store/users/userSlice'
+import { toast } from 'react-toastify'
+import Swal from 'sweetalert2'
 
 const Header = () => {
     const { RiPhoneFill, MdEmail, BiUserCircle, FaShoppingBag } = icons
     const { current, cart } = useSelector(state => state.user)
     const [isShowOption, setIsShowOption] = useState(false)
     const dispatch = useDispatch()
+    const handleLogout = () => {
+        Swal.fire({
+        title: 'Bạn có chắc chắn muốn đăng xuất???',
+        text: 'Bạn đã sẵn sàng đăng xuất chưa???',
+        showCancelButton: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          dispatch(logout());
+          toast.success('Bạn đã đăng xuất khỏi trang web');
+        }
+      });
+    };
     useEffect(() => {
         const handleClickout = (e) => {
             const profile = document.getElementById('profile')
@@ -60,10 +74,8 @@ const Header = () => {
                             className='flex flex-col absolute top-full left-[16px] bg-gray-100 border min-w-[150px] py-2'>
                             <Link className='w-full p-2 hover:bg-pink-200' to={`/${path.MEMBER}/${path.PERSONAL}`}>Thông tin cá nhân
                             </Link>
-                            {current?.role === 'Admin' && <Link className='w-full p-2 hover:bg-pink-200' to={`/${path.ADMIN}/${path.DASHBOARD}`}>Trang Quản Lý
-                            </Link>}
                             <span
-                                onClick={() => dispatch(logout())}
+                                onClick={handleLogout}
                                 className='w-full p-2 hover:bg-pink-200'>Đăng xuất</span>
                         </div>}
                     </div>
