@@ -74,15 +74,15 @@ const ManageProduct = () => {
     }, [update])
     const handleDeleteProduct = (pid) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: 'Are you sure you want to Delete this product?',
+            title: 'Bạn có chắc chắn?',
+            text: 'Bạn có chắc chắn muốn xóa sản phẩm?',
             icon: 'warning',
             showCancelButton: true
         }).then(async (rs) => {
             if (rs.isConfirmed) {
                 const response = await apiDeleteProduct(pid)
-                if (response.success) toast.success('Delete successfully!')
-                else toast.error('Something went wrong...')
+                if (response.success) toast.success('Xóa thành công!')
+                else toast.error('Đã có lỗi xảy ra')
                 render()
             }
         })
