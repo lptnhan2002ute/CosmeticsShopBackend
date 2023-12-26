@@ -66,7 +66,7 @@ export const productInformation = [
 
     }
 ]
-const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory } = icons
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile} = icons
 export const adminSidebar = [
     {
         id: 1,
@@ -111,6 +111,13 @@ export const adminSidebar = [
         text: 'Quản lý danh mục',
         path: `/${path.ADMIN}/${path.MANAGE_CATEGORY}`,
         icon: <MdOutlineCategory />
+    },
+    {
+        id: 6,
+        type: 'single',
+        text: 'Thông tin quản lý',
+        path: `/${path.ADMIN}/${path.ADMINPERSONAL}`,
+        icon: <ImProfile />
     }
 ]
 

@@ -1,14 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { apiGetUsers, apiUpdateUser, apiDeleteUser } from '../../apis/user'
 import moment from 'moment'
-import { InputField, InputForm, ButtonAdmin } from '../../components'
+import { InputField, InputForm, ButtonAdmin, Select } from '../../components'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import Swal from 'sweetalert2'
 import clsx from 'clsx'
 
+const options = [
+    {
+      value: 'Hoạt động',
+      code: true
+    },
+    {
+        value: 'Đã khóa',
+        code: false
+    }
+]
 const ManageUser = () => {
-    const { handleSubmit, register, formState: { errors } } = useForm({
+    const { handleSubmit, register, formState: { errors }, reset } = useForm({
         email: '',
         name: '',
         role: '',
@@ -56,6 +66,14 @@ const ManageUser = () => {
             }
         })
     }
+    useEffect(() => {
+        reset({
+            status: editE?.status || '',
+            name: editE?.name || '',
+            role: editE?.role || '',
+            phone: editE?.phone || '',
+        })
+    }, [editE])
     return (
         <div className={clsx('w-full', editE && 'pl-2')}>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
@@ -97,7 +115,6 @@ const ManageUser = () => {
                                             fw
                                             register={register}
                                             errols={errors}
-                                            defaultValue={editE?.name}
                                             id={'name'}
                                             validate={{ required: 'Yêu cầu nhập ' }}
                                         /> : <span>{el.name}</span>}</td>
@@ -105,7 +122,6 @@ const ManageUser = () => {
                                         fw
                                         register={register}
                                         errols={errors}
-                                        defaultValue={editE?.role}
                                         id={'role'}
                                         validate={{ required: 'Yêu cầu nhập ' }}
                                     /> : <span>{el.role}</span>}</td>
@@ -114,7 +130,6 @@ const ManageUser = () => {
                                             fw
                                             register={register}
                                             errols={errors}
-                                            defaultValue={editE?.phone}
                                             id={'phone'}
                                             validate={{
                                                 required: 'Yêu cầu nhập ',
@@ -126,14 +141,13 @@ const ManageUser = () => {
                                             }}
                                         /> : <span>{el.phone}</span>}</td>
                                     <td className='py-2 px-4'>{editE?._id === el._id
-                                        ? <InputForm
-                                            fw
+                                        ? <Select
+                                            options={options}
+                                            fullwidth
                                             register={register}
-                                            errols={errors}
-                                            defaultValue={editE?.status}
-                                            id={'status'}
-                                            validate={{ required: 'Yêu cầu nhập ' }}
-                                        /> : <span>{el.status ? 'Hoạt động' : 'Khóa'}</span>}</td>
+                                            errors={errors}
+                                            id='status'
+                                        /> : <span>{el.status ? 'Hoạt động' : 'Đã khóa'}</span>}</td>
                                     <td className='py-2 px-4'>{moment(el.createdAt).format('DD/MM/YYYY')}</td>
                                     <td className='py-2 px-4'>
                                         {editE?._id === el._id ? <span onClick={() => seteditE(null)} className='px-2 text-main hover:underline cursor-pointer'>Hủy</span>
