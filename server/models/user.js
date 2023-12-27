@@ -44,7 +44,7 @@ var userSchema = new mongoose.Schema({
         },
     },
     avatar: {
-        default: '',
+        default: 'https://res.cloudinary.com/dronifdsy/image/upload/v1703691000/CosmeticsShop/srde4anqx7ogxodvrpef.jpg',
         type: String,
     },
     wishlist: [{ type: mongoose.Types.ObjectId, ref: 'Product' }],
