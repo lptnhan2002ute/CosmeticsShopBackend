@@ -106,3 +106,27 @@ export const apiChangePassword = (data) => axios({
     method: 'put',
     data
 })
+
+export const apiStartSession = (data) => axios({
+    url: '/chat/start',
+    method: 'post',
+    data
+})
+
+export const apiSendMessage = (data) => axios({
+    url: '/chat/send',
+    method: 'post',
+    data
+})
+
+export const apiGetMessages = (sessionID) => axios({
+    url: `/chat/messages/${sessionID}`,
+    method: "get"
+})
+
+export const apiCloseSession = (data, sessionID) => axios({
+    url: `/chat/close/${sessionID}`,
+    method: "put",
+    data
+})
+

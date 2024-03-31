@@ -23,6 +23,14 @@ const sendMessage = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: 'Missing senderUserID, sessionID, or messageText' });
     }
     try {
+        const session = await ChatSession.findById(sessionID);
+        if (!session) {
+            return res.status(404).json({ message: 'Chat session not found' });
+        }
+        if (session.status !== 'Active') {
+            return res.status(400).json({ message: 'Chat session is not active' });
+        }
+
         const message = new Message({ senderUserID, sessionID, messageText });
         await message.save();
         res.status(201).json(message);
@@ -49,15 +57,21 @@ const getMessages = asyncHandler(async (req, res) => {
 });
 
 const closeChatSession = asyncHandler(async (req, res) => {
-    const { sessionID } = req.params;
-    const chatSession = await ChatSession.findById(sessionID);
-    if (chatSession && chatSession.status !== 'Closed') {
+    try {
+        const { sessionID } = req.params;
+        const chatSession = await ChatSession.findById(sessionID);
+        if (!chatSession) {
+            return res.status(404).json({ message: 'Chat session not found' });
+        }
+        if (chatSession.status === 'Closed') {
+            return res.status(400).json({ message: 'Chat session already closed' });
+        }
         chatSession.status = 'Closed';
         chatSession.endDate = Date.now();
         await chatSession.save();
         res.status(200).json({ message: 'Chat session closed' });
-    } else {
-        res.status(400).json({ message: 'Chat session already closed or not found' });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 });
 
