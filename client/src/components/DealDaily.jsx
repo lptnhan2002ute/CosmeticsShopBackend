@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo} from 'react'
 import icons from '../ultils/icon'
 import { apiGetProducts } from '../apis/product'
 import {renderStarFromNumber} from '../ultils/helpers'
-import { Countdowm } from './'
+import { Countdowm } from '.'
 
 const { GiClockwork, AiOutlineMenu } = icons
 let idInterval
