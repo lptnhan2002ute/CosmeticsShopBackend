@@ -74,15 +74,15 @@ const ManageProduct = () => {
     }, [update])
     const handleDeleteProduct = (pid) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: 'Are you sure you want to Delete this product?',
+            title: 'Bạn có chắc chắn?',
+            text: 'Bạn có chắc chắn muốn xóa sản phẩm?',
             icon: 'warning',
             showCancelButton: true
         }).then(async (rs) => {
             if (rs.isConfirmed) {
                 const response = await apiDeleteProduct(pid)
-                if (response.success) toast.success('Delete successfully!')
-                else toast.error('Something went wrong...')
+                if (response.success) toast.success('Xóa thành công!')
+                else toast.error('Đã có lỗi xảy ra')
                 render()
             }
         })
@@ -95,7 +95,7 @@ const ManageProduct = () => {
             </div>}
             <div className='h-[69px] w-full'></div>
             <div className='p-4 border-b w-full flex justify-between items-center border-main fixed top-0 bg-gray-100'>
-                <h1 className='text-3xl font-bold tracking-tight '>Quản lí sản phẩm</h1>
+                <h1 className='text-3xl font-bold tracking-tight '>Quản lý sản phẩm</h1>
             </div>
             <div className='px-[20px]'>
                 <div className='flex w-full justify-end items-center py-4 px-2 mb-[20px]'>
@@ -141,8 +141,8 @@ const ManageProduct = () => {
                                 <td className='text-center py-2'>{el?.totalRatings}</td>
                                 <td className='text-center py-2'>{moment(el?.updatedAt).format('DD/MM/YYYY')}</td>
                                 <td className='text-center py-2'>
-                                    <span onClick={() => setEditProduct(el)} className='text-main hover:underline cursor-pointer px-1'>Edit</span>
-                                    <span onClick={() => handleDeleteProduct(el._id)} className='text-main hover:underline cursor-pointer px-1'>Delete</span>
+                                    <span onClick={() => setEditProduct(el)} className='text-main hover:underline cursor-pointer px-1'>Sửa</span>
+                                    <span onClick={() => handleDeleteProduct(el._id)} className='text-main hover:underline cursor-pointer px-1'>Xóa</span>
                                 </td>
                             </tr>
                         ))}

@@ -7,7 +7,7 @@ import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill, BsCartPlus, BsStarHal
 import { GiClockwork } from 'react-icons/gi'
 import { IoIosArrowForward } from 'react-icons/io'
 import { TbBrandProducthunt } from 'react-icons/tb'
-
+import { ImProfile } from 'react-icons/im'
 
 const icons = {
     RiPhoneFill,
@@ -36,6 +36,7 @@ const icons = {
     BsCartPlus,
     MdOutlineCategory,
     BsStarHalf,
+    ImProfile
 
 
 }

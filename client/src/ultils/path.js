@@ -22,6 +22,7 @@ const path = {
     MANAGE_ORDER: 'manage-order',
     MANAGE_CATEGORY: 'manage-category',
     CREATE_PRODUCT: 'create-product',
+    ADMINPERSONAL: 'adminpersonal',
 
 
     // member

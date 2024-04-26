@@ -66,7 +66,7 @@ export const productInformation = [
 
     }
 ]
-const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory } = icons
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile} = icons
 export const adminSidebar = [
     {
         id: 1,
@@ -78,14 +78,14 @@ export const adminSidebar = [
     {
         id: 2,
         type: 'single',
-        text: 'Quản lí người dùng',
+        text: 'Quản lý người dùng',
         path: `/${path.ADMIN}/${path.MANAGE_USER}`,
         icon: <MdGroups />
     },
     {
         id: 3,
         type: 'parent',
-        text: 'Quản lí sản phẩm',
+        text: 'Quản lý sản phẩm',
         icon: <TbBrandProducthunt />,
         submenu: [
             {
@@ -93,7 +93,7 @@ export const adminSidebar = [
                 path: `/${path.ADMIN}/${path.CREATE_PRODUCT}`
             },
             {
-                text: 'Quản lí sản phẩm',
+                text: 'Quản lý sản phẩm',
                 path: `/${path.ADMIN}/${path.MANAGE_PRODUCT}`
             }
         ]
@@ -101,16 +101,23 @@ export const adminSidebar = [
     {
         id: 4,
         type: 'single',
-        text: 'Quản lí đơn hàng',
+        text: 'Quản lý đơn hàng',
         path: `/${path.ADMIN}/${path.MANAGE_ORDER}`,
         icon: <RiBillLine />
     },
     {
         id: 5,
         type: 'single',
-        text: 'Quản lí danh mục',
+        text: 'Quản lý danh mục',
         path: `/${path.ADMIN}/${path.MANAGE_CATEGORY}`,
         icon: <MdOutlineCategory />
+    },
+    {
+        id: 6,
+        type: 'single',
+        text: 'Thông tin quản lý',
+        path: `/${path.ADMIN}/${path.ADMINPERSONAL}`,
+        icon: <ImProfile />
     }
 ]
 
@@ -165,7 +172,7 @@ export const voteOptions = [
         id: 5,
         text: 'Perfect'
     },
-   
+
 ]
 export const cash = "Cash"
 export const paypal = "Paypal"

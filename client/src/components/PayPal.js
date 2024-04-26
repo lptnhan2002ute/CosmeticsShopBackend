@@ -54,7 +54,7 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
 
             dispatchRedux(updateCart({ products: getCarts.userCart.cart.products }))
             setTimeout(() => {
-                Swal.fire('Congratulations!', 'Order is created successfully', 'success').then(() => {
+                Swal.fire('Chúc mừng!', 'Bạn đã thanh toán thành công', 'success').then(() => {
                     navigate("/products")
                 })
             }, 1000)
