@@ -88,7 +88,7 @@ const Login = () => {
                             dispatch(login({ isLoggedIn: true, token: res.accessToken, userData: res.userData }))
                             Swal.fire('Congratulations!', res.mess, 'success')
                             setTimeout(async () => {
-                                await navigate(`/${path.ADMIN}`);
+                                await navigate(`/${path.ADMIN}/${path.DASHBOARD}`);
                             }, 500);
                         }
                     }

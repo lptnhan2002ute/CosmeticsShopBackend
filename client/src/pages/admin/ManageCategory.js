@@ -85,7 +85,7 @@ const ManageCategory = () => {
                 </div>
             </Dialog>
             <h1 className='h-[75px] justify-between flex items-center text-3xl font-bold px-4 border-b border-b-main'>
-                <span>Quản lí danh mục sản phẩm</span>
+                <span>Quản lý danh mục sản phẩm</span>
             </h1>
             <div className='w-full p-4'>
                 <form onSubmit={handleSubmit(handleUpdate)} >

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import icons from '../ultils/icon'
 import { logout, clearMessage } from '../store/users/userSlice'
 import Swal from 'sweetalert2'
+import { toast } from 'react-toastify'
 
 
 const { AiOutlineLogout } = icons
@@ -16,11 +17,17 @@ const TopHeader = () => {
     const navigate = useNavigate()
     const { isLoggedIn, current, mess } = useSelector(state => state.user)
     const handleLogout = () => {
-        const confirmLogout = window.confirm('Are you sure you want to log out?');
-        if (confirmLogout) {
+          Swal.fire({
+          title: 'Bạn có chắc chắn muốn đăng xuất???',
+          text: 'Bạn đã sẵn sàng đăng xuất chưa???',
+          showCancelButton: true
+        }).then((result) => {
+          if (result.isConfirmed) {
             dispatch(logout());
-        }
-    };
+            toast.success('Bạn đã đăng xuất khỏi trang web');
+          }
+        });
+      };
     useEffect(() => {
         // const setTimeoutId = setTimeout(() => {
         //     if (isLoggedIn) dispatch(getCurrent())
