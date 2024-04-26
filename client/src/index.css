@@ -89,3 +89,7 @@
 .ant-btn-primary {
   background-color: #1677ff;
 }
+
+.ant-float-btn-body {
+  background-color: #ff007f !important;
+}

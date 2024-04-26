@@ -185,6 +185,24 @@ const uploadImageProduct = asyncHandler(async (req, res) => {
     })
 })
 
+const getRecommendedProducts = asyncHandler(async (req, res) => {
+    try {
+        const { uid } = req.params
+        const rs = await fetch(`${process.env.RECOMMENDATION_SERVER}/${uid}`)
+        const productIds = await rs.json()
+
+        const products = await Product.find({ _id: { $in: productIds } }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
+
+        return res.status(200).json({
+            status: true,
+            products
+        })
+    } catch (error) {
+        return res.status(400).json({ message: "Error when get recommendation" })
+    }
+
+})
+
 module.exports = {
     createProduct,
     getProduct,
@@ -192,5 +210,6 @@ module.exports = {
     updateProduct,
     deleteProduct,
     rating,
-    uploadImageProduct
+    uploadImageProduct,
+    getRecommendedProducts
 }

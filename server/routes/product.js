@@ -4,6 +4,7 @@ const { verifyAccessToken, isAdmin } = require('../middlewares/verifyToken')
 const uploader = require('../config/cloudinary.config')
 
 router.post('/', [verifyAccessToken, isAdmin], uploader.array('images', 7), ctrls.createProduct)
+router.get('/recommendation/:uid', ctrls.getRecommendedProducts) //TODO: Add verifyAccessToken
 router.get('/', ctrls.getAllProduct)
 
 router.put('/ratings', verifyAccessToken, ctrls.rating)
