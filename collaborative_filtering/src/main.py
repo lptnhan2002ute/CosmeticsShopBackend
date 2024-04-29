@@ -21,6 +21,7 @@ async def index():
 def get_cf(user_id: str) -> list:
     items = []
     recommended = get_recommended()
+    
     for i in recommended:
         try:
             if i.get('users').index(user_id) is not None:

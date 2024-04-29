@@ -4,23 +4,25 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.collab_filtering.cf import CF
 from apscheduler.schedulers.background import BackgroundScheduler
+from src.schedules.helper.products import get_products
 
 recommended: list[str] = []
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(calc_recommendation, "interval", seconds = 3)
+    scheduler.add_job(calc_recommendation, "interval", minutes = 1)
     scheduler.start()
     yield
 
 def calc_recommendation():
-    print(f"Cron job {datetime.datetime.now()}")
+    products = get_products()
+    print(f"Cron job {datetime.datetime.now()} with {len(products)} item")
 
     # data file
-    r_cols = ['user_id', 'item_id', 'rating']
-    ratings = pd.read_csv('src/collab_filtering/ex1.dat', sep = ' ', names = r_cols, encoding='latin-1')
-    # ratings = pd.DataFrame([{'user_id': 'test', 'item_id': 'test', 'rating': 4.}])
+    # r_cols = ['user_id', 'item_id', 'rating']
+    # ratings = pd.read_csv('src/collab_filtering/ex1.dat', sep = ' ', names = r_cols, encoding='latin-1')
+    ratings = pd.DataFrame(products)
 
     user_ids = sorted(set(ratings['user_id'].values))
     item_ids = sorted(set(ratings['item_id'].values))
@@ -35,7 +37,6 @@ def calc_recommendation():
     reverse_item_ids_mapping = {v: k for k, v in item_ids_mapping.items()}
 
     Y_data = ratings.values
-
     rs = CF(Y_data, k = 2, user_ids_mapping = reverse_user_ids_mapping, item_ids_mapping = reverse_item_ids_mapping, uuCF = 0)
     rs.fit()
     global recommended

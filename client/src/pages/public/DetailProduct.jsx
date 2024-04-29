@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { createSearchParams, useParams, useSearchParams } from 'react-router-dom'
-import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart, apiRatings } from '../../apis'
+import { apiGetProduct, apiGetProducts, apiGetProductCategory, apiUpdateCart, apiGetUserCart, apiRatings, apiGetRecommendedProducts } from '../../apis'
 import { Breadcrumb, Button2, SelectQuantity, ProductInfo, CustomSlider, VoteBar, VoteOption, Button, Comment } from '../../components'
 import Slider from 'react-slick'
 import { fotmatPrice, formatMoney, renderStarFromNumber } from '../../ultils/helpers'
@@ -35,6 +35,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
     const [category, setCategory] = useState(null)
     const [title, setTitle] = useState(null)
     const [updated, setUpdated] = useState(false)
+    const [recommendedProducts, setRecommendedProducts] = useState([]);
 
     const fetchProductData = async () => {
         const response = await apiGetProduct(pid)
@@ -49,6 +50,16 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
 
         if (response?.success) setRelatedProduct(response.productData)
     }
+
+    const fetchRecommendedProducts = async () => {
+        const rs = await apiGetRecommendedProducts(current._id);
+        setRecommendedProducts(rs.products);
+    }
+
+    useEffect(() => {
+        fetchRecommendedProducts();
+    }, [pid])
+
     const rerender = useCallback(() => {
         setUpdated(!updated)
     }, [updated])
@@ -152,7 +163,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
     }
     return (
         <div className={clsx('w-full relative')}>
-            {!isQuickView && <div className='h-[81px] bg-gray-100 flex justify-center items-center bg-gray-100'>
+            {!isQuickView && <div className='h-[81px] flex justify-center items-center bg-gray-100'>
                 <div ref={titleRef} className='w-main '>
                     <h3 className='font-semibold'>{title}</h3>
                     <Breadcrumb title={title} category={Array.isArray(relatedProduct) ? relatedProduct[0].category.categoryName : ""} />
@@ -248,6 +259,13 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
             {!isQuickView && <>
                 <div className='w-main m-auto mt-8'>
                     <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Người dùng khác cũng mua:</h3>
+                    <CustomSlider products={relatedProduct} />
+                </div>
+                <div className='h-[100px] w-full'></div>
+            </>}
+            {recommendedProducts.length > 0 && <>
+                <div className='w-main m-auto mt-8'>
+                    <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Có thể bạn sẽ thích:</h3>
                     <CustomSlider products={relatedProduct} />
                 </div>
                 <div className='h-[100px] w-full'></div>

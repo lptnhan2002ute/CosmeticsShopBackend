@@ -1,6 +1,4 @@
 import io from 'socket.io-client';
-let socket;
-
 
 const getToken = () => {
     let localStorageData = window.localStorage.getItem('persist:shop/user');
@@ -12,9 +10,17 @@ const getToken = () => {
     return null;
 };
 
+let socket = io(import.meta.env.VITE_APP_API_URI.split('/api')[0], {
+    auth: {
+        token: `Bearer ${getToken()}`
+    },
+});
+
+export default socket;
+
 export const initiateSocketConnection = () => {
     const token = getToken();
-    socket = io(process.env.REACT_APP_API_URI, {
+    socket = io(import.meta.env.VITE_APP_API_URI, {
         auth: {
             token: `Bearer ${token}`
         },

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Breadcrumb, Product, } from '../../components'
-import { apiGetProductCategory } from '../../apis'
+import { apiGetProductCategory, apiGetRecommendedProducts } from '../../apis'
 import Masonry from 'react-masonry-css'
 import { Pagination, Input, Spin, Button } from 'antd'
+import { useSelector } from 'react-redux'
 
 const breakpointColumnsObj = {
     default: 4,
@@ -15,12 +16,17 @@ const breakpointColumnsObj = {
 const { Search } = Input
 
 const Products = () => {
+    const { current } = useSelector(state => state.user);
     const [activeClick, setActiveClick] = useState(null)
     const [relatedProduct, setRelatedProduct] = useState(null)
     const [count, setCount] = useState(0)
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(false)
     const [value, setValue] = useState(null)
+    const [showRecommend, setShowRecommend] = useState(false);
+    const [recommendedProducts, setRecommendedProducts] = useState([]);
+
+    const navigate = useNavigate();
 
     const onChange = async (page) => {
 
@@ -34,8 +40,21 @@ const Products = () => {
         await fetchProducts(category, 12, page, encodeURIComponent(value))
     }
 
+    const onFocus = () => {
+        setShowRecommend(true);
+    }
+    const onBlur = (e) => {
+        console.log(e)
+        setShowRecommend(false);
+    }
+
     const handleReload = () => {
         fetchProducts(category, 12, 1)
+    }
+
+    const fetchRecommendedProducts = async () => {
+        const rs = await apiGetRecommendedProducts(current._id);
+        setRecommendedProducts(rs.products);
     }
 
     const fetchProducts = async (category, limit, page, name) => {
@@ -83,6 +102,7 @@ const Products = () => {
     const { category } = useParams()
     useEffect(() => {
         fetchProducts(category, 12, 1)
+        fetchRecommendedProducts();
     }, [])
     const changeActiveFilter = useCallback((name) => {
         if (activeClick === name) setActiveClick(null)
@@ -100,14 +120,30 @@ const Products = () => {
                 <Button onClick={handleReload} className="mr-[50px]">
                     <p>Tất cả sản phẩm</p>
                 </Button>
-                <Search
-                    className="w-[60vw]"
-                    placeholder="Nhập tên sản phẩm..."
-                    allowClear
-                    enterButton="Search"
-                    size="large"
-                    onSearch={onSearch}
-                />
+                <div className='relative'>
+                    <Search
+                        className="w-[60vw]"
+                        placeholder="Nhập tên sản phẩm..."
+                        allowClear
+                        enterButton="Search"
+                        size="large"
+                        onSearch={onSearch}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                    />
+                    {showRecommend && recommendedProducts.length > 0 &&
+                        <div className='absolute w-[calc(100%_-_80px)] min-h-[100px] bg-white z-10 top-[100%] right-[80px]'>
+                            <div className='flex flex-col gap-4 p-4 rounded-md shadow-lg border-[1px]'>
+                                {recommendedProducts.slice(0, 5).map((prod, i) => (
+                                    <div onMouseDown={(e) => { navigate(`/${prod.category._id}/${prod._id}/${prod.productName}`); }} className='flex cursor-pointer hover:opacity-80 items-center gap-6'>
+                                        <p className='max-w-[600px] text-sm truncate'>{prod.productName}</p>
+                                        <img className='w-auto h-[40px] object-contain' src={prod.imageUrl?.at(0)} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
             <div className='mt-8 w-main m-auto'>
                 <Spin spinning={loading} tip="Loading..." size='large' >

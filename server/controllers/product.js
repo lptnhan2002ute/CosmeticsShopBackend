@@ -191,7 +191,7 @@ const getRecommendedProducts = asyncHandler(async (req, res) => {
         const rs = await fetch(`${process.env.RECOMMENDATION_SERVER}/${uid}`)
         const productIds = await rs.json()
 
-        const products = await Product.find({ _id: { $in: productIds } }).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id')
+        const products = await Product.find({ _id: { $in: productIds } }).populate('brand', 'brandName -_id').populate('category', 'categoryName')
 
         return res.status(200).json({
             status: true,

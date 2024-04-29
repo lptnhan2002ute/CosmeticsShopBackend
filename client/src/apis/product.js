@@ -14,6 +14,12 @@ export const apiGetProduct = (pid) => axios({
 //     method: 'get',
 //     params
 // })
+
+export const apiGetRecommendedProducts = (uid) => axios({
+    url: '/product/recommendation/' + uid,
+    method: 'get',
+})
+
 export const apiGetProductCategory = (params) => axios({
     headers: { 'Content-type': 'application/json' },
     url: `/product`,

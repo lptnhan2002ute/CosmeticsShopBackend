@@ -1,53 +1,145 @@
-import { FloatButton, Modal } from 'antd';
+import { FloatButton, Input } from 'antd';
 import { MessageOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { IoMdClose, IoIosSend } from "react-icons/io";
+import socket from '../../socket/socket';
+import { apiGetMessagesInSession, apiSendMessageInSession, apiStartChatSession } from './../../apis/chat';
+import { RiUserFollowFill } from "react-icons/ri";
+import { useDispatch, useSelector } from 'react-redux';
+import { setSessionId } from '../../store/chatSlice'
+
+const title = "Chat với nhân viên tư vấn";
 
 const ChatWithAdmin = () => {
-    const [open, setOpen] = useState(false);
-    const [confirmLoading, setConfirmLoading] = useState(false);
+    const { sessionId } = useSelector(state => state.chat);
 
-    const handleOpenChat = () => {
+    const [open, setOpen] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const [currentSessionId, setCurrentSessionId] = useState(sessionId);
+
+    const handleOpenChatModal = () => {
         setOpen(true);
     }
 
-    const handleOk = () => {
-        setConfirmLoading(true);
-        setTimeout(() => {
-            setOpen(false);
-            setConfirmLoading(false);
-        }, 2000);
-    };
+    const handleGetMessages = async () => {
+        const rs = await apiGetMessagesInSession(currentSessionId);
+        setMessages(rs);
+    }
 
-    const handleCancel = () => {
-        setOpen(false);
-    };
+    useEffect(() => {
+        if (currentSessionId) {
+            handleGetMessages();
+        }
+    }, [currentSessionId])
+
+    useEffect(() => {
+        const handleListenMessage = (data) => {
+            messages.push(data);
+            setMessages([...messages]);
+        };
+        socket.on("message", handleListenMessage);
+
+        return () => {
+            socket.off("message", handleListenMessage);
+        };
+    }, [])
 
     return (
         <>
             <FloatButton
                 shape="circle"
                 type="primary"
-                className='right-[60px]'
-                tooltip={'Chat với nhân viên tư vấn'}
-                onClick={handleOpenChat}
+                className={`${open ? 'invisible opacity-0' : 'visible opacity-100'} right-[60px] cursor-pointer transition-all duration-1000`}
+                tooltip={title}
+                onClick={handleOpenChatModal}
                 icon={<MessageOutlined />}
             />
-            <Modal
-                title="Chat"
-                width={360}
-                open={open}
-                onOk={handleOk}
-                confirmLoading={confirmLoading}
-                onCancel={handleCancel}
-                mask={false}
-                maskClosable={false}
-                style={{ top: '100%', left: '100%' }}
-            >
-                <p>Chat!</p>
-            </Modal>
+            <ModalChat props={{ open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId }} />
         </>
     )
 
+}
+
+const ModalChat = ({ props }) => {
+    const { open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId } = props;
+
+    const { current: currentUser } = useSelector(state => state.user);
+    const dispatch = useDispatch();
+
+    const [message, setMessage] = useState("");
+
+    const handleSendMessage = async (message) => {
+        if (!message || !currentSessionId)
+            return;
+
+        const rs = await apiSendMessageInSession({
+            senderUserID: currentUser._id,
+            sessionID: currentSessionId,
+            messageText: message
+        });
+        const messageFullInformation = { ...rs, senderUserID: { _id: rs.senderUserID } }
+        socket.emit("chatMessage", { sessionId: currentSessionId, message: messageFullInformation });
+        setMessages([...messages, messageFullInformation]);
+    }
+
+    const handleStartChat = async () => {
+        const rs = await apiStartChatSession({
+            adminUserID: '6570873aa57c73f0bb69e92b', //TODO: remove adminUserId with another logic
+            customerUserID: currentUser._id
+        })
+
+        dispatch(setSessionId({ sessionId: rs._id }));
+        setCurrentSessionId(rs._id)
+        socket.emit('joinRoom', { sessionId: rs._id })
+    }
+
+    const chatContainerRef = useRef(null);
+    const scrollToBottom = () => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    };
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages])
+
+    return (
+        <div className={`${open ? 'opacity-100 bottom-[40px]' : 'opacity-0 bottom-[-100%]'} fixed flex flex-col w-[320px] h-[450px] bg-red-100 text-black rounded-lg right-[30px] z-[101] shadow-lg transition-all duration-300`}>
+            <div className='flex justify-between bg-[#ff007f] rounded-t-lg text-white font-medium text-md min-h-[60px] px-4 py-2'>
+                {title}
+                <IoMdClose onClick={() => setOpen(false)} size={22} className='hover:opacity-80 cursor-pointer' />
+            </div>
+            <div className='flex flex-col flex-1 px-4 pt-2 pb-4'>
+                {messages?.length === 0 && !currentSessionId ?
+                    <div onClick={handleStartChat} className='flex my-6 cursor-pointer hover:opacity-80 text-white text-xs font-semibold py-1 leading-7 w-[70%] mx-auto items-center justify-center gap-2 bg-[#ff007f] rounded-xl mt-auto'>
+                        <IoIosSend size={20} /> BẮT ĐẦU TRÒ CHUYỆN
+                    </div> :
+                    <div ref={chatContainerRef} className='flex flex-col gap-4 overflow-y-auto max-h-[320px] chat__session__content'>
+                        {
+                            messages.map((e, i) => {
+                                if (e.senderUserID._id !== currentUser._id) {
+                                    return <div key={i} className='flex gap-2 items-center'>
+                                        <RiUserFollowFill color='#ff007f' size={24} />
+                                        <p className='text-sm font-medium break-words max-w-[180px] bg-red-200 py-2 px-4 rounded-lg'>{e.messageText}</p>
+                                    </div>
+                                }
+                                return <div key={i} className='flex gap-2 items-center justify-end'>
+                                    <p className='text-sm font-medium break-words max-w-[180px] bg-red-300 py-2 px-4 rounded-lg'>{e.messageText}</p>
+                                </div>
+                            })
+                        }
+                    </div>
+                }
+            </div>
+            {
+                currentSessionId ?
+                    <div className='flex items-center gap-4 p-4 pt-2 bg-red-100 rounded-b-lg'>
+                        <Input onPressEnter={() => handleSendMessage(message)} value={message} onChange={(e) => setMessage(e.target.value)} className='bg-slate-100' placeholder='Nhập nội dung' />
+                        <IoIosSend onClick={() => handleSendMessage(message)} color='#ff007f' className='cursor-pointer' size={26} />
+                    </div> : ''
+            }
+        </div>
+    )
 }
 
 export default ChatWithAdmin;

@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const socketIo = require('socket.io');
 const http = require('http')
+const { verifySocketMiddleware } = require('./middlewares/verifySocket')
 
 
 const app = express()
@@ -41,6 +42,8 @@ app.use('/', (req, res) => { res.send('Server on') })
 io.on('connection', (socket) => {
     console.log('A user connected');
 
+    // io.use(verifySocketMiddleware);
+
     // Join a conversation
     socket.on('joinRoom', ({ sessionId }) => {
         socket.join(sessionId);
@@ -49,7 +52,8 @@ io.on('connection', (socket) => {
 
     // Listen for chatMessage
     socket.on('chatMessage', ({ sessionId, message }) => {
-        io.to(sessionId).emit('message', message);
+        console.log(message)
+        socket.to(sessionId).emit('message', message);
     });
 
     // Runs when client disconnects
