@@ -92,6 +92,23 @@ export const apiUpdateOrder = (data, oid) => axios({
     data
 })
 
+export const apiDeleteOrder = (data, oid) => axios({
+    url: `/bill/${oid}`,
+    method: "delete",
+})
+
+export const apiCreateVnpayUrl = (data) => axios({
+    url: '/bill/create_vnpay_payment',
+    method: "post",
+    data
+})
+
+export const apiVnpayIpn = (params) => axios({
+    url: "/bill/vnpay_ipn",
+    method: "get",
+    params
+})
+
 export const apiUpdateWishlist = (pid) => axios({
     url: '/user/wishlist/' + pid,
     method: "put",

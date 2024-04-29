@@ -30,7 +30,8 @@ const path = {
     PERSONAL: 'personal',
     MY_CART: 'my-cart',
     HISTORY: 'buy-history',
-    WISHLIST: 'wishlist'
+    WISHLIST: 'wishlist',
+    VNPAY_RETURN: 'vnpay-return',
 
 }
 

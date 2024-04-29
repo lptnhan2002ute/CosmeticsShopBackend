@@ -9,7 +9,7 @@ var orderSchema = new mongoose.Schema({
     status: {
         type: String,
         default: 'Pending',
-        enum: ['Cancelled', 'Pending', 'Confirmed', 'Shipped'],
+        enum: ['Cancelled', 'Pending', 'Unpaid', 'Confirmed', 'Shipped'],
     },
     total: Number,
     voucher: {
@@ -21,7 +21,7 @@ var orderSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        default:''
+        default: ''
     },
     phone: {
         type: Number,
@@ -36,7 +36,8 @@ var orderSchema = new mongoose.Schema({
         type: String,
         default: 'Cash',
         enum: ['Cash', 'VnPay', 'PayPal'],
-    }}, { timestamps: true }); 
+    }
+}, { timestamps: true });
 
 //Export the model
 module.exports = mongoose.model('Order', orderSchema);

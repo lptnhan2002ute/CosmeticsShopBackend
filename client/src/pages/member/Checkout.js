@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import { updateCart } from '../../store/users/userSlice'
 import PayPal from '../../components/PayPal'
+import VnPayPayment from '../../components/VnPayPayment'
 import { useDebounce } from 'use-debounce';
 
 const Checkout = () => {
@@ -32,7 +33,15 @@ const Checkout = () => {
         phone: '',
         address: '',
         note: '',
-        // Khởi tạo các trường khác nếu cần
+    });
+    const [vnpayPayload, setVnpayPayload] = useState({
+        products: [],
+        paymentMethod: "VnPay",
+        total: 0,
+        recipient: '',
+        phone: '',
+        address: '',
+        note: '',
     });
     const [formData, setFormData] = useState({
         recipient: '',
@@ -167,14 +176,32 @@ const Checkout = () => {
             ...formData
             // ...debouncedFormData
         };
-        console.log(data);
         return data;
     };
 
+    const createVnpayPayload = () => {
+        const data = {
+            products: list.map(item => ({
+                product: item.product._id,
+                count: item.quantity,
+            })),
+            paymentMethod: "VnPay",
+            total,
+            // Add additional form data here
+            ...formData
+            // ...debouncedFormData
+        };
+        return data;
+    };
+
+
     React.useEffect(() => {
-        const newPayload = createPayPalPayload();
+        const newPayPalPayload = createPayPalPayload();
+        const newVnpayPayload = createVnpayPayload();
+
         const timeoutId = setTimeout(() => {
-            setPayPalPayload(newPayload);
+            setPayPalPayload(newPayPalPayload);
+            setVnpayPayload(newVnpayPayload);
         }, 3500);
 
         return () => clearTimeout(timeoutId);
@@ -231,6 +258,13 @@ const Checkout = () => {
                                         <p class="text-slate-500 text-sm leading-6">Giao trong vòng: 2-4 ngày</p>
                                     </div>
                                 </label>
+                            </div>
+                            <div className='w-full mx-auto'>
+                                <VnPayPayment
+                                    payload={vnpayPayload}
+                                    setIsSuccess={setIsSuccess}
+                                    amount={total}
+                                />
                             </div>
                             <div className='w-full mx-auto'>
                                 <PayPal

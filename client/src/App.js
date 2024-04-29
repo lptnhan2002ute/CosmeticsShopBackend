@@ -8,6 +8,7 @@ import { apiGetCategories } from './store/asyncActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
 import { Modal } from './components';
+import VnPayReturnHandler from './pages/member/VnPayReturnHandler ';
 
 function App() {
   const dispatch = useDispatch()
@@ -42,6 +43,7 @@ function App() {
         </Route>
         <Route path={path.MEMBER} element={<MemberLayout />}>
           <Route path={path.PERSONAL} element={<Personal />} />
+          <Route path={path.VNPAY_RETURN} element={<VnPayReturnHandler />} />
           <Route path={path.MY_CART} element={<MyCart />} />
           <Route path={path.HISTORY} element={<History />} />
           <Route path={path.WISHLIST} element={<Wishlist />} />
