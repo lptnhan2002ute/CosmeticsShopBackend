@@ -374,6 +374,5 @@ module.exports = {
     getAllOrders,
     getOrdersByTime,
     createPaymentUrl,
-    vnpayReturn,
     handleVnpayIpn
 }
