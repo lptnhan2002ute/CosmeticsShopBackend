@@ -241,6 +241,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                             updatedAt={el.updatedAt}
                             comment={el.comment}
                             name={el.postedBy?.name}
+                            image={el.postedBy?.avatar}
                         />
                     ))}</div>
             </div>}
