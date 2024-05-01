@@ -19,7 +19,6 @@ const VnPayPaymentComponent = ({ total, payload, setIsSuccess }) => {
         try {
             // Create order first
             const orderResponse = await apiOrder({ ...payload })
-
             if (orderResponse.success) {
                 // Fetch payment URL using the orderId
                 const paymentResponse = await apiCreateVnpayUrl({ orderId: orderResponse.result._id })

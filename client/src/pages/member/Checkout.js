@@ -176,6 +176,7 @@ const Checkout = () => {
             ...formData
             // ...debouncedFormData
         };
+        console.log(data)
         return data;
     };
 
@@ -270,7 +271,7 @@ const Checkout = () => {
                                 <PayPal
                                     payload={payPalPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={(total / 24250).toFixed(2)} />
+                                    amount={(total / 25345).toFixed(2)} />
                             </div>
                         </form>
                         <p class="mt-8 text-lg">Voucher</p>

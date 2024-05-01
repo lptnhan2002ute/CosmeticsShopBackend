@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiVnpayIpn } from '../../apis';
-import path from '../../ultils/path';
 import Swal from 'sweetalert2';
 
 const VnPayReturnHandler = () => {
@@ -15,19 +14,26 @@ const VnPayReturnHandler = () => {
             const queryParams = new URLSearchParams(location.search);
             try {
                 const response = await apiVnpayIpn(Object.fromEntries(queryParams));
-                console.log(response);
+                console.log(response)
                 if (response.RspCode === '00') {
                     Swal.fire({
                         title: 'Success',
                         text: `Payment for order ${queryParams.get('vnp_TxnRef')} was successful!`,
                         icon: 'success',
-                    }).then(() => navigate('/buy-history'));
+                    }).then(async () => {
+                        if (window.opener) {
+                            window.opener.location.reload(); // Làm mới cửa sổ gọi popup
+                            window.close(); // Đóng cửa sổ popup
+                        } else {
+                            navigate("/member/buy-history");
+                        }
+                    });
                 } else {
                     Swal.fire({
                         title: 'Payment Failed',
                         text: response.Message || 'Transaction failed.',
                         icon: 'error',
-                    }).then(() => navigate("/products")); // Navigate back to products on failure
+                    }).then(() => navigate("/products"));
                 }
             } catch (error) {
                 console.error('Error verifying VNPay payment:', error);
@@ -35,7 +41,7 @@ const VnPayReturnHandler = () => {
                     title: 'Error',
                     text: 'An error occurred while verifying the payment.',
                     icon: 'error',
-                }).then(() => navigate("/products"));
+                }).then(() => navigate("/member/buy-history"));
             }
         };
 
