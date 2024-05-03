@@ -3,6 +3,10 @@ const Cart = require('../models/cart');
 const Voucher = require('../models/voucher')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
+const vnpayConfig = require('../config/vnpay.config');
+const moment = require('moment');
+const queryString = require('qs');
+const crypto = require('crypto');
 
 const createOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
@@ -19,18 +23,17 @@ const createOrder = asyncHandler(async (req, res) => {
         total *= 1 - selectedVoucher.discount / 100;
         total = Math.round(total / 1000) * 1000;
     }
-
+    const { products, address, phone, recipient, note, paymentMethod, status } = req.body;
+    if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
+        return res.status(400).json({
+            success: false,
+            mess: 'Đơn hàng Unpaid phải có paymentMethod là vnPay hoặc PayPal',
+        });
+    }
     const data = {
-        products: req.body.products,
-        orderBy: _id,
-        total: total,
-        voucher: voucher || null,
-        address: req.body.address || '',
-        phone: req.body.phone || null,
-        recipient: req.body.recipient || '',
-        note: req.body.note || '',
-        paymentMethod: req.body.paymentMethod || 'Cash',
-        status: req.body.status || 'Pending'
+        products, orderBy: _id, total, voucher: voucher || null,
+        address: address || '', phone: phone || null, recipient: recipient || '',
+        note: note || '', paymentMethod: paymentMethod || 'Cash', status: status || 'Pending'
     };
 
     const paidProducts = [];
@@ -68,7 +71,7 @@ const createOrder = asyncHandler(async (req, res) => {
     if (soldOutProducts.length > 0) {
         return res.status(400).json({
             success: false,
-            status: "soldout",
+            status: 'soldout',
             mess: 'Không đủ số lượng sản phẩm để mua',
             product: soldOutProducts
         });
@@ -116,9 +119,59 @@ const updateStatus = asyncHandler(async (req, res) => {
     const result = await Order.findByIdAndUpdate(oid, { status }, { new: true })
     return res.json({
         success: result ? true : false,
-        result: result ? result : 'Error for order'
+        result: result ? result : 'Error for update order'
     })
 })
+
+const deleteOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.params; // Assuming the orderId is passed as a URL parameter
+
+    // Find the order to delete
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            mess: 'Đơn hàng không tồn tại',
+        });
+    }
+
+    // Optionally, check if the user has permission to delete this order
+    if (req.user._id !== order.orderBy && req.user.role !== 'Admin') {
+        return res.status(403).json({
+            success: false,
+            mess: 'Không có quyền xóa đơn hàng này',
+        });
+    }
+
+    // Restore the stock quantities if necessary
+    const updates = order.products.map(async (productItem) => {
+        return Product.findByIdAndUpdate(productItem.product, {
+            $inc: {
+                stockQuantity: productItem.count,
+                soldQuantity: -productItem.count
+            }
+        });
+    });
+
+    try {
+        await Promise.all(updates); // Execute all the product updates
+
+        // Delete the order
+        await Order.deleteOne({ _id: orderId });
+
+        res.status(200).json({
+            success: true,
+            mess: 'Đơn hàng đã được xóa thành công'
+        });
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({
+            success: false,
+            mess: 'Lỗi khi xóa đơn hàng'
+        });
+    }
+});
+
 
 const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
@@ -186,11 +239,139 @@ const getOrdersByTime = asyncHandler(async (req, res) => {
     }
 });
 
+const sortObject = obj => {
+    const sorted = {};
+    const keys = Object.keys(obj).map(key => encodeURIComponent(key));
+    keys.sort();
+    keys.forEach(key => {
+        const encodedKey = encodeURIComponent(key);
+        const encodedValue = encodeURIComponent(obj[key]).replace(/%20/g, '+');
+        sorted[encodedKey] = encodedValue;
+    });
+    return sorted;
+};
+
+const createPaymentUrl = asyncHandler(async (req, res) => {
+    try {
+        const ipAddr =
+            req.headers['x-forwarded-for'] ||
+            req.connection.remoteAddress ||
+            req.socket.remoteAddress ||
+            req.connection.socket.remoteAddress;
+        const { orderId } = req.body;
+        const now = moment(new Date());
+
+        if (!orderId) {
+            return res.status(400).json({ mess: 'Missing orderId' });
+        }
+
+
+        const order = await Order.findById(orderId);
+        if (order.total < 5000) {
+            return res.status(400).json({ mess: 'Invalid amount' });
+        }
+        if (!order || (order.status !== 'Unpaid' && order.status !== 'Pending')) {
+            return res.status(404).json({ mess: 'Order not found' });
+        }
+
+        let vnpParams = {
+            vnp_Version: '2.1.0',
+            vnp_Command: 'pay',
+            vnp_TmnCode: process.env.vnp_TmnCode,
+            vnp_Locale: 'vn',
+            vnp_CurrCode: 'VND',
+            vnp_TxnRef: orderId,
+            vnp_OrderInfo: 'Payment for Order ID ' + orderId,
+            vnp_OrderType: 'other',
+            vnp_Amount: order.total * 100,
+            vnp_ReturnUrl: process.env.vnp_ReturnUrl,
+            vnp_IpAddr: ipAddr,
+            vnp_CreateDate: now.format('YYYYMMDDHHmmss'),
+            vnp_BankCode: 'NCB'
+        };
+        vnpParams = sortObject(vnpParams);
+        let signData = queryString.stringify(vnpParams, { encode: false });
+        let hmac = crypto.createHmac('sha512', process.env.vnp_HashSecret);
+        var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+        vnpParams['vnp_SecureHash'] = signed;
+        vnpParams['vnp_SecureHashType'] = 'SHA512';
+        let vnpUrl = process.env.vnp_Url + '?' + queryString.stringify(vnpParams, { encode: false });
+        res.json({ success: true, url: vnpUrl });
+    } catch (error) {
+        console.error('Error creating payment URL:', error);
+        res.status(500).json({ success: false, mess: error.message });
+    }
+});
+
+const handleVnpayIpn = asyncHandler(async (req, res) => {
+    try {
+        let vnpParams = req.query;
+        const secureHash = vnpParams['vnp_SecureHash'];
+        const orderId = vnpParams['vnp_TxnRef'];
+        const amount = vnpParams['vnp_Amount'];
+        const rspCode = vnpParams['vnp_ResponseCode'];
+
+        delete vnpParams['vnp_SecureHash'];
+        delete vnpParams['vnp_SecureHashType'];
+
+        vnpParams = sortObject(vnpParams);
+        const signData = queryString.stringify(vnpParams, { encode: false });
+        const hmac = crypto.createHmac("sha512", vnpayConfig.vnp_HashSecret);
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+        let paymentStatus = '0'; // Initial state
+
+        // Example condition checks (You should replace these with actual checks against your database)
+        let checkOrderId = true; // Check if orderId exists in your database
+        const order = await Order.findById(orderId);
+        if (!order) {
+            checkOrderId = false
+        }
+
+        let checkAmount = true; // Check if the amount matches the database
+        if (order.total !== amount / 100) {
+            checkAmount = false
+        }
+
+        if (secureHash === signed) { // Verify checksum
+            if (checkOrderId) {
+                if (checkAmount) {
+                    if (paymentStatus === '0') { // Check transaction status before updating
+                        if (rspCode === '00') {
+                            // Transaction successful
+                            const result = await Order.findByIdAndUpdate(orderId, { status: 'Confirmed', paymentMethod: 'VnPay' }, { new: true })
+                            res.status(200).json({ RspCode: '00', Message: 'Success', result: result ? result : 'Error for update order' });
+                        } else {
+                            // Transaction failed
+                            const result = await Order.findByIdAndUpdate(orderId, { status: 'Unpaid', paymentMethod: 'VnPay' }, { new: true })
+                            res.status(200).json({ RspCode: rspCode, Message: 'Transaction Failed' });
+                        }
+                    } else {
+                        res.status(200).json({ RspCode: '02', Message: 'This order has been previously updated' });
+                    }
+                } else {
+                    res.status(200).json({ RspCode: '04', Message: 'Amount mismatch' });
+                }
+            } else {
+                res.status(200).json({ RspCode: '01', Message: 'Order not found' });
+            }
+        } else {
+            res.status(200).json({ RspCode: '97', Message: 'Checksum failed' });
+        }
+    } catch (error) {
+        console.error('Error handling IPN:', error);
+        res.status(500).json({ success: false, message: error.mess });
+    }
+});
+
 
 module.exports = {
     createOrder,
     updateStatus,
+    deleteOrder,
     getUserOrder,
     getAllOrders,
-    getOrdersByTime
+    getOrdersByTime,
+    createPaymentUrl,
+    handleVnpayIpn
 }

@@ -66,7 +66,7 @@ export const productInformation = [
 
     }
 ]
-const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile} = icons
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile, FaFacebookMessenger} = icons
 export const adminSidebar = [
     {
         id: 1,
@@ -118,6 +118,13 @@ export const adminSidebar = [
         text: 'Thông tin quản lý',
         path: `/${path.ADMIN}/${path.ADMINPERSONAL}`,
         icon: <ImProfile />
+    },
+    {
+        id: 7,
+        type: 'single',
+        text: 'Tin nhắn khách hàng',
+        path: `/${path.ADMIN}/${path.MESSENGER}`,
+        icon: <FaFacebookMessenger />
     }
 ]
 

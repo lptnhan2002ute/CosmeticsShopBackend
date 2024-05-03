@@ -266,7 +266,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
             {recommendedProducts.length > 0 && <>
                 <div className='w-main m-auto mt-8'>
                     <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Có thể bạn sẽ thích:</h3>
-                    <CustomSlider products={relatedProduct} />
+                    <CustomSlider products={recommendedProducts} />
                 </div>
                 <div className='h-[100px] w-full'></div>
             </>}
