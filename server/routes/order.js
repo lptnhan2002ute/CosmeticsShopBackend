@@ -5,6 +5,8 @@ const { verifyAccessToken, isAdmin } = require('../middlewares/verifyToken')
 router.post('/', verifyAccessToken, ctrls.createOrder)
 
 router.put('/status/:oid', verifyAccessToken, ctrls.updateStatus)
+router.get('/order/:oid', verifyAccessToken, ctrls.getOrderById)
+router.delete('/:oid', verifyAccessToken, ctrls.deleteOrder)
 
 router.delete('/:oid', verifyAccessToken, ctrls.deleteOrder)
 

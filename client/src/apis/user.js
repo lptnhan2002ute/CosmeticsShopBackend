@@ -92,7 +92,13 @@ export const apiUpdateOrder = (data, oid) => axios({
     data
 })
 
-export const apiDeleteOrder = (data, oid) => axios({
+export const apiGetOrderById = (oid) => axios({
+    url: `/bill/order/${oid}`,
+    method: "get",
+})
+
+
+export const apiDeleteOrder = (oid) => axios({
     url: `/bill/${oid}`,
     method: "delete",
 })

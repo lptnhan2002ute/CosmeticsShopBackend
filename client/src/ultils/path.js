@@ -33,6 +33,7 @@ const path = {
     HISTORY: 'buy-history',
     WISHLIST: 'wishlist',
     VNPAY_RETURN: 'vnpay-return',
+    PAYMENT: 'payment/:oid',
 
 }
 

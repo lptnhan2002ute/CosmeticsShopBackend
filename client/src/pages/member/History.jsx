@@ -18,7 +18,7 @@ const History = () => {
 
     useEffect(() => {
 
-        const newList = allListOrder.filter(order => order.status == key)
+        const newList = allListOrder.filter(order => order.status === key)
         setFilterListOrder(newList)
     }, [allListOrder, key])
 
@@ -48,6 +48,9 @@ const History = () => {
                                 <HistoryOrderItem setFetch={setFetch} listOrder={allListOrder} />
                             </TabPane>
                             <TabPane tab="Chờ xác nhận" key="Pending">
+                                <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
+                            </TabPane>
+                            <TabPane tab="Chờ thanh toán" key="Unpaid">
                                 <HistoryOrderItem setFetch={setFetch} listOrder={filterListOrder} />
                             </TabPane>
                             <TabPane tab="Đang giao" key="Confirmed">

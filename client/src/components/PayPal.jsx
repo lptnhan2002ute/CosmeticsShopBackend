@@ -45,23 +45,27 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
         })
     }, [currency, showSpinner, payload])
 
-    const handleSaveOrder = async () => {
-        const response = await apiOrder({ ...payload, status: 'Confirmed' })
-
+    const handleSaveOrder = async (status) => {
+        const response = await apiOrder({ ...payload, status });
         if (response.success) {
-            setIsSuccess(true)
-            const getCarts = await apiGetUserCart()
-
-            dispatchRedux(updateCart({ products: getCarts.userCart.cart.products }))
-            setTimeout(() => {
-                Swal.fire('Chúc mừng!', 'Bạn đã thanh toán thành công', 'success').then(() => {
-                    navigate("/products")
-                })
-            }, 1000)
-
+            if (status === 'Confirmed') {
+                const getCarts = await apiGetUserCart()
+                dispatchRedux(updateCart({ products: getCarts.userCart.cart.products }))
+                setTimeout(() => {
+                    Swal.fire('Chúc mừng!', 'Bạn đã thanh toán thành công', 'success').then(() => {
+                        navigate("/member/buy-history")
+                    })
+                }, 1000)
+                setIsSuccess(true);
+            } else {
+                setTimeout(() => {
+                    Swal.fire('Thất bại', 'Thanh toán không thành công', 'error').then(() => navigate("/products"))
+                }, 1000)
+            }
+        } else {
+            Swal.fire('Lỗi', 'Không thể tạo đơn hàng', 'error');
         }
-
-    }
+    };
 
     return (
         <>
@@ -76,10 +80,15 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
                         { amount: { currency_code: currency, value: amount } }
                     ]
                 }).then(orderId => orderId)}
-                onApprove={(data, actions) => actions.order.capture().then(async (response) => {
+                onApprove={(data, actions) => actions.order.capture().then(response => {
                     if (response.status === 'COMPLETED') {
-                        await handleSaveOrder()
+                        handleSaveOrder('Confirmed');
+                        setIsSuccess(true);
+                    } else {
+                        handleSaveOrder('Unpaid');
                     }
+                }).catch(() => {
+                    handleSaveOrder('Unpaid');
                 })}
             />
         </>

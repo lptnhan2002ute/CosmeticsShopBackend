@@ -27,7 +27,7 @@ const createOrder = asyncHandler(async (req, res) => {
     if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
         return res.status(400).json({
             success: false,
-            mess: 'Đơn hàng Unpaid phải có paymentMethod là vnPay hoặc PayPal',
+            mess: 'Đơn hàng Unpaid phải có paymentMethod là VnPay hoặc PayPal',
         });
     }
     const data = {
@@ -175,6 +175,13 @@ const deleteOrder = asyncHandler(async (req, res) => {
 
 const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
+    const date24HoursAgo = new Date(new Date().getTime() - (24 * 60 * 60 * 1000));
+
+    // Tìm và cập nhật đơn hàng có trạng thái Unpaid và thời gian tạo nhỏ hơn date24HoursAgo
+    await Order.updateMany(
+        { orderBy: _id, status: 'Unpaid', createdAt: { $lt: date24HoursAgo } },
+        { $set: { status: 'Cancelled' } }
+    );
     const result = await Order.find({ orderBy: _id }).populate('products.product').sort({ updatedAt: -1 }).exec()
     return res.json({
         success: result ? true : false,
@@ -189,6 +196,16 @@ const getAllOrders = asyncHandler(async (req, res) => {
         result: result ? result : 'Lỗi lấy danh sách đơn hàng'
     })
 })
+
+const getOrderById = asyncHandler(async (req, res) => {
+    const { oid } = req.params
+    const result = await Order.findById(oid)
+    return res.json({
+        success: result ? true : false,
+        result: result ? result : 'Lỗi lấy thông tin đơn hàng'
+    })
+})
+
 const getOrdersByTime = asyncHandler(async (req, res) => {
     const { startDate, endDate, toDay } = req.query;
     const convertDate = (dateStr, isEndDate = false) => {
@@ -259,6 +276,7 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
         const { orderId } = req.body;
+        console.log(orderId)
         const now = moment(new Date());
 
         if (!orderId) {
@@ -306,6 +324,7 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
 const handleVnpayIpn = asyncHandler(async (req, res) => {
     try {
         let vnpParams = req.query;
+        console.log(vnpParams['vnp_TxnRef'])
         const secureHash = vnpParams['vnp_SecureHash'];
         const orderId = vnpParams['vnp_TxnRef'];
         const amount = vnpParams['vnp_Amount'];
@@ -338,6 +357,7 @@ const handleVnpayIpn = asyncHandler(async (req, res) => {
                 if (checkAmount) {
                     if (paymentStatus === '0') { // Check transaction status before updating
                         if (rspCode === '00') {
+                            console.log(orderId)
                             // Transaction successful
                             const result = await Order.findByIdAndUpdate(orderId, { status: 'Confirmed', paymentMethod: 'VnPay' }, { new: true })
                             res.status(200).json({ RspCode: '00', Message: 'Success', result: result ? result : 'Error for update order' });
@@ -368,6 +388,7 @@ const handleVnpayIpn = asyncHandler(async (req, res) => {
 module.exports = {
     createOrder,
     updateStatus,
+    getOrderById,
     deleteOrder,
     getUserOrder,
     getAllOrders,

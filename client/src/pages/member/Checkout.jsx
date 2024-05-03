@@ -176,6 +176,7 @@ const Checkout = () => {
             ...formData
             // ...debouncedFormData
         };
+        console.log(data)
         return data;
     };
 
