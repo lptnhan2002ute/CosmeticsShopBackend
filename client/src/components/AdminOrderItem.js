@@ -3,6 +3,7 @@ import { Button } from 'antd';
 import React from 'react'
 import { toast } from 'react-toastify';
 import { apiUpdateOrder } from '../apis/user';
+import CountdownTimer from './CountdownTimer';
 
 function AdminOrderItem({ setKey, setReload, listOrder }) {
 
@@ -73,6 +74,7 @@ function AdminOrderItem({ setKey, setReload, listOrder }) {
                                     <p className="text-[14px] text-[#999] font-[500]">
                                         {formatDate(order.createdAt)}
                                     </p>
+                                    {order.status === "Unpaid" && <CountdownTimer createdAt={order.createdAt} />}
                                 </div>
 
                                 <div>
@@ -84,6 +86,14 @@ function AdminOrderItem({ setKey, setReload, listOrder }) {
                                             style: 'currency',
                                             currency: 'VND',
                                         })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[16px] text-[#333] font-[600] mb-[10px]">
+                                        Phương thức thanh toán
+                                    </p>
+                                    <p className="text-[14px] text-[#999] font-[500]">
+                                        {order.paymentMethod}
                                     </p>
                                 </div>
 
@@ -103,10 +113,11 @@ function AdminOrderItem({ setKey, setReload, listOrder }) {
                                 >
                                     {
                                         order.status === "Pending" ? "Xác nhận đơn hàng"
-                                            : order.status === "Confirmed" ? "Hoàn thành đơn hàng"
-                                                : order.status === "Shipped" ? "Đã hoàn thành"
-                                                    : order.status === "Cancelled" ? "Đã hủy"
-                                                        : ""
+                                            : order.status === "Unpaid" ? "Đang chờ thanh toán"
+                                                : order.status === "Confirmed" ? "Hoàn thành đơn hàng"
+                                                    : order.status === "Shipped" ? "Đã hoàn thành"
+                                                        : order.status === "Cancelled" ? "Đã hủy"
+                                                            : ""
                                     }
                                 </Button>
                             </div>

@@ -10,7 +10,6 @@ const Payment = () => {
     const { oid } = useParams(); // Lấy orderId từ URL
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true); // State để lưu trữ thông tin đơn hàng
-    console.log(oid)
 
     const handleVnPayPayment = async (oid) => {
         try {
@@ -30,7 +29,7 @@ const Payment = () => {
         const fetchOrder = async () => {
             try {
                 const orderData = await apiGetOrderById(oid);
-                setOrder(orderData); // Cập nhật state khi có dữ liệu
+                setOrder(orderData);
                 setLoading(false);  // Đặt loading thành false sau khi lấy dữ liệu thành công
             } catch (error) {
                 console.error('Failed to fetch order:', error);

@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { apiUpdateOrder, apiCreateVnpayUrl } from '../apis';
 import CountdownTimer from './CountdownTimer';
-import PaymentButton from './PaymentButton';
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 function HistoryOrderItem({ setFetch, listOrder }) {
     const navigate = useNavigate()
