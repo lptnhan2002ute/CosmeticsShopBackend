@@ -199,7 +199,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
 const getOrderById = asyncHandler(async (req, res) => {
     const { oid } = req.params
-    const result = await Order.findById(oid)
+    const result = await Order.findById(oid).populate({ path: 'products.product', select: 'productName price imageUrl' })
     return res.json({
         success: result ? true : false,
         result: result ? result : 'Lỗi lấy thông tin đơn hàng'

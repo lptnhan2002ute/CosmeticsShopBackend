@@ -8,7 +8,6 @@ import { apiGetCategories } from './store/asyncActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
 import { Modal } from './components';
-import VnPayReturnHandler from './pages/member/VnPayReturnHandler ';
 
 function App() {
   const dispatch = useDispatch()
