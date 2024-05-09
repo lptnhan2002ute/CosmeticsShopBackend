@@ -6,7 +6,7 @@ import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFill
 import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill, BsCartPlus, BsStarHalf } from 'react-icons/bs'
 import { GiClockwork } from 'react-icons/gi'
 import { IoIosArrowForward } from 'react-icons/io'
-import { TbBrandProducthunt } from 'react-icons/tb'
+import { TbBrandProducthunt, TbShoppingBagDiscount } from 'react-icons/tb'
 import { ImProfile } from 'react-icons/im'
 
 const icons = {
@@ -38,6 +38,7 @@ const icons = {
     BsStarHalf,
     ImProfile,
     FaFacebookMessenger,
+    TbShoppingBagDiscount,
 
 
 }

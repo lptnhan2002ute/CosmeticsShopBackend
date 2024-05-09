@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom'
 import { Login, Home, Public, FAQ, Services, DetailProduct, Products, FinalRegister, ResetPassword } from './pages/public'
-import { AdminLayout, ManageOrder, ManageProduct, ManageUser, CreateProduct, Dashboard, ManageCategory, AdminPersonnal, Messenger } from './pages/admin';
+import { AdminLayout, ManageOrder, ManageProduct, ManageUser, CreateProduct, Dashboard, ManageCategory, AdminPersonnal, Messenger, ManageVoucher } from './pages/admin';
 import { MemberLayout, Personal, History, Wishlist, MyCart, Checkout, Payment, VnPayReturnHandler } from './pages/member';
 import path from './ultils/path';
 import { apiGetCategories } from './store/asyncActions'
@@ -40,6 +40,7 @@ function App() {
           <Route path={path.CREATE_PRODUCT} element={<CreateProduct />} />
           <Route path={path.ADMINPERSONAL} element={<AdminPersonnal />} />
           <Route path={path.MESSENGER} element={<Messenger />} />
+          <Route path={path.MANAGE_VOUCHER} element={<ManageVoucher />} />
         </Route>
         <Route path={path.MEMBER} element={<MemberLayout />}>
           <Route path={path.PERSONAL} element={<Personal />} />
