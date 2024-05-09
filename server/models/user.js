@@ -6,6 +6,7 @@ var userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
+        index: true, 
         unique: true,
     },
     password: {
@@ -25,7 +26,6 @@ var userSchema = new mongoose.Schema({
     address: {
         default: '',
         type: String,
-        // required: true,
     },
     birthday: {
         type: Date,
