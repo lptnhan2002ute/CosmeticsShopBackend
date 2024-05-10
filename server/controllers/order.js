@@ -27,46 +27,47 @@ const createOrder = asyncHandler(async (req, res) => {
             if (!selectedVoucher) {
                 return res.status(404).json({
                     success: false,
-                    mess: 'Voucher không tồn tại',
+                    message: 'Voucher không tồn tại'
                 });
             }
+
+            // Kiểm tra thời gian sử dụng voucher
             const currentDate = new Date();
-            if (selectedVoucher.startDay > currentDate) {
+            if (currentDate < selectedVoucher.startDay || currentDate > selectedVoucher.endDay) {
                 return res.status(400).json({
                     success: false,
-                    mess: 'Voucher chưa có hiệu lực',
+                    message: 'Voucher không trong thời gian sử dụng'
                 });
             }
-            if (selectedVoucher.endDay < currentDate) {
-                return res.status(400).json({
-                    success: false,
-                    mess: 'Voucher đã hết hạn',
-                });
-            }
+            // Kiểm tra giá trị mua tối thiểu
             if (total < selectedVoucher.minPurchaseAmount) {
                 return res.status(400).json({
                     success: false,
                     message: 'Đơn hàng chưa đạt giá trị tối thiểu để sử dụng voucher'
                 });
             }
+            // Kiểm tra số lần sử dụng voucher
             if (selectedVoucher.usedCount >= selectedVoucher.maxUsage) {
                 return res.status(400).json({
                     success: false,
-                    mess: 'Voucher đã hết lượt sử dụng',
+                    message: 'Voucher đã hết lượt sử dụng'
                 });
             }
+            // Kiểm tra nếu người dùng đã sử dụng voucher này
             if (selectedVoucher.usedBy.includes(_id)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Voucher đã được sử dụng bởi bạn'
+                    message: 'Bạn đã sử dụng voucher này rồi'
                 });
             }
-            let discountAmount = total * selectedVoucher.discount / 100;
+            // Tính toán và áp dụng giảm giá từ voucher
+            let discountAmount = (total * selectedVoucher.discount) / 100;
             discountAmount = Math.min(discountAmount, selectedVoucher.maxDiscountAmount);
             total -= discountAmount;
-            total = Math.round(total / 1000) * 1000;
+            total = Math.round(total / 1000) * 1000; // Làm tròn tới hàng ngàn gần nhất
         }
 
+        // Kiểm tra phương thức thanh toán cho đơn hàng Unpaid
         if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
             return res.status(400).json({
                 success: false,
@@ -74,6 +75,7 @@ const createOrder = asyncHandler(async (req, res) => {
             });
         }
 
+        // Tạo đối tượng đơn hàng
         const data = {
             products,
             orderBy: _id,
@@ -87,17 +89,11 @@ const createOrder = asyncHandler(async (req, res) => {
             status: status || 'Pending',
         };
 
-        const paidProducts = [];
-
-        data.products.forEach((productItem) => {
-            paidProducts.push(productItem.product)
-        });
+        const paidProducts = products.map(productItem => productItem.product);
         // const paidProducts = products.map(productItem => productItem.product);
 
-        // Tạo đơn hàng
-
-        const orderedProducts = data.products
-        const soldOutProducts = []
+        const orderedProducts = products;
+        const soldOutProducts = [];
 
         await Promise.all(
             orderedProducts.map(async (productItem) => {
@@ -120,6 +116,7 @@ const createOrder = asyncHandler(async (req, res) => {
             })
         )
 
+        // Trả về lỗi nếu có sản phẩm hết hàng
         if (soldOutProducts.length > 0) {
             return res.status(400).json({
                 success: false,
@@ -127,24 +124,25 @@ const createOrder = asyncHandler(async (req, res) => {
                 mess: 'Không đủ số lượng sản phẩm để mua',
                 product: soldOutProducts
             });
-        } else {
-
-            const result = await Order.create(data);
-
-            if (selectedVoucher) {
-                selectedVoucher.usedCount += 1;
-                selectedVoucher.usedBy.push(_id);
-                await selectedVoucher.save();
-            }
-
-            await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
-
-            return res.status(201).json({
-                success: result ? true : false,
-                result: result ? result : 'Tạo đơn hàng bị lỗi'
-            })
         }
+
+        // Tạo đơn hàng
+        const result = await Order.create(data);
+
+        if (selectedVoucher) {
+            selectedVoucher.usedCount += 1;
+            selectedVoucher.usedBy.push(_id);
+            await selectedVoucher.save();
+        }
+
+        await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
+
+        return res.status(201).json({
+            success: result ? true : false,
+            result: result ? result : 'Tạo đơn hàng bị lỗi'
+        })
     }
+
     catch (error) {
         return res.status(500).json({
             success: false,
@@ -152,7 +150,7 @@ const createOrder = asyncHandler(async (req, res) => {
             error: error.message,
         })
     }
-})
+});
 
 const updateStatus = asyncHandler(async (req, res) => {
     const { oid } = req.params
@@ -413,7 +411,6 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
         const { orderId } = req.body;
-        console.log(orderId)
         const now = moment(new Date());
 
         if (!orderId) {
@@ -461,7 +458,6 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
 const handleVnpayIpn = asyncHandler(async (req, res) => {
     try {
         let vnpParams = req.query;
-        console.log(vnpParams['vnp_TxnRef'])
         const secureHash = vnpParams['vnp_SecureHash'];
         const orderId = vnpParams['vnp_TxnRef'];
         const amount = vnpParams['vnp_Amount'];
@@ -494,7 +490,6 @@ const handleVnpayIpn = asyncHandler(async (req, res) => {
                 if (checkAmount) {
                     if (paymentStatus === '0') { // Check transaction status before updating
                         if (rspCode === '00') {
-                            console.log(orderId)
                             // Transaction successful
                             const result = await Order.findByIdAndUpdate(orderId, { status: 'Confirmed', paymentMethod: 'VnPay' }, { new: true })
                             res.status(200).json({ RspCode: '00', Message: 'Success', result: result ? result : 'Error for update order' });

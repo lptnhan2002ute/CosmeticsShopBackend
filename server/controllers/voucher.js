@@ -105,7 +105,7 @@ const findById = asyncHandler(async (req, res) => {
 
 const getAllVouchers = asyncHandler(async (req, res) => {
     try {
-        const vouchers = await Voucher.find().select('name _id minPurchaseAmount discount maxDiscountAmount usedCount maxUsage startDay endDay');
+        const vouchers = await Voucher.find().select('name _id logo minPurchaseAmount discount maxDiscountAmount usedCount maxUsage usedBy startDay endDay');
 
         if (!vouchers || vouchers.length === 0) {
             return res.status(404).json({
@@ -142,7 +142,7 @@ const updateVoucher = asyncHandler(async (req, res) => {
         updatedVoucherData.name = req.body.name.toUpperCase();
     }
 
-    if (req.body.discount != null) {
+    if (req.body.discount !== null) {
         if (req.body.discount < 0 || req.body.discount > 100) {
             return res.status(400).json({
                 success: false,
@@ -221,11 +221,73 @@ const deleteVoucher = asyncHandler(async (req, res) => {
         });
     }
 })
+
+const checkVoucher = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const { vid, total} = req.body
+
+    try {
+        const voucher = await Voucher.findById(vid).select('name _id minPurchaseAmount discount maxDiscountAmount usedCount usedBy maxUsage startDay endDay');;
+
+        if (!voucher) {
+            return res.status(404).json({
+                success: false,
+                mess: 'Voucher not found'
+            });
+        }
+        // Kiểm tra thời gian sử dụng voucher
+        const currentDate = new Date();
+        if (currentDate < voucher.startDay || currentDate > voucher.endDay) {
+            return res.status(400).json({
+                success: false,
+                message: 'Voucher không trong thời gian sử dụng'
+            });
+        }
+        // Kiểm tra giá trị mua tối thiểu
+        if (total < voucher.minPurchaseAmount) {
+            return res.status(400).json({
+                success: false,
+                message: 'Đơn hàng chưa đạt giá trị tối thiểu để sử dụng voucher'
+            });
+        }
+        // Kiểm tra số lần sử dụng voucher
+        if (voucher.usedCount >= voucher.maxUsage) {
+            return res.status(400).json({
+                success: false,
+                message: 'Voucher đã hết lượt sử dụng'
+            });
+        }
+        // Kiểm tra nếu người dùng đã sử dụng voucher này
+        if (voucher.usedBy.includes(_id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bạn đã sử dụng voucher này rồi'
+            });
+        }
+        let discountAmount = (total * voucher.discount) / 100;
+        discountAmount = Math.min(discountAmount, voucher.maxDiscountAmount);
+        let finalTotal = total - discountAmount;
+        finalTotal = Math.round(finalTotal / 1000) * 1000; // Làm tròn tới hàng ngàn gần nhất
+
+        return res.status(200).json({
+            success: true,
+            voucher,
+            discountAmount,
+            finalTotal
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            mess: 'Error check voucher: ' + error.message
+        });
+    }
+})
 module.exports = {
     createVoucher,
     getAllVouchers,
     updateVoucher,
     deleteVoucher,
     findByName,
-    findById
+    findById,
+    checkVoucher
 }
