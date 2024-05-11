@@ -17,4 +17,6 @@ router.post('/search', verifyAccessToken, ctrls.findByName)
 router.delete('/:vid', [verifyAccessToken, isAdmin], ctrls.deleteVoucher)
 
 router.post('/check', verifyAccessToken, ctrls.checkVoucher)
+
+router.post('/send', [verifyAccessToken, isAdmin], ctrls.sendVoucherToUser)
 module.exports = router
