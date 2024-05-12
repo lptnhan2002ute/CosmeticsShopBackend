@@ -75,3 +75,22 @@ export const apiCreateCategory = (data) => axios({
     method: 'post',
     data
 })
+export const apiGetVoucher = () => axios({
+    url: '/voucher',
+    method: 'get',
+})
+export const apiCreateVoucher = (data) => axios({
+    url: '/voucher',
+    method: 'post',
+    data
+})
+export const apiUpdateVoucher = (data, vid) => axios({
+    url: '/voucher/' + vid,
+    method: 'put',
+    data
+})
+export const apiSearchNameVoucher = (data) => axios({
+    url: 'voucher/search',
+    method: 'post',
+    data
+})

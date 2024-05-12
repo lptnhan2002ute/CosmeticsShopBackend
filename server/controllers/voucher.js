@@ -105,7 +105,7 @@ const findById = asyncHandler(async (req, res) => {
 
 const getAllVouchers = asyncHandler(async (req, res) => {
     try {
-        const vouchers = await Voucher.find().select('name _id minPurchaseAmount discount maxDiscountAmount usedCount maxUsage startDay endDay');
+        const vouchers = await Voucher.find().select('name _id minPurchaseAmount discount maxDiscountAmount usedCount maxUsage startDay endDay logo');
 
         if (!vouchers || vouchers.length === 0) {
             return res.status(404).json({
@@ -113,7 +113,6 @@ const getAllVouchers = asyncHandler(async (req, res) => {
                 message: 'No vouchers found'
             });
         }
-
         return res.status(200).json({
             success: true,
             voucherList: vouchers
