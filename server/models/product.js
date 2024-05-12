@@ -22,6 +22,10 @@ var productSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    originalPrice: {
+        type: Number,
+        required: true
+    },
     brand: {
         type: mongoose.Types.ObjectId,
         ref: 'Brand',
