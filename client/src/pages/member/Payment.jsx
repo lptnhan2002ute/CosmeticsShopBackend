@@ -6,7 +6,6 @@ import { apiGetOrderById, apiCreateVnpayUrl } from '../../apis';
 import Swal from "sweetalert2";
 import { Spin } from 'antd';
 
-
 const Payment = () => {
     const { oid } = useParams(); // Lấy orderId từ URL
     const [order, setOrder] = useState(null);
@@ -24,15 +23,13 @@ const Payment = () => {
             Swal.fire("Error", error.message || "Error processing VNPay payment.", "error");
         }
     };
- 
+
     // Dùng useEffect để gọi API và lấy dữ liệu đơn hàng
     useEffect(() => {
         const fetchOrder = async () => {
-
             try {
                 const orderData = await apiGetOrderById(oid);
                 setOrder(orderData);
-                console.log(orderData)
                 setLoading(false);  // Đặt loading thành false sau khi lấy dữ liệu thành công
             } catch (error) {
                 console.error('Failed to fetch order:', error);
