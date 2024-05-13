@@ -1,17 +1,18 @@
-import React, { useCallback, useEffect, useState} from 'react'
-import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiSearchNameVoucher } from '../../apis'
+import React, {  useEffect, useState} from 'react'
+import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiSearchNameVoucher, apiDeleteVoucher } from '../../apis'
 import moment from 'moment'
 import Dialog from '@mui/material/Dialog'
 import { InputForm } from '../../components'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import Search from 'antd/es/input/Search'
+import Swal from 'sweetalert2'
 
 const ManageVoucher = () => {
     const {handleSubmit, reset, register, getValues, formState: { errors }, setValue, watch} = useForm({
         name: '',
     })
-
+    
     const [voucher, setVoucher] = useState(null)
     const[showDialog, setShowDialog] = useState(false)
     const [dialogLabel, setDialogLabel] = useState('Thêm')
@@ -77,6 +78,23 @@ const ManageVoucher = () => {
     useEffect(() => { 
         fetchVouchers()
      },[])
+    const handleDeleteVoucher = async (vid) => {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn xóa???',
+            text: 'Bạn đã sẵn sàng xóa Voucher chưa???',
+            showCancelButton: true,
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const response = await apiDeleteVoucher(vid);
+                if (response.success) {
+                    toast.success('Xóa thành công');
+                    fetchVouchers(); // Lấy danh sách voucher đã cập nhật
+                } else {
+                    toast.error('Xóa thất bại');
+                }
+            }
+        });
+    };
     return (
         <div className='w-full flex flex-col gap-3 relative overflow-x-scroll p-4'>
                 <Search
@@ -127,7 +145,7 @@ const ManageVoucher = () => {
                                 <td className='text-center py-2'>{el?.usedCount}</td>
                                 <td className='text-center py-2'>
                                     <span onClick={() => handleShowdialog(el)}  className='text-main hover:underline cursor-pointer px-1'>Sửa</span>
-                                    <span  className='text-main hover:underline cursor-pointer px-1'>Xóa</span>
+                                    <span onClick={() => handleDeleteVoucher(el._id)} className='text-main hover:underline cursor-pointer px-1'>Xóa</span>
                                 </td>
                             </tr>
                         ))}

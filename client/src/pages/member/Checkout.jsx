@@ -4,7 +4,7 @@ import logo from "../../assets/logo.svg.png"
 import { cash } from '../../ultils/contants'
 import { useLocation, useNavigate } from "react-router-dom"
 import { Button, Form, Input, message, Modal } from 'antd';
-import { apiGetUserCart, apiOrder } from '../../apis'
+import { apiGetUserCart, apiIdVoucher, apiOrder, apiCheckVoucher } from '../../apis'
 import { toast } from 'react-toastify'
 import { useDispatch } from 'react-redux'
 import { Spin } from 'antd'
@@ -14,7 +14,10 @@ import VnPayPayment from '../../components/VnPayPayment'
 import { useDebounce } from 'use-debounce';
 
 const Checkout = () => {
-
+    const [voucherId, setVoucherId] = useState('');
+    const [message, setMessage] = useState('');
+    const [isSucces, setIsSucces] = useState(false);
+    const [isVoucher, setIsVoucher] = useState();
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
@@ -49,6 +52,32 @@ const Checkout = () => {
         address: '',
         note: '',
     });
+    const handleApplyVoucher = async () => {
+        try {
+          const response = await apiIdVoucher(voucherId);
+          
+          if (response.success) {
+            setMessage('Áp dụng voucher thành công!');
+            toast.success('Áp dụng voucher thành công')
+            setIsSucces(true)
+            const responseCheckVoucher = await apiCheckVoucher({
+                vid : voucherId,
+                total : total,
+             })
+                if(responseCheckVoucher.success) {
+                      setIsVoucher(responseCheckVoucher)
+                      console.log(isVoucher)
+                }
+          } else {
+            setMessage('Voucher đã sai vui lòng nhập lại!');
+            toast.error('Áp dụng voucher thất bại')
+            setIsSucces(false);
+          }
+        } catch (error) {
+          setMessage('Đã xảy ra lỗi khi áp dụng voucher.');
+          setIsSuccess(false);
+        }
+      };
     // const [debouncedFormData] = useDebounce(formData, 5000); // 3000ms là thời gian trì hoãn
 
 
@@ -274,11 +303,14 @@ const Checkout = () => {
                                     amount={(total / 25345).toFixed(2)} />
                             </div>
                         </form>
-                        <p class="mt-8 text-lg">Voucher</p>
-                        <div className="flex items-center mt-[20px]">
-                            <Input className="mr-[10px]" placeholder="Nhập mã voucher" />
-                            <Button>Áp dụng</Button>
-                        </div>
+                        <div className="mt-2 ">
+                             <p className="text-lg font-semibold">Voucher</p>
+                              <div className="flex mt-4 ">
+                                 <input className="rounded-l-lg py-2 px-4 border-t mr-0 border-b border-l text-gray-800 border-gray-200 bg-white w-full" type="text" placeholder="Nhập mã voucher" value={voucherId} onChange={(e) => setVoucherId(e.target.value)} /> 
+                                 <button className="px-4  rounded-r-lg bg-blue-500 text-white font-medium hover:bg-blue-600" onClick={handleApplyVoucher} > Áp dụng </button>
+                                  </div>
+                                   {message && ( <p className={`mt-2 text-sm ${isSucces ? 'text-green-500' : 'text-red-500'}`}> {message} </p> )}
+                                    </div>
                     </div>
                     <div class="mt-10 bg-gray-50 px-4 pt-8 lg:mt-0">
                         <p class="text-xl mb-[40px]">Thông tin đơn hàng</p>
@@ -355,6 +387,29 @@ const Checkout = () => {
                                         }
                                     </p>
                                 </div>
+                                {isVoucher && voucherId ? <div><div class="mt-6 flex items-center justify-between">
+                                    <p class="text-sm text-gray-900">Được giảm Voucher</p>
+                                    <p class="text-2xl font-semibold text-gray-900">
+                                        {
+                                            isVoucher?.discountAmount?.toLocaleString('vi-VN', {
+                                                style: 'currency',
+                                                currency: 'VND',
+                                            })
+                                        }
+                                    </p>
+                                </div>
+                                <div class="mt-6 flex items-center justify-between">
+                                    <p class="text-sm text-gray-900">Số tiền thanh toán</p>
+                                    <p class="text-2xl font-semibold text-gray-900">
+                                        {
+                                            isVoucher?.finalTotal?.toLocaleString('vi-VN', {
+                                                style: 'currency',
+                                                currency: 'VND',
+                                            })
+                                        }
+                                    </p>
+                                </div></div> : <></> 
+                                }
 
                                 <Form.Item
                                     className='w-full mt-[40px]'

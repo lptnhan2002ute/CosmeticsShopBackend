@@ -94,3 +94,16 @@ export const apiSearchNameVoucher = (data) => axios({
     method: 'post',
     data
 })
+export const apiDeleteVoucher = (vid) => axios({
+    url: '/voucher/' + vid,
+    method: 'delete',
+})
+export const apiIdVoucher = (vid) => axios({
+    url: '/voucher/' + vid,
+    method: 'get',
+})
+export const apiCheckVoucher = (data) => axios({
+    url: 'voucher/check',
+    method: 'post',
+    data
+})
