@@ -16,6 +16,7 @@ const ChatWithAdmin = () => {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [currentSessionId, setCurrentSessionId] = useState(sessionId);
+    const [isClosedSession, setIsClosedSession] = useState(false);
 
     const handleOpenChatModal = () => {
         setOpen(true);
@@ -34,15 +35,18 @@ const ChatWithAdmin = () => {
 
     useEffect(() => {
         const handleListenMessage = (data) => {
-            messages.push(data);
-            setMessages([...messages]);
+            setMessages(prevMessages => [...prevMessages, data]);
         };
+        const handleClosedSession = () => {
+            setIsClosedSession(true);
+        }
         socket.on("message", handleListenMessage);
+        socket.on("closeSession", handleClosedSession);
 
         return () => {
             socket.off("message", handleListenMessage);
         };
-    }, [])
+    }, [currentSessionId])
 
     return (
         <>
@@ -54,14 +58,14 @@ const ChatWithAdmin = () => {
                 onClick={handleOpenChatModal}
                 icon={<MessageOutlined />}
             />
-            <ModalChat props={{ open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId }} />
+            <ModalChat props={{ open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId, isClosedSession, setIsClosedSession }} />
         </>
     )
 
 }
 
 const ModalChat = ({ props }) => {
-    const { open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId } = props;
+    const { open, setOpen, messages, setMessages, currentSessionId, setCurrentSessionId, isClosedSession, setIsClosedSession } = props;
 
     const { current: currentUser } = useSelector(state => state.user);
     const dispatch = useDispatch();
@@ -77,20 +81,22 @@ const ModalChat = ({ props }) => {
             sessionID: currentSessionId,
             messageText: message
         });
-        const messageFullInformation = { ...rs, senderUserID: { _id: rs.senderUserID } }
+        const messageFullInformation = { ...rs, senderUserID: { _id: rs.senderUserID, avatar: currentUser.avatar } }
         socket.emit("chatMessage", { sessionId: currentSessionId, message: messageFullInformation });
         setMessages([...messages, messageFullInformation]);
+        setMessage("");
     }
 
     const handleStartChat = async () => {
         const rs = await apiStartChatSession({
-            adminUserID: '6570873aa57c73f0bb69e92b', //TODO: remove adminUserId with another logic
+            adminUserID: '65708a41a57c73f0bb69e942', //TODO: remove adminUserId with another logic
             customerUserID: currentUser._id
         })
 
         dispatch(setSessionId({ sessionId: rs._id }));
-        setCurrentSessionId(rs._id)
-        socket.emit('joinRoom', { sessionId: rs._id })
+        setCurrentSessionId(rs._id);
+        setIsClosedSession(false);
+        socket.emit('joinRoom', { sessionId: rs._id });
     }
 
     const chatContainerRef = useRef(null);
@@ -132,11 +138,14 @@ const ModalChat = ({ props }) => {
                 }
             </div>
             {
-                currentSessionId ?
+                currentSessionId && !isClosedSession ?
                     <div className='flex items-center gap-4 p-4 pt-2 bg-red-100 rounded-b-lg'>
                         <Input onPressEnter={() => handleSendMessage(message)} value={message} onChange={(e) => setMessage(e.target.value)} className='bg-slate-100' placeholder='Nhập nội dung' />
                         <IoIosSend onClick={() => handleSendMessage(message)} color='#ff007f' className='cursor-pointer' size={26} />
-                    </div> : ''
+                    </div> : currentSessionId && isClosedSession ?
+                        <div onClick={handleStartChat} className='flex my-6 cursor-pointer hover:opacity-80 text-white text-xs font-semibold py-1 leading-7 w-[70%] mx-auto items-center justify-center gap-2 bg-[#ff007f] rounded-xl mt-auto'>
+                            <IoIosSend size={20} /> BẮT ĐẦU TRÒ CHUYỆN MỚI
+                        </div> : ''
             }
         </div>
     )

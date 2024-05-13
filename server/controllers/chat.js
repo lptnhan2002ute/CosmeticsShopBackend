@@ -1,7 +1,7 @@
 const Message = require('../models/message');
 const ChatSession = require('../models/chatSession');
-const asyncHandler = require('express-async-handler')
-
+const asyncHandler = require('express-async-handler');
+const ObjectId = require('mongoose').Types.ObjectId; 
 
 const startChatSession = asyncHandler(async (req, res) => {
     const { adminUserID, customerUserID } = req.body;
@@ -75,9 +75,20 @@ const closeChatSession = asyncHandler(async (req, res) => {
     }
 });
 
+const getAllChatSessions = asyncHandler(async (req, res) => {
+    try {
+        const id = req.params;
+        const sessions = await ChatSession.find({ adminUserID: new ObjectId(id) }).populate('customerUserID').sort([['startDate', '-1']]);
+        res.status(200).json(sessions);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
 module.exports = {
     startChatSession,
     sendMessage,
     getMessages,
-    closeChatSession
+    closeChatSession,
+    getAllChatSessions
 }

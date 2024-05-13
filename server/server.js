@@ -50,10 +50,20 @@ io.on('connection', (socket) => {
         console.log(`A user joined room: ${sessionId}`);
     });
 
+    // Leave a room
+    socket.on('leaveRoom', ({ sessionId }) => {
+        socket.leave(sessionId);
+        console.log(`A user left room: ${sessionId}`);
+    })
+
     // Listen for chatMessage
     socket.on('chatMessage', ({ sessionId, message }) => {
-        console.log(message)
         socket.to(sessionId).emit('message', message);
+    });
+
+    // Listen for closeSession
+    socket.on('closeSession', ({ sessionId }) => {
+        socket.to(sessionId).emit('closeSession', { sessionId });
     });
 
     // Runs when client disconnects

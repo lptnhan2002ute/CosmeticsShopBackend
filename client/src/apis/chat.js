@@ -21,3 +21,8 @@ export const apiSendMessageInSession = (data) => axios({
     method: 'post',
     data
 })
+
+export const apiGetAllChatSessions = (uid) => axios({
+    url: '/chat/' + uid,
+    method: 'get'
+})
