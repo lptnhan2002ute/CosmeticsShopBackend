@@ -4,13 +4,14 @@ export const apiRegister = (data) => axios({
     url: '/user/register',
     method: 'post',
     data,
-    withCredentials: true
+    withCredentials: true,
 })
 
 export const apiLogin = (data) => axios({
     url: '/user/login',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiForgetPassword = (data) => axios({
@@ -28,73 +29,87 @@ export const apiResetPassword = (data) => axios({
 export const apiGetCurrent = () => axios({
     url: '/user/current',
     method: 'get',
+    withCredentials: true,
 })
 
 export const apiGetUsers = (params) => axios({
     url: '/user',
     method: 'get',
-    params
+    params,
+    withCredentials: true,
 })
 
 export const apiUpdateCart = (data) => axios({
     url: '/user/add/cart',
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiRemoveCart = (pid) => axios({
     url: '/user/remove-cart/' + pid,
     method: 'delete',
+    withCredentials: true,
 })
 export const apiGetUserCart = () => axios({
     url: '/user/current-cart',
     method: 'get',
+    withCredentials: true,
 })
 export const apiUpdateUser = (data, uid) => axios({
     url: '/user/' + uid,
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiDeleteUser = (uid) => axios({
     url: '/user/' + uid,
     method: 'delete',
+    withCredentials: true,
 })
 export const apiUpdateUser1 = (data) => axios({
     url: '/user/customer',
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiOrder = (data) => axios({
     url: "/bill",
     method: "post",
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiGetOrderUser = () => axios({
     url: "/bill",
-    method: "get"
+    method: "get",
+    withCredentials: true,
 })
 
 export const apiGetAllOrder = () => axios({
     url: "/bill/admin",
-    method: "get"
+    method: "get",
+    withCredentials: true,
 })
 
 export const apiGetAllOrderByTime = (query) => axios({
     url: `/bill/list${query}`,
-    method: "get"
+    method: "get",
+    withCredentials: true,
 })
 
 export const apiUpdateOrder = (data, oid) => axios({
     url: `/bill/status/${oid}`,
     method: "put",
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiGetOrderById = (oid) => axios({
     url: `/bill/order/${oid}`,
     method: "get",
+    withCredentials: true,
 })
 
 
