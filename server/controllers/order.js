@@ -9,75 +9,132 @@ const queryString = require('qs');
 const crypto = require('crypto');
 
 const createOrder = asyncHandler(async (req, res) => {
-    const { _id } = req.user
-    const voucher = req.body.voucher;
-    let total = req.body.total;
-    if (voucher) {
-        const selectedVoucher = await Voucher.findById(voucher);
-        if (!selectedVoucher) {
+    try {
+        const { _id } = req.user
+        const { voucher, products, address, phone, recipient, note, paymentMethod, status } = req.body;
+        let total = req.body.total;
+        let selectedVoucher = null;
+
+        if (!products || !total || !phone || !address) {
             return res.status(400).json({
                 success: false,
-                mess: 'Voucher không tồn tại',
+                mess: 'Thiếu thông tin cần thiết để tạo đơn hàng',
             });
         }
-        total *= 1 - selectedVoucher.discount / 100;
-        total = Math.round(total / 1000) * 1000;
-    }
-    const { products, address, phone, recipient, note, paymentMethod, status } = req.body;
-    if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
-        return res.status(400).json({
-            success: false,
-            mess: 'Đơn hàng Unpaid phải có paymentMethod là VnPay hoặc PayPal',
-        });
-    }
-    const data = {
-        products, orderBy: _id, total, voucher: voucher || null,
-        address: address || '', phone: phone || null, recipient: recipient || '',
-        note: note || '', paymentMethod: paymentMethod || 'Cash', status: status || 'Pending'
-    };
 
-    const paidProducts = [];
-
-    data.products.forEach((productItem) => {
-        paidProducts.push(productItem.product)
-    });
-
-    // Tạo đơn hàng
-
-    const orderedProducts = data.products
-    const soldOutProducts = []
-
-    await Promise.all(
-        orderedProducts.map(async (productItem) => {
-            const productId = productItem.product;
-            const quantityOrdered = productItem.count;
-            const product = await Product.findById(productId);
-            if (product) {
-                if (product.stockQuantity >= quantityOrdered) {
-                    // Giảm stockQuantity
-                    product.stockQuantity -= quantityOrdered;
-                    // Tăng soldQuantity
-                    product.soldQuantity += quantityOrdered;
-                    // Lưu cập nhật của sản phẩm
-                    await product.save();
-                }
-                else {
-                    soldOutProducts.push(product);
-                }
+        if (voucher) {
+            selectedVoucher = await Voucher.findById(voucher);
+            if (!selectedVoucher) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Voucher không tồn tại'
+                });
             }
-        })
-    )
 
-    if (soldOutProducts.length > 0) {
-        return res.status(400).json({
-            success: false,
-            status: 'soldout',
-            mess: 'Không đủ số lượng sản phẩm để mua',
-            product: soldOutProducts
-        });
-    } else {
+            // Kiểm tra thời gian sử dụng voucher
+            const currentDate = new Date();
+            if (currentDate < selectedVoucher.startDay || currentDate > selectedVoucher.endDay) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Voucher không trong thời gian sử dụng'
+                });
+            }
+            // Kiểm tra giá trị mua tối thiểu
+            if (total < selectedVoucher.minPurchaseAmount) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Đơn hàng chưa đạt giá trị tối thiểu để sử dụng voucher'
+                });
+            }
+            // Kiểm tra số lần sử dụng voucher
+            if (selectedVoucher.usedCount >= selectedVoucher.maxUsage) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Voucher đã hết lượt sử dụng'
+                });
+            }
+            // Kiểm tra nếu người dùng đã sử dụng voucher này
+            if (selectedVoucher.usedBy.includes(_id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Bạn đã sử dụng voucher này rồi'
+                });
+            }
+            // Tính toán và áp dụng giảm giá từ voucher
+            let discountAmount = (total * selectedVoucher.discount) / 100;
+            discountAmount = Math.min(discountAmount, selectedVoucher.maxDiscountAmount);
+            total -= discountAmount;
+            total = Math.round(total / 1000) * 1000; // Làm tròn tới hàng ngàn gần nhất
+        }
 
+        // Kiểm tra phương thức thanh toán cho đơn hàng Unpaid
+        if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
+            return res.status(400).json({
+                success: false,
+                mess: 'Đơn hàng Unpaid phải có paymentMethod là VnPay hoặc PayPal',
+            });
+        }
+
+        // Tạo đối tượng đơn hàng
+        const data = {
+            products,
+            orderBy: _id,
+            total,
+            voucher: voucher || null,
+            address: address || '',
+            phone: phone || null,
+            recipient: recipient || '',
+            note: note || '',
+            paymentMethod: paymentMethod || 'Cash',
+            status: status || 'Pending',
+        };
+
+        const paidProducts = products.map(productItem => productItem.product);
+        // const paidProducts = products.map(productItem => productItem.product);
+
+        const orderedProducts = products;
+        const soldOutProducts = [];
+
+        await Promise.all(
+            orderedProducts.map(async (productItem) => {
+                const productId = productItem.product;
+                const quantityOrdered = productItem.count;
+                const product = await Product.findById(productId);
+                if (product) {
+                    if (product.stockQuantity >= quantityOrdered) {
+                        // Giảm stockQuantity
+                        product.stockQuantity -= quantityOrdered;
+                        // Tăng soldQuantity
+                        product.soldQuantity += quantityOrdered;
+                        // Lưu cập nhật của sản phẩm
+                        await product.save();
+                    }
+                    else {
+                        soldOutProducts.push(product);
+                    }
+                }
+            })
+        )
+
+        // Trả về lỗi nếu có sản phẩm hết hàng
+        if (soldOutProducts.length > 0) {
+            return res.status(400).json({
+                success: false,
+                status: 'soldout',
+                mess: 'Không đủ số lượng sản phẩm để mua',
+                product: soldOutProducts
+            });
+        }
+
+        // Tạo đơn hàng
         const result = await Order.create(data);
+
+        if (selectedVoucher) {
+            selectedVoucher.usedCount += 1;
+            selectedVoucher.usedBy.push(_id);
+            await selectedVoucher.save();
+        }
+
         await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
 
         return res.status(201).json({
@@ -85,13 +142,28 @@ const createOrder = asyncHandler(async (req, res) => {
             result: result ? result : 'Tạo đơn hàng bị lỗi'
         })
     }
-})
+
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            mess: 'Lỗi tạo đơn hàng',
+            error: error.message,
+        })
+    }
+});
 
 const updateStatus = asyncHandler(async (req, res) => {
     const { oid } = req.params
     const { status } = req.body
+    const { role } = req.user;
     if (!status) throw new Error('Lỗi dữ liệu truyền vào')
     const orderBeforeUpdate = await Order.findById(oid).populate('products.product');
+    if (!orderBeforeUpdate) {
+        return res.status(404).json({
+            success: false,
+            mess: 'Order not found'
+        });
+    }
     const currentStatus = orderBeforeUpdate.status;
     if (currentStatus === 'Cancelled') {
         return res.status(400).json({
@@ -101,6 +173,12 @@ const updateStatus = asyncHandler(async (req, res) => {
     }
     if (status === 'Cancelled' && currentStatus !== 'Cancelled') {
         // Cập nhật stockQuantity và soldQuantity của từng sản phẩm trong đơn hàng
+        if (req.user._id !== orderBeforeUpdate.orderBy.toString() && role !== 'Admin') {
+            return res.status(403).json({
+                success: false,
+                mess: 'Bạn không có quyền hủy đơn hàng này',
+            });
+        }
         await Promise.all(
             orderBeforeUpdate.products.map(async (productItem) => {
                 const product = productItem.product;
@@ -115,6 +193,14 @@ const updateStatus = asyncHandler(async (req, res) => {
                 await product.save();
             })
         );
+        if (orderBeforeUpdate.voucher) {
+            const voucher = await Voucher.findById(orderBeforeUpdate.voucher);
+            if (voucher && voucher.usedCount > 0 && voucher.usedBy.includes(orderBeforeUpdate.orderBy)) {
+                voucher.usedBy = voucher.usedBy.filter(userId => !userId.equals(orderBeforeUpdate.orderBy));
+                voucher.usedCount -= 1;
+                await voucher.save();
+            }
+        }
     }
     const result = await Order.findByIdAndUpdate(oid, { status }, { new: true })
     return res.json({
@@ -136,7 +222,7 @@ const deleteOrder = asyncHandler(async (req, res) => {
     }
 
     // Optionally, check if the user has permission to delete this order
-    if (req.user._id !== order.orderBy && req.user.role !== 'Admin') {
+    if (req.user._id !== order.orderBy.toString() && req.user.role !== 'Admin') {
         return res.status(403).json({
             success: false,
             mess: 'Không có quyền xóa đơn hàng này',
@@ -144,7 +230,7 @@ const deleteOrder = asyncHandler(async (req, res) => {
     }
 
     // Restore the stock quantities if necessary
-    const updates = order.products.map(async (productItem) => {
+    const updateStockPromises = order.products.map(productItem => {
         return Product.findByIdAndUpdate(productItem.product, {
             $inc: {
                 stockQuantity: productItem.count,
@@ -153,8 +239,24 @@ const deleteOrder = asyncHandler(async (req, res) => {
         });
     });
 
+    // Restore voucher usage if a voucher was used
+    let updateVoucherPromise = null;
+    if (order.voucher) {
+        updateVoucherPromise = Voucher.findById(order.voucher).then(async voucher => {
+            if (voucher && voucher.usedBy.includes(order.orderBy)) {
+                voucher.usedCount -= 1;
+                voucher.usedBy = voucher.usedBy.filter(userId => !userId.equals(order.orderBy));
+                return await voucher.save();
+            }
+            return Promise.resolve();
+        });
+    }
+
     try {
-        await Promise.all(updates); // Execute all the product updates
+        await Promise.all([
+            ...updateStockPromises,
+            updateVoucherPromise
+        ]);
 
         // Delete the order
         await Order.deleteOne({ _id: orderId });
@@ -177,12 +279,45 @@ const getUserOrder = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const date24HoursAgo = new Date(new Date().getTime() - (24 * 60 * 60 * 1000));
 
-    // Tìm và cập nhật đơn hàng có trạng thái Unpaid và thời gian tạo nhỏ hơn date24HoursAgo
-    await Order.updateMany(
-        { orderBy: _id, status: 'Unpaid', createdAt: { $lt: date24HoursAgo } },
-        { $set: { status: 'Cancelled' } }
-    );
-    const result = await Order.find({ orderBy: _id }).populate('products.product').sort({ updatedAt: -1 }).exec()
+    const unpaidOrders = await Order.find({
+        orderBy: _id,
+        status: 'Unpaid',
+        createdAt: { $lt: date24HoursAgo }
+    });
+
+    const updateProductQuantities = unpaidOrders.map(async (order) => {
+        const updatePromises = order.products.map(async item => {
+            const product = await Product.findById(item.product);
+            if (!product) {
+                return res.status(400).json({
+                    success: false,
+                    mess: `Sản phẩm với id ${item.product} không tồn tại`,
+                });
+            }
+            return Product.updateOne(
+                { _id: item.product },
+                { $inc: { stockQuantity: item.count, soldQuantity: -item.count } }
+            );
+        });
+        await Promise.all(updatePromises);
+
+        if (order.voucher) {
+            const voucher = await Voucher.findById(order.voucher);
+            if (voucher && voucher.usedCount > 0 && voucher.usedBy.includes(order.orderBy)) {
+                voucher.usedCount -= 1;
+                voucher.usedBy = voucher.usedBy.filter(userId => !userId.equals(order.orderBy));
+                await voucher.save();
+            }
+        }
+        order.status = 'Cancelled';
+        return order.save();
+    });
+
+    await Promise.all(updateProductQuantities);
+    const result = await Order.find({ orderBy: _id })
+        .populate('products.product')
+        .sort({ updatedAt: -1 })
+        .exec();
     return res.json({
         success: result ? true : false,
         result: result ? result : 'Lỗi lấy danh sách đơn hàng'
@@ -199,7 +334,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
 const getOrderById = asyncHandler(async (req, res) => {
     const { oid } = req.params
-    const result = await Order.findById(oid)
+    const result = await Order.findById(oid).populate({ path: 'products.product', select: 'productName price imageUrl' })
     return res.json({
         success: result ? true : false,
         result: result ? result : 'Lỗi lấy thông tin đơn hàng'
@@ -276,7 +411,6 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
         const { orderId } = req.body;
-        console.log(orderId)
         const now = moment(new Date());
 
         if (!orderId) {
@@ -324,7 +458,6 @@ const createPaymentUrl = asyncHandler(async (req, res) => {
 const handleVnpayIpn = asyncHandler(async (req, res) => {
     try {
         let vnpParams = req.query;
-        console.log(vnpParams['vnp_TxnRef'])
         const secureHash = vnpParams['vnp_SecureHash'];
         const orderId = vnpParams['vnp_TxnRef'];
         const amount = vnpParams['vnp_Amount'];
@@ -357,7 +490,6 @@ const handleVnpayIpn = asyncHandler(async (req, res) => {
                 if (checkAmount) {
                     if (paymentStatus === '0') { // Check transaction status before updating
                         if (rspCode === '00') {
-                            console.log(orderId)
                             // Transaction successful
                             const result = await Order.findByIdAndUpdate(orderId, { status: 'Confirmed', paymentMethod: 'VnPay' }, { new: true })
                             res.status(200).json({ RspCode: '00', Message: 'Success', result: result ? result : 'Error for update order' });

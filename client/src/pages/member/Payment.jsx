@@ -45,11 +45,54 @@ const Payment = () => {
     }
     // Chỉ render PaymentButton khi có dữ liệu đơn hàng
     return (
+        
         order ? (
-            <div>
+            <div className='p-[20px]'>
+                <div class="mt-8 space-y-3 ">
+
+{
+    order?.result?.products?.map(product => (
+    <div key={product?._id} class="flex flex-col rounded-lg bg-white sm:flex-row mb-[20px] border px-2 py-4 sm:px-6">
+        {product?.product?.imageUrl && <img class="m-2 h-24 w-28 rounded-md border object-contain" src={product?.product?.imageUrl[0]} alt="" />}
+         <div class="flex w-[350px] flex-col px-4 py-4">
+            <span class="font-semibold">{product?.product?.productName}</span>
+            <p class="text-lg font-bold">
+                {product?.product?.price.toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                })}
+            </p>
+            <span class="float-right text-gray-400">x {product?.count}</span>
+        </div>
+    </div>
+        
+    ))
+}              <div className='flex items-center gap-2'>
+                    <span className='font-medium'>Tên khách hàng:</span>
+                    <span className='text-main'>{order?.result?.recipient}</span>
+                </div>
+               <div className='flex items-center gap-2'>
+                    <span className='font-medium'>Địa chỉ khách hàng:</span>
+                    <span className='text-main'>{order?.result?.address}</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                    <span className='font-medium'>Số điện thoại:</span>
+                    <span className='text-main'>{order?.result?.phone}</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                    <span className='font-medium'>Phương thức thanh toán:</span>
+                    <span className='text-main'>{order?.result?.paymentMethod}</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                    <span className='font-medium'>Tổng số tiền:</span>
+                    <span className='text-main'>{order?.result?.total}</span>
+                    <span className='font-medium'>VNĐ</span>
+                </div>
+      </div>
+                <div className='justify-center flex mt-10'>
                 {(order.result.status === "Unpaid" && order.result.paymentMethod === 'VnPay') && (
-                    <button onClick={() => handleVnPayPayment(order.result._id)} type='primary'>
-                        Pay with VNPay
+                    <button onClick={() => handleVnPayPayment(order.result._id)} class="bg-blue-200 py-2 px-4 rounded-md text-center w-full h-14 text-xl flex items-center justify-center" type='primary'>
+                        <img className="w-auto h-8" src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" alt="VNpay" />
                     </button>
                 )}
                 {(order.result.status === "Unpaid" && order.result.paymentMethod === 'PayPal') && (
@@ -57,6 +100,7 @@ const Payment = () => {
                         <PaymentButton order={order.result} />
                     </PayPalScriptProvider>
                 )}
+                </div>
             </div>
         ) : (
             <div>Loading order details...</div>

@@ -6,11 +6,15 @@ import { AiOutlineDown } from 'react-icons/ai'
 import { useSelector } from 'react-redux'
 import { HomeFilled, HomeOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
+import { useLocation } from 'react-router-dom';
 
 const activedStyle = 'px-4 py-2 flex items-center gap-2 bg-blue-500'
 const notActivedStyle = 'px-4 py-2 flex items-center gap-2 hover:bg-blue-100'
 
 const MemberSidebar = () => {
+    const location = useLocation();
+    const { pathname } = location;
+    console.log(pathname)
     const [actived, setActived] = useState([])
     const { current } = useSelector(state => state.user)
     const handleShowTabs = (tabID) => {
@@ -18,7 +22,8 @@ const MemberSidebar = () => {
         else setActived(prev => [...prev, tabID])
     }
     return (
-        <div className=' bg-white h-full py-4 w-[250px] flex-none'>
+       <>
+       {pathname.startsWith('/member/payment') ? <></> :  <div className=' bg-white h-full py-4 w-[250px] flex-none'>
             <div className='flex flex-col w-full py-4 justify-center items-center'>
                 <img src={current?.avatar || 'https://api.multiavatar.com/default.png'}
                     alt='logo' className='w-16 h-16 object-cover'></img>
@@ -62,7 +67,8 @@ const MemberSidebar = () => {
                     </div>
                 </Link>
             </div>
-        </div>
+        </div>}
+       </>
     )
 }
 

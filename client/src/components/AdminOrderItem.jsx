@@ -38,7 +38,7 @@ function AdminOrderItem({ setKey, setReload, listOrder }) {
                 listOrder?.length > 0 ?
                     listOrder.map(order => (
                         <div key={order._id} className=" bg-white sm:flex-row pb-[40px] border-b">
-                            <div className='grid gap-[20px] grid-cols-5 py-[10px]'>
+                            <div className='grid gap-[20px] grid-cols-3 py-[10px]'>
 
                                 <div>
                                     <p className="text-[16px] text-[#333] font-[600] mb-[10px]">

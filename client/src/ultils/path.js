@@ -24,6 +24,7 @@ const path = {
     CREATE_PRODUCT: 'create-product',
     ADMINPERSONAL: 'adminpersonal',
     MESSENGER: 'messenger',
+    MANAGE_VOUCHER:'manage-voucher',
 
 
     // member

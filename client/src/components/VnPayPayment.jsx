@@ -19,8 +19,6 @@ const VnPayPaymentComponent = ({ total, payload, setIsSuccess }) => {
         try {
             // Create order first
             const orderResponse = await apiOrder({ ...payload })
-            console.log(orderResponse)
-
             if (orderResponse.success) {
                 // Fetch payment URL using the orderId
                 const paymentResponse = await apiCreateVnpayUrl({ orderId: orderResponse.result._id })
@@ -52,14 +50,14 @@ const VnPayPaymentComponent = ({ total, payload, setIsSuccess }) => {
 
     return (
         <div style={{ maxWidth: "750px", minHeight: "50px", margin: 'auto' }}>
-            {loading ? (
-                <div className="spinner">Processing your payment...</div>
-            ) : (
-                <button class="bg-main text-white py-2 px-4 rounded-md text-center w-full h-14 text-xl" onClick={createOrderAndFetchPaymentUrl}>
-                    Pay with VNPay
-                </button>
-            )}
-        </div>
+        {loading ? (
+            <div className="spinner">Processing your payment...</div>
+        ) : (
+            <button class="bg-blue-200 py-2 px-4 rounded-md text-center w-full h-14 text-xl flex items-center justify-center" onClick={createOrderAndFetchPaymentUrl}>
+                <img className="w-auto h-8" src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" alt="VNpay" />
+            </button>
+        )}
+    </div>
     );
 };
 
