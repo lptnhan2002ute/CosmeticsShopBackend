@@ -89,7 +89,7 @@ const ModalChat = ({ props }) => {
 
     const handleStartChat = async () => {
         const rs = await apiStartChatSession({
-            adminUserID: '65708a41a57c73f0bb69e942', //TODO: remove adminUserId with another logic
+            adminUserID: '657310e2771a300e61cf043e', //TODO: remove adminUserId with another logic
             customerUserID: currentUser._id
         })
 
