@@ -188,7 +188,6 @@ const uploadImageProduct = asyncHandler(async (req, res) => {
 const getRecommendedProducts = asyncHandler(async (req, res) => {
     try {
         const { uid } = req.params
-        console.log(`${process.env.RECOMMENDATION_SERVER}/${uid}`)
         const rs = await fetch(`${process.env.RECOMMENDATION_SERVER}/${uid}`)
         const productIds = await rs.json()
         
