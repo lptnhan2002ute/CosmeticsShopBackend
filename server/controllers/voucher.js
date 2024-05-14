@@ -55,7 +55,8 @@ const findByName = asyncHandler(async (req, res) => {
         });
     }
     try {
-        const voucher = await Voucher.findOne({ name: name.toUpperCase() }).exec();
+        const regex = new RegExp(name, 'i');
+        const voucher = await Voucher.find({ name: regex }).exec();
         if (!voucher) {
             return res.status(404).json({
                 success: false,

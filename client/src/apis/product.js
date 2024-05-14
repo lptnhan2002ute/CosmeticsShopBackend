@@ -75,8 +75,8 @@ export const apiCreateCategory = (data) => axios({
     method: 'post',
     data
 })
-export const apiGetVoucher = () => axios({
-    url: '/voucher',
+export const apiGetVoucher = (page = 1, startDate = undefined, endDate = undefined) => axios({
+    url: `/voucher?page=${page}${startDate && `&startDate=${startDate}&endDate=${endDate}`}`,
     method: 'get',
 })
 export const apiCreateVoucher = (data) => axios({
