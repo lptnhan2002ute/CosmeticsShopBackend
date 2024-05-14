@@ -152,7 +152,7 @@ const MessageItem = ({ content, avatar, isMe }) => {
                     <img src={avatar} />
                 </div>
             }
-            <div className='max-w-[340px] break-words text-sm'>
+            <div className={`${isMe ? 'bg-red-300' : 'bg-red-200'} max-w-[340px] break-words text-sm py-2 px-4 rounded-lg`}>
                 {content}
             </div>
         </div>

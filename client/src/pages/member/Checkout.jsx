@@ -17,13 +17,14 @@ const Checkout = () => {
     const [voucherId, setVoucherId] = useState('');
     const [message, setMessage] = useState('');
     const [isSucces, setIsSucces] = useState(false);
-    const [isVoucher, setIsVoucher] = useState();
+    const [vouchers, setVouchers] = useState([]);
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
     const [form] = Form.useForm();
     const [paymentMethod, setPaymentMethod] = useState(cash)
     const [total, setTotal] = useState(0)
+    const [paymentAmount, setPaymentAmount] = useState(0); 
     const { listCheckout } = location.state || []
     const [loading, setLoading] = useState(false)
     const [list, setList] = useState([])
@@ -54,30 +55,47 @@ const Checkout = () => {
     });
     const handleApplyVoucher = async () => {
         try {
-          const response = await apiIdVoucher(voucherId);
-          
-          if (response.success) {
-            setMessage('Áp dụng voucher thành công!');
-            toast.success('Áp dụng voucher thành công')
-            setIsSucces(true)
+            console.log(vouchers, voucherId);
+            if(vouchers.find(e => e.voucher._id === voucherId)) {
+                setMessage('Voucher đã được thêm!');
+                toast.error('Áp dụng voucher thất bại');
+                setIsSucces(false);
+                return;
+            }
+
+            const response = await apiIdVoucher(voucherId);
+
+            if (!response.success) {
+                setMessage('Voucher đã sai vui lòng nhập lại!');
+                toast.error('Áp dụng voucher thất bại');
+                setIsSucces(false);
+                return;
+            }
+
             const responseCheckVoucher = await apiCheckVoucher({
-                vid : voucherId,
-                total : total,
-             })
-                if(responseCheckVoucher.success) {
-                      setIsVoucher(responseCheckVoucher)
-                      console.log(isVoucher)
-                }
-          } else {
-            setMessage('Voucher đã sai vui lòng nhập lại!');
-            toast.error('Áp dụng voucher thất bại')
-            setIsSucces(false);
-          }
+                vid: voucherId,
+                total: paymentAmount,
+            })
+
+            if (!responseCheckVoucher.success) {
+                setMessage('Voucher đã hết hạn hoặc hết lượt vui lòng thử voucher khác!');
+                toast.error('Áp dụng voucher thất bại');
+                setIsSucces(false);
+                return;
+            }
+
+            setVouchers((prev) => [...prev, responseCheckVoucher]);
+            setPaymentAmount(responseCheckVoucher?.finalTotal);
+
+            setMessage('Áp dụng voucher thành công!');
+            toast.success('Áp dụng voucher thành công');
+            setIsSucces(true);
+
         } catch (error) {
-          setMessage('Đã xảy ra lỗi khi áp dụng voucher.');
-          setIsSuccess(false);
+            setMessage('Đã xảy ra lỗi khi áp dụng voucher.');
+            setIsSuccess(false);
         }
-      };
+    };
     // const [debouncedFormData] = useDebounce(formData, 5000); // 3000ms là thời gian trì hoãn
 
 
@@ -90,6 +108,7 @@ const Checkout = () => {
 
         const result = list.reduce((acc, curr) => acc + curr.quantity * curr.product.price, 0)
         setTotal(result)
+        setPaymentAmount(result)
     }, [list])
 
     // React.useEffect(() => {
@@ -200,7 +219,7 @@ const Checkout = () => {
                 count: item.quantity,
             })),
             paymentMethod: "PayPal",
-            total,
+            total: paymentAmount,
             // Add additional form data here
             ...formData
             // ...debouncedFormData
@@ -216,7 +235,7 @@ const Checkout = () => {
                 count: item.quantity,
             })),
             paymentMethod: "VnPay",
-            total,
+            total: paymentAmount,
             // Add additional form data here
             ...formData
             // ...debouncedFormData
@@ -226,6 +245,7 @@ const Checkout = () => {
 
 
     React.useEffect(() => {
+        console.log(formData);
         const newPayPalPayload = createPayPalPayload();
         const newVnpayPayload = createVnpayPayload();
 
@@ -293,24 +313,24 @@ const Checkout = () => {
                                 <VnPayPayment
                                     payload={vnpayPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={total}
+                                    amount={paymentAmount}
                                 />
                             </div>
                             <div className='w-full mx-auto'>
                                 <PayPal
                                     payload={payPalPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={(total / 25345).toFixed(2)} />
+                                    amount={(paymentAmount / 25345).toFixed(2)} />
                             </div>
                         </form>
                         <div className="mt-2 ">
-                             <p className="text-lg font-semibold">Voucher</p>
-                              <div className="flex mt-4 ">
-                                 <input className="rounded-l-lg py-2 px-4 border-t mr-0 border-b border-l text-gray-800 border-gray-200 bg-white w-full" type="text" placeholder="Nhập mã voucher" value={voucherId} onChange={(e) => setVoucherId(e.target.value)} /> 
-                                 <button className="px-4  rounded-r-lg bg-blue-500 text-white font-medium hover:bg-blue-600" onClick={handleApplyVoucher} > Áp dụng </button>
-                                  </div>
-                                   {message && ( <p className={`mt-2 text-sm ${isSucces ? 'text-green-500' : 'text-red-500'}`}> {message} </p> )}
-                                    </div>
+                            <p className="text-lg font-semibold">Voucher</p>
+                            <div className="flex mt-4 ">
+                                <input className="rounded-l-lg py-2 px-4 border-t mr-0 border-b border-l text-gray-800 border-gray-200 bg-white w-full" type="text" placeholder="Nhập mã voucher" value={voucherId} onChange={(e) => setVoucherId(e.target.value)} />
+                                <button className="px-4 min-w-[100px] rounded-r-lg bg-blue-500 text-white font-medium hover:bg-blue-600" onClick={handleApplyVoucher} > Áp dụng </button>
+                            </div>
+                            {message && (<p className={`mt-2 text-sm ${isSucces ? 'text-green-500' : 'text-red-500'}`}> {message} </p>)}
+                        </div>
                     </div>
                     <div class="mt-10 bg-gray-50 px-4 pt-8 lg:mt-0">
                         <p class="text-xl mb-[40px]">Thông tin đơn hàng</p>
@@ -387,28 +407,28 @@ const Checkout = () => {
                                         }
                                     </p>
                                 </div>
-                                {isVoucher && voucherId ? <div><div class="mt-6 flex items-center justify-between">
+                                {vouchers.length > 0 ? <div><div class="mt-6 flex items-center justify-between">
                                     <p class="text-sm text-gray-900">Được giảm Voucher</p>
                                     <p class="text-2xl font-semibold text-gray-900">
                                         {
-                                            isVoucher?.discountAmount?.toLocaleString('vi-VN', {
+                                            vouchers.reduce((acc, cur) => acc + cur?.discountAmount || 0, 0)?.toLocaleString('vi-VN', {
                                                 style: 'currency',
                                                 currency: 'VND',
                                             })
                                         }
                                     </p>
                                 </div>
-                                <div class="mt-6 flex items-center justify-between">
-                                    <p class="text-sm text-gray-900">Số tiền thanh toán</p>
-                                    <p class="text-2xl font-semibold text-gray-900">
-                                        {
-                                            isVoucher?.finalTotal?.toLocaleString('vi-VN', {
-                                                style: 'currency',
-                                                currency: 'VND',
-                                            })
-                                        }
-                                    </p>
-                                </div></div> : <></> 
+                                    <div class="mt-6 flex items-center justify-between">
+                                        <p class="text-sm text-gray-900">Số tiền thanh toán</p>
+                                        <p class="text-2xl font-semibold text-gray-900">
+                                            {
+                                                vouchers?.at(-1)?.finalTotal?.toLocaleString('vi-VN', {
+                                                    style: 'currency',
+                                                    currency: 'VND',
+                                                })
+                                            }
+                                        </p>
+                                    </div></div> : <></>
                                 }
 
                                 <Form.Item
