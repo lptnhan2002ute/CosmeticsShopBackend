@@ -17,7 +17,7 @@ const Checkout = () => {
     const [voucherId, setVoucherId] = useState('');
     const [message, setMessage] = useState('');
     const [isSucces, setIsSucces] = useState(false);
-    const [vouchers, setVouchers] = useState([]);
+    const [voucher, setVoucher] = useState('');
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
@@ -55,14 +55,6 @@ const Checkout = () => {
     });
     const handleApplyVoucher = async () => {
         try {
-            console.log(vouchers, voucherId);
-            if(vouchers.find(e => e.voucher._id === voucherId)) {
-                setMessage('Voucher đã được thêm!');
-                toast.error('Áp dụng voucher thất bại');
-                setIsSucces(false);
-                return;
-            }
-
             const response = await apiIdVoucher(voucherId);
 
             if (!response.success) {
@@ -74,7 +66,7 @@ const Checkout = () => {
 
             const responseCheckVoucher = await apiCheckVoucher({
                 vid: voucherId,
-                total: paymentAmount,
+                total,
             })
 
             if (!responseCheckVoucher.success) {
@@ -83,8 +75,7 @@ const Checkout = () => {
                 setIsSucces(false);
                 return;
             }
-
-            setVouchers((prev) => [...prev, responseCheckVoucher]);
+            setVoucher(responseCheckVoucher);
             setPaymentAmount(responseCheckVoucher?.finalTotal);
 
             setMessage('Áp dụng voucher thành công!');
@@ -125,6 +116,7 @@ const Checkout = () => {
             products,
             paymentMethod,
             total: paymentAmount,
+            voucher: voucher?.voucher?._id,
             ...values
         }
         try {
@@ -220,6 +212,7 @@ const Checkout = () => {
             })),
             paymentMethod: "PayPal",
             total: paymentAmount,
+            voucher: voucher?.voucher?._id,
             // Add additional form data here
             ...formData
             // ...debouncedFormData
@@ -236,6 +229,7 @@ const Checkout = () => {
             })),
             paymentMethod: "VnPay",
             total: paymentAmount,
+            voucher: voucher?.voucher?._id,
             // Add additional form data here
             ...formData
             // ...debouncedFormData
@@ -407,11 +401,11 @@ const Checkout = () => {
                                         }
                                     </p>
                                 </div>
-                                {vouchers.length > 0 ? <div><div class="mt-6 flex items-center justify-between">
+                                {voucher ? <div><div class="mt-6 flex items-center justify-between">
                                     <p class="text-sm text-gray-900">Được giảm Voucher</p>
                                     <p class="text-2xl font-semibold text-gray-900">
                                         {
-                                            vouchers.reduce((acc, cur) => acc + cur?.discountAmount || 0, 0)?.toLocaleString('vi-VN', {
+                                            voucher?.discountAmount?.toLocaleString('vi-VN', {
                                                 style: 'currency',
                                                 currency: 'VND',
                                             })
@@ -422,7 +416,7 @@ const Checkout = () => {
                                         <p class="text-sm text-gray-900">Số tiền thanh toán</p>
                                         <p class="text-2xl font-semibold text-gray-900">
                                             {
-                                                vouchers?.at(-1)?.finalTotal?.toLocaleString('vi-VN', {
+                                                voucher?.finalTotal?.toLocaleString('vi-VN', {
                                                     style: 'currency',
                                                     currency: 'VND',
                                                 })
