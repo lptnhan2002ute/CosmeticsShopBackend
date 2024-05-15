@@ -249,7 +249,7 @@ const Checkout = () => {
         }, 3500);
 
         return () => clearTimeout(timeoutId);
-    }, [formData, list]);
+    }, [formData, list, voucher]);
 
     return (
         <Spin spinning={loading} size={"large"}>
