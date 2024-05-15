@@ -124,7 +124,7 @@ const Checkout = () => {
         const dataOrder = {
             products,
             paymentMethod,
-            total,
+            total: paymentAmount,
             ...values
         }
         try {
