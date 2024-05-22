@@ -3,11 +3,13 @@ import axios from "../axios";
 export const apiGetProducts = (params) => axios({
     url: '/product/',
     method: 'get',
-    params
+    params,
+    withCredentials: true,
 })
 export const apiGetProduct = (pid) => axios({
     url: '/product/' + pid,
     method: 'get',
+    withCredentials: true,
 })
 // export const apiGetProductCategory = (params) => axios({
 //     url: '/product',
@@ -24,56 +26,67 @@ export const apiGetProductCategory = (params) => axios({
     headers: { 'Content-type': 'application/json' },
     url: `/product`,
     method: 'get',
-    params
+    params,
+    withCredentials: true,
 })
 
 export const apiGetAllBrand = () => axios({
     url: '/brand',
     method: 'get',
+    withCredentials: true,
 })
 export const apiCreateProduct = (formData) => axios({
     url: '/product',
     method: 'post',
     data: formData,
+    withCredentials: true,
 })
 export const apiGetProductsSearch = (params) => axios({
     url: '/product',
     method: 'get',
-    params
+    params,
+    withCredentials: true,
 })
 export const apiUpdateProduct = (data, pid) => axios({
     url: '/product/' + pid,
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiDeleteProduct = (pid) => axios({
     url: '/product/' + pid,
     method: 'delete',
+    withCredentials: true,
 })
 
 export const apiRatings = (data) => axios({
     url: '/product/ratings',
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiGetCategory = (params) => axios({
     url: '/productCategory',
     method: 'get',
-    params
+    params,
+    withCredentials: true,
 })
 export const apiUpdateCategory = (data, pcid) => axios({
     url: '/productCategory/' + pcid,
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiDeleteCategory = (pcid) => axios({
     url: '/productCategory/' + pcid,
     method: 'delete',
+    withCredentials: true,
 })
 export const apiCreateCategory = (data) => axios({
     url: '/productCategory',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiGetVoucher = (page = 1, startDate = undefined, endDate = undefined) => axios({
     url: `/voucher?page=${page}${startDate && `&startDate=${startDate}&endDate=${endDate}`}`,

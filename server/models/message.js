@@ -15,8 +15,12 @@ var messageSchema = new mongoose.Schema({
     },
     messageText: {
         type: String,
-        required: true
+        required: false
     },
+    imageUrls: [{
+        type: String,
+        required: false,
+    }],
 }, {
     timestamps: true
 });

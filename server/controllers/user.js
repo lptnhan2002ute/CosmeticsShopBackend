@@ -9,6 +9,8 @@ const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
+const { promisify } = require('util');
+const jwtVerify = promisify(jwt.verify);
 
 
 const registerGuest = asyncHandler(async (req, res) => {
@@ -310,20 +312,38 @@ const changePassword = asyncHandler(async (req, res) => {
     });
 })
 
-const resetAccessToken = asyncHandler(async (req, res) => {
-    // lấy token từ cookie
-    const cookie = req.cookies
-    // Check xem có token hay không
-    if (!cookie || !cookie.refreshToken) throw new Error('No refresh token in cookie')
-    // Check token còn hạn không
+const resetAccessToken = asyncHandler(async (req, res, next) => {
+    const cookie = req.cookies;
+    if (!cookie || !cookie.refreshToken) {
+        return res.status(401).json({
+            success: false,
+            mess: 'Không tồn tại refresh token trong cookie'
+        });
+    }
 
-    const result = await jwt.verify(cookie.refreshToken, process.env.JWT_SECRET)
-    const response = await User.findOne({ _id: result._id, refreshToken: cookie.refreshToken })
-    return res.status(200).json({
-        success: response ? true : false,
-        accessToken: response ? generateAccessToken(response._id, response.role) : ' Refresh token is not match '
-    })
-})
+    try {
+        const decoded = await jwt.verify(cookie.refreshToken, process.env.JWT_SECRET);
+        console.log(decoded);
+        const user = await User.findOne({ _id: decoded._id, refreshToken: cookie.refreshToken });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                mess: 'Invalid refresh token'
+            });
+        }
+
+        const newAccessToken = generateAccessToken(user._id, user.role);
+        req.user = { _id: user._id, role: user.role }; // Thiết lập lại req.user
+        req.headers.authorization = `Bearer ${newAccessToken}`; // Thiết lập lại header để phản ánh accessToken mới
+        next();
+    } catch (error) {
+        // console.log("Error verifying refresh token:", error);
+        return res.status(403).json({
+            success: false,
+            mess: 'Lỗi khi làm mới trạng thái đăng nhập. Vui lòng đăng nhập lại!!!'
+        });
+    }
+});
 
 
 // Tìm cách vô hiệu hóa accessToken khi logout
