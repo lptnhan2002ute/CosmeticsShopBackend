@@ -90,7 +90,7 @@ const Messenger = () => {
     return (
         <div className='flex-1 h-[600px] overflow-hidden'>
             <div className='flex gap-4 '>
-                <div className='flex flex-col h-screen min-w-[300px] bg-pink-400'>
+                <div className='flex flex-col h-screen min-w-[300px] bg-orange-300'>
                     <div className='py-4 text-center font-semibold mb-4'>
                         Khách hàng
                     </div>
