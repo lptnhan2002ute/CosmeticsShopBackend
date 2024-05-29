@@ -317,6 +317,10 @@ const deleteOrder = asyncHandler(async (req, res) => {
 
         await Promise.all(updateStockPromises);
 
+        if (activeFlashSale) {
+            await activeFlashSale.save();
+        }
+
         // Restore voucher usage if a voucher was used
         if (order.voucher) {
             const voucher = await Voucher.findById(order.voucher);
