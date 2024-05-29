@@ -3,6 +3,7 @@ const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const slugify = require('slugify')
 const Category = require('../models/productCategory');
+const FlashSale = require('../models/flashSale');
 
 const createProduct = asyncHandler(async (req, res) => {
     if (Object.keys(req.body).length === 0) throw new Error('Missing input!!');
@@ -40,18 +41,54 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const getProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
-    const product = await Product.findById(pid).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id').populate({
-        path: 'ratings',
-        populate: {
-            path: 'postedBy',
-            select: 'name avatar'
+    try {
+        const product = await Product.findById(pid).populate('brand', 'brandName -_id').populate('category', 'categoryName -_id').populate({
+            path: 'ratings',
+            populate: {
+                path: 'postedBy',
+                select: 'name avatar'
+            }
+        })
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cannot find product'
+            });
         }
-    })
-    return res.status(200).json({
-        success: product ? true : false,
-        productData: product ? product : 'Cannot find product'
-    })
-})
+        const now = new Date();
+        const flashSale = await FlashSale.findOne({
+            'products.product': pid,
+            status: 'Active',
+            startTime: { $lte: now },
+            endTime: { $gte: now }
+        });
+
+        let modifiedProductData = product.toObject();
+        if (flashSale && modifiedProductData) {
+            // Tìm sản phẩm trong danh sách các sản phẩm của flash sale
+            const saleProduct = flashSale.products.find(p => p.product.toString() === pid.toString());
+            if (saleProduct) {
+                modifiedProductData.stockQuantity = saleProduct.quantity; // Số lượng còn lại trong flash sale
+                modifiedProductData.soldQuantity = saleProduct.soldQuantity;
+                modifiedProductData.flashSaleEndTime = flashSale.endTime;
+                // modifiedProductData.timeRemaining = flashSale.endTime - now// Số lượng đã bán trong flash sale
+                modifiedProductData.timeRemaining = flashSale.endTime.getTime() - now.getTime();
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            productData: modifiedProductData
+        })
+    }
+    catch (error) {
+        console.error('Failed to fetch product:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error get info product: ' + error.message
+        });
+    }
+});
 
 const getAllProduct = asyncHandler(async (req, res) => {
     const queries = { ...req.query }
@@ -120,6 +157,28 @@ const getAllProduct = asyncHandler(async (req, res) => {
     });
     //const product = await Product.find()
 
+})
+
+const updateAll = asyncHandler(async (req, res) => {
+    try {
+        // Lấy tất cả sản phẩm
+        let products = await Product.find();
+
+        // Cập nhật giá ban đầu cho mỗi sản phẩm
+        const updates = products.map(async (product) => {
+            product.originalPrice = product.price;
+            return product.save(); // Lưu thay đổi vào cơ sở dữ liệu
+        });
+
+        // Đợi cho tất cả các cập nhật hoàn thành
+        await Promise.all(updates);
+
+        // Trả về mảng sản phẩm đã cập nhật
+        return products;
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        throw error;
+    }
 })
 
 
@@ -192,5 +251,6 @@ module.exports = {
     updateProduct,
     deleteProduct,
     rating,
-    uploadImageProduct
+    uploadImageProduct,
+    updateAll,
 }

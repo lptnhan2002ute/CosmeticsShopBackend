@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Product = require('./product')
-const FlashSale = require('./flashSale');
 var flashSaleSchema = new mongoose.Schema({
     saleName: {
         type: String,
@@ -47,6 +46,7 @@ var flashSaleSchema = new mongoose.Schema({
 });
 
 flashSaleSchema.pre('save', async function (next) {
+    const FlashSale = mongoose.model('FlashSale');
     if (this.endTime <= this.startTime) {
         return next(new Error('End time must be greater than start time'));
     }
@@ -67,8 +67,10 @@ flashSaleSchema.pre('save', async function (next) {
 
     if (this.isModified('status')) {
         try {
-            if (this.status === 'Active' || this.status === 'Ended') {
-                await updateProductPrices(this, this.status === 'Active' ? 'apply' : 'revert');
+            if (this.status === 'Active') {
+                await updateProductPrices(this, 'apply');
+            } else if (this.status === 'Ended' && this._previousStatus !== 'Upcoming') {
+                await updateProductPrices(this, 'revert');
             }
         } catch (error) {
             return next(error);
@@ -84,28 +86,33 @@ async function updateProductPrices(flashSale, action) {
             return {
                 updateOne: {
                     filter: { _id: saleProduct.product },
-                    update: {
-                        $mul: { price: (1 - saleProduct.discountRate / 100) }
-                    }
+                    update: [{
+                        $set: {
+                            // price: { $multiply: ["$originalPrice", (1 - saleProduct.discountRate / 100)] },
+                            price: {
+                                $round: [{ $multiply: ["$originalPrice", (1 - saleProduct.discountRate / 100)] }, -2]
+                            },
+                            stockQuantity: { $subtract: ["$stockQuantity", saleProduct.quantity] } // Giảm số lượng kho
+                        }
+                    }]
                 }
             };
         } else if (action === 'revert') {
             return {
                 updateOne: {
                     filter: { _id: saleProduct.product },
-                    update: [
-                        { $set: { price: "$originalPrice" } },  // Trả về giá gốc
-                        {
-                            $inc: {
-                                soldQuantity: saleProduct.soldQuantity,  // Tăng số lượng đã bán
-                                stockQuantity: -saleProduct.soldQuantity  // Giảm số lượng tồn kho
-                            }
+                    update: [{
+                        $set: {
+                            price: "$originalPrice", // Hoàn trả giá gốc
+                            stockQuantity: { $add: ["$stockQuantity", saleProduct.quantity] },  // Hoàn trả số lượng
+                            soldQuantity: { $add: ["$soldQuantity", saleProduct.soldQuantity] } // Điều chỉnh số lượng đã bán
                         }
-                    ]
+                    }]
                 }
             };
-        }
-    });
+        };
+    }
+    );
 
     try {
         await Product.bulkWrite(bulkOps, { ordered: false });
