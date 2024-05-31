@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const socketIo = require('socket.io');
 const http = require('http')
+const flashSaleScheduler = require('./tasks/flashSaleScheduler');
+const orderScheduler = require('./tasks/orderScheduler');
 const { verifySocketMiddleware } = require('./middlewares/verifySocket')
 
 
@@ -24,9 +26,12 @@ const io = socketIo(server, {
 app.use(cors({
     origin: process.env.CLIENT_URL,
     methods: ['POST', 'PUT', 'GET', 'DELETE'],
-    credentials: true
+    credentials: true,
 
 }))
+
+flashSaleScheduler();
+orderScheduler();
 const port = process.env.PORT || 8181
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))

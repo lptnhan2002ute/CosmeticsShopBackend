@@ -2,6 +2,7 @@ const Order = require('../models/order')
 const Cart = require('../models/cart');
 const Voucher = require('../models/voucher')
 const Product = require('../models/product')
+const FlashSale = require('../models/flashSale');
 const asyncHandler = require('express-async-handler')
 const vnpayConfig = require('../config/vnpay.config');
 const moment = require('moment');
@@ -10,7 +11,7 @@ const crypto = require('crypto');
 
 const createOrder = asyncHandler(async (req, res) => {
     try {
-        const { _id } = req.user
+        const { _id } = req.user;
         const { voucher, products, address, phone, recipient, note, paymentMethod, status } = req.body;
         let total = req.body.total;
         let selectedVoucher = null;
@@ -71,7 +72,7 @@ const createOrder = asyncHandler(async (req, res) => {
         if (status === 'Unpaid' && !['VnPay', 'PayPal'].includes(paymentMethod)) {
             return res.status(400).json({
                 success: false,
-                mess: 'Đơn hàng Unpaid phải có paymentMethod là VnPay hoặc PayPal',
+                message: 'Đơn hàng Unpaid phải có paymentMethod là VnPay hoặc PayPal',
             });
         }
 
@@ -89,45 +90,54 @@ const createOrder = asyncHandler(async (req, res) => {
             status: status || 'Pending',
         };
 
-        const paidProducts = products.map(productItem => productItem.product);
-        // const paidProducts = products.map(productItem => productItem.product);
-
-        const orderedProducts = products;
-        const soldOutProducts = [];
-
-        await Promise.all(
-            orderedProducts.map(async (productItem) => {
-                const productId = productItem.product;
-                const quantityOrdered = productItem.count;
-                const product = await Product.findById(productId);
-                if (product) {
-                    if (product.stockQuantity >= quantityOrdered) {
-                        // Giảm stockQuantity
-                        product.stockQuantity -= quantityOrdered;
-                        // Tăng soldQuantity
-                        product.soldQuantity += quantityOrdered;
-                        // Lưu cập nhật của sản phẩm
-                        await product.save();
-                    }
-                    else {
-                        soldOutProducts.push(product);
-                    }
-                }
-            })
-        )
-
-        // Trả về lỗi nếu có sản phẩm hết hàng
-        if (soldOutProducts.length > 0) {
-            return res.status(400).json({
-                success: false,
-                status: 'soldout',
-                mess: 'Không đủ số lượng sản phẩm để mua',
-                product: soldOutProducts
-            });
-        }
-
         // Tạo đơn hàng
         const result = await Order.create(data);
+
+
+        const now = new Date();
+        const activeFlashSale = await FlashSale.findOne({
+            'status': 'Active',
+            'startTime': { $lte: now },
+            'endTime': { $gte: now }
+        });
+
+        const productUpdates = products.map(async (productItem) => {
+            const product = await Product.findById(productItem.product);
+            if (!product) {
+                throw new Error(`Product with ID ${productItem.product} not found.`);
+            }
+            const quantityOrdered = productItem.count;
+            if (activeFlashSale) {
+                const flashSaleProduct = activeFlashSale.products.find(fsProduct => fsProduct.product.toString() === productItem.product.toString());
+
+                if (flashSaleProduct) {
+                    if (flashSaleProduct.quantity < quantityOrdered) {
+                        throw new Error(`Flashsale không còn đủ số lượng sản phẩm ${product.productName} để mua`);
+                    }
+                    flashSaleProduct.quantity -= quantityOrdered;
+                    flashSaleProduct.soldQuantity += quantityOrdered;
+                } else {
+                    if (product.stockQuantity < quantityOrdered) {
+                        throw new Error(`Không đủ số lượng sản phẩm ${product.productName} để mua`);
+                    }
+                    product.stockQuantity -= quantityOrdered;
+                    product.soldQuantity += quantityOrdered;
+                }
+            } else {
+                if (product.stockQuantity < quantityOrdered) {
+                    throw new Error(`Không đủ số lượng sản phẩm ${product.productName} để mua`);
+                }
+                product.stockQuantity -= quantityOrdered;
+                product.soldQuantity += quantityOrdered;
+            }
+            await product.save();
+        });
+
+        await Promise.all(productUpdates);
+
+        if (activeFlashSale) {
+            await activeFlashSale.save();
+        }
 
         if (selectedVoucher) {
             selectedVoucher.usedCount += 1;
@@ -135,15 +145,13 @@ const createOrder = asyncHandler(async (req, res) => {
             await selectedVoucher.save();
         }
 
-        await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: paidProducts } } } });
+        await Cart.updateOne({ userId: _id }, { $pull: { products: { product: { $in: products.map(p => p.product) } } } });
 
         return res.status(201).json({
             success: result ? true : false,
             result: result ? result : 'Tạo đơn hàng bị lỗi'
         })
-    }
-
-    catch (error) {
+    } catch (error) {
         return res.status(500).json({
             success: false,
             mess: 'Lỗi tạo đơn hàng',
@@ -155,8 +163,13 @@ const createOrder = asyncHandler(async (req, res) => {
 const updateStatus = asyncHandler(async (req, res) => {
     const { oid } = req.params
     const { status } = req.body
-    const { role } = req.user;
-    if (!status) throw new Error('Lỗi dữ liệu truyền vào')
+    const { role, _id } = req.user;
+    if (!status) {
+        return res.status(400).json({
+            success: false,
+            message: 'Lỗi dữ liệu truyền vào'
+        });
+    }
     const orderBeforeUpdate = await Order.findById(oid).populate('products.product');
     if (!orderBeforeUpdate) {
         return res.status(404).json({
@@ -173,26 +186,57 @@ const updateStatus = asyncHandler(async (req, res) => {
     }
     if (status === 'Cancelled' && currentStatus !== 'Cancelled') {
         // Cập nhật stockQuantity và soldQuantity của từng sản phẩm trong đơn hàng
-        if (req.user._id !== orderBeforeUpdate.orderBy.toString() && role !== 'Admin') {
+        if (_id.toString() !== orderBeforeUpdate.orderBy.toString() && role !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 mess: 'Bạn không có quyền hủy đơn hàng này',
             });
         }
+
+        const now = new Date();
+        const activeFlashSale = await FlashSale.findOne({
+            status: 'Active',
+            startTime: { $lte: now },
+            endTime: { $gte: now }
+        });
+
         await Promise.all(
             orderBeforeUpdate.products.map(async (productItem) => {
                 const product = productItem.product;
                 const quantityCancelled = productItem.count;
+                if (!product) {
+                    throw new Error(`Product with ID ${productItem.product} not found.`);
+                }
 
-                // Tăng stockQuantity
-                product.stockQuantity += quantityCancelled;
-                // Giảm soldQuantity
-                product.soldQuantity -= quantityCancelled;
+                if (activeFlashSale) {
+                    const flashSaleProduct = activeFlashSale.products.find(fsProduct => fsProduct.product.toString() === product._id.toString());
+                    if (flashSaleProduct) {
+                        await FlashSale.updateOne(
+                            { _id: activeFlashSale._id, "products.product": product._id },
+                            {
+                                $inc: {
+                                    "products.$.quantity": quantityCancelled,
+                                    "products.$.soldQuantity": -quantityCancelled
+                                }
+                            }
+                        );
+                    } else {
+                        product.stockQuantity += quantityCancelled;
+                        product.soldQuantity -= quantityCancelled;
+                    }
+                } else {
+                    product.stockQuantity += quantityCancelled;
+                    product.soldQuantity -= quantityCancelled;
+                }
 
                 // Lưu cập nhật của sản phẩm
                 await product.save();
             })
         );
+        if (activeFlashSale) {
+            await activeFlashSale.save();
+        }
+
         if (orderBeforeUpdate.voucher) {
             const voucher = await Voucher.findById(orderBeforeUpdate.voucher);
             if (voucher && voucher.usedCount > 0 && voucher.usedBy.includes(orderBeforeUpdate.orderBy)) {
@@ -217,112 +261,179 @@ const deleteOrder = asyncHandler(async (req, res) => {
     if (!order) {
         return res.status(404).json({
             success: false,
-            mess: 'Đơn hàng không tồn tại',
+            message: 'Đơn hàng không tồn tại',
         });
     }
 
     // Optionally, check if the user has permission to delete this order
-    if (req.user._id !== order.orderBy.toString() && req.user.role !== 'Admin') {
+    if (req.user._id.toString() !== order.orderBy.toString() && req.user.role !== 'Admin') {
         return res.status(403).json({
             success: false,
-            mess: 'Không có quyền xóa đơn hàng này',
+            message: 'Không có quyền xóa đơn hàng này',
         });
     }
 
-    // Restore the stock quantities if necessary
-    const updateStockPromises = order.products.map(productItem => {
-        return Product.findByIdAndUpdate(productItem.product, {
-            $inc: {
-                stockQuantity: productItem.count,
-                soldQuantity: -productItem.count
-            }
-        });
+    const now = new Date();
+    const activeFlashSale = await FlashSale.findOne({
+        status: 'Active',
+        startTime: { $lte: now },
+        endTime: { $gte: now }
     });
 
-    // Restore voucher usage if a voucher was used
-    let updateVoucherPromise = null;
-    if (order.voucher) {
-        updateVoucherPromise = Voucher.findById(order.voucher).then(async voucher => {
+    try {
+        const updateStockPromises = order.products.map(async productItem => {
+            const product = productItem.product; // Since the product is populated
+            const quantityToRestore = productItem.count;
+
+            // Check for flash sale influence
+            if (activeFlashSale) {
+                const flashSaleProduct = activeFlashSale.products.find(fsProduct =>
+                    fsProduct.product.toString() === product._id.toString()
+                );
+
+                if (flashSaleProduct) {
+                    // Revert flash sale product quantities
+                    await FlashSale.updateOne(
+                        { _id: activeFlashSale._id, "products.product": product._id },
+                        {
+                            $inc: {
+                                "products.$.quantity": quantityToRestore,
+                                "products.$.soldQuantity": -quantityToRestore
+                            }
+                        }
+                    );
+                } else {
+                    product.stockQuantity += quantityToRestore;
+                    product.soldQuantity -= quantityToRestore;
+                }
+            } else {
+                product.stockQuantity += quantityToRestore;
+                product.soldQuantity -= quantityToRestore;
+            }
+
+            // Save product changes
+            await product.save();
+        });
+
+        await Promise.all(updateStockPromises);
+
+        if (activeFlashSale) {
+            await activeFlashSale.save();
+        }
+
+        // Restore voucher usage if a voucher was used
+        if (order.voucher) {
+            const voucher = await Voucher.findById(order.voucher);
             if (voucher && voucher.usedBy.includes(order.orderBy)) {
                 voucher.usedCount -= 1;
                 voucher.usedBy = voucher.usedBy.filter(userId => !userId.equals(order.orderBy));
-                return await voucher.save();
+                await voucher.save();
             }
-            return Promise.resolve();
-        });
-    }
-
-    try {
-        await Promise.all([
-            ...updateStockPromises,
-            updateVoucherPromise
-        ]);
+        }
 
         // Delete the order
         await Order.deleteOne({ _id: orderId });
 
         res.status(200).json({
             success: true,
-            mess: 'Đơn hàng đã được xóa thành công'
+            message: 'Đơn hàng đã được xóa thành công'
         });
     } catch (error) {
         console.error('Error deleting order:', error);
         res.status(500).json({
             success: false,
-            mess: 'Lỗi khi xóa đơn hàng'
+            message: 'Lỗi khi xóa đơn hàng',
+            error: error.message
         });
     }
 });
 
 
+
 const getUserOrder = asyncHandler(async (req, res) => {
-    const { _id } = req.user
-    const date24HoursAgo = new Date(new Date().getTime() - (24 * 60 * 60 * 1000));
+    const { _id } = req.user;
+    // const date24HoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const unpaidOrders = await Order.find({
-        orderBy: _id,
-        status: 'Unpaid',
-        createdAt: { $lt: date24HoursAgo }
-    });
+    try {
+        // const unpaidOrders = await Order.find({
+        //     orderBy: _id,
+        //     status: 'Unpaid',
+        //     createdAt: { $lt: date24HoursAgo }
+        // });
 
-    const updateProductQuantities = unpaidOrders.map(async (order) => {
-        const updatePromises = order.products.map(async item => {
-            const product = await Product.findById(item.product);
-            if (!product) {
-                return res.status(400).json({
-                    success: false,
-                    mess: `Sản phẩm với id ${item.product} không tồn tại`,
-                });
-            }
-            return Product.updateOne(
-                { _id: item.product },
-                { $inc: { stockQuantity: item.count, soldQuantity: -item.count } }
-            );
+        // const now = new Date();
+        // const activeFlashSale = await FlashSale.findOne({
+        //     status: 'Active',
+        //     startTime: { $lte: now },
+        //     endTime: { $gte: now }
+        // });
+
+        // const updateProductQuantities = unpaidOrders.map(async (order) => {
+        //     const updatePromises = order.products.map(async (item) => {
+        //         const product = await Product.findById(item.product);
+        //         if (!product) {
+        //             throw new Error(`Sản phẩm với id ${item.product} không tồn tại`);
+        //         }
+
+        //         if (activeFlashSale) {
+        //             const flashSaleProduct = activeFlashSale.products.find(
+        //                 (fsProduct) => fsProduct.product.toString() === item.product.toString()
+        //             );
+
+        //             if (flashSaleProduct) {
+        //                 await FlashSale.updateOne(
+        //                     { 'products.product': item.product },
+        //                     { $inc: { 'products.$.quantity': item.count, 'products.$.soldQuantity': -item.count } }
+        //                 );
+        //             } else {
+        //                 await Product.updateOne(
+        //                     { _id: item.product },
+        //                     { $inc: { stockQuantity: item.count, soldQuantity: -item.count } }
+        //                 );
+        //             }
+        //         } else {
+        //             await Product.updateOne(
+        //                 { _id: item.product },
+        //                 { $inc: { stockQuantity: item.count, soldQuantity: -item.count } }
+        //             );
+        //         }
+        //     });
+
+        //     await Promise.all(updatePromises);
+
+        //     if (order.voucher) {
+        //         const voucher = await Voucher.findById(order.voucher);
+        //         if (voucher && voucher.usedCount > 0 && voucher.usedBy.includes(order.orderBy)) {
+        //             voucher.usedCount -= 1;
+        //             voucher.usedBy = voucher.usedBy.filter((userId) => !userId.equals(order.orderBy));
+        //             await voucher.save();
+        //         }
+        //     }
+
+        //     order.status = 'Cancelled';
+        //     return order.save();
+        // });
+
+        // await Promise.all(updateProductQuantities);
+
+        const result = await Order.find({ orderBy: _id })
+            .populate('products.product')
+            .sort({ updatedAt: -1 })
+            .exec();
+
+        return res.status(200).json({
+            success: result ? true : false,
+            result: result ? result : 'Lỗi lấy danh sách đơn hàng'
         });
-        await Promise.all(updatePromises);
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Lỗi cập nhật đơn hàng',
+            error: error.message
+        });
+    }
+});
 
-        if (order.voucher) {
-            const voucher = await Voucher.findById(order.voucher);
-            if (voucher && voucher.usedCount > 0 && voucher.usedBy.includes(order.orderBy)) {
-                voucher.usedCount -= 1;
-                voucher.usedBy = voucher.usedBy.filter(userId => !userId.equals(order.orderBy));
-                await voucher.save();
-            }
-        }
-        order.status = 'Cancelled';
-        return order.save();
-    });
-
-    await Promise.all(updateProductQuantities);
-    const result = await Order.find({ orderBy: _id })
-        .populate('products.product')
-        .sort({ updatedAt: -1 })
-        .exec();
-    return res.json({
-        success: result ? true : false,
-        result: result ? result : 'Lỗi lấy danh sách đơn hàng'
-    })
-})
 
 const getAllOrders = asyncHandler(async (req, res) => {
     const result = await Order.find().populate('products.product').sort({ updatedAt: -1 }).exec()

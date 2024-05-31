@@ -116,55 +116,61 @@ export const apiGetOrderById = (oid) => axios({
 export const apiDeleteOrder = (oid) => axios({
     url: `/bill/${oid}`,
     method: "delete",
+    withCredentials: true,
 })
 
 export const apiCreateVnpayUrl = (data) => axios({
     url: '/bill/create_vnpay_payment',
     method: "post",
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiVnpayIpn = (params) => axios({
     url: "/bill/vnpay_ipn",
     method: "get",
-    params
+    params,
+    withCredentials: true,
 })
 
 export const apiUpdateWishlist = (pid) => axios({
     url: '/user/wishlist/' + pid,
     method: "put",
+    withCredentials: true,
 })
 
-export const apiResetAccessToken = () => axios({
-    url: "/user/check",
-    method: "post",
-})
+
 export const apiChangePassword = (data) => axios({
     url: '/user/customer/resetpassword',
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiStartSession = (data) => axios({
     url: '/chat/start',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiSendMessage = (data) => axios({
     url: '/chat/send',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 
 export const apiGetMessages = (sessionID) => axios({
     url: `/chat/messages/${sessionID}`,
-    method: "get"
+    method: "get",
+    withCredentials: true,
 })
 
 export const apiCloseSession = (data, sessionID) => axios({
     url: `/chat/close/${sessionID}`,
     method: "put",
-    data
+    data,
+    withCredentials: true,
 })
 

@@ -15,6 +15,8 @@ const initRoutes = (app) => {
     app.use('/api/voucher', voucherRouter)
     app.use('/api/bill', orderRouter)
     app.use('/api/chat', chatRouter)
+    app.use('/api/notification', notificationRouter)
+    app.use('/api/flashsale', flashSaleRouter)
     app.use(notFound)
     app.use(errHandler)
 }
