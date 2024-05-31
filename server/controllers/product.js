@@ -272,6 +272,6 @@ module.exports = {
     deleteProduct,
     rating,
     uploadImageProduct,
-    updateAll,,
+    updateAll,
     getRecommendedProducts
 }

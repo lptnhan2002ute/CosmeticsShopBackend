@@ -5,6 +5,7 @@ const brandRouter = require('./brand')
 const voucherRouter = require('./voucher')
 const orderRouter = require('./order')
 const chatRouter = require('./chat')
+const flashSaleRouter = require('./flashSale')
 const { notFound, errHandler } = require('../middlewares/errHandler')
 
 const initRoutes = (app) => {
@@ -15,7 +16,6 @@ const initRoutes = (app) => {
     app.use('/api/voucher', voucherRouter)
     app.use('/api/bill', orderRouter)
     app.use('/api/chat', chatRouter)
-    app.use('/api/notification', notificationRouter)
     app.use('/api/flashsale', flashSaleRouter)
     app.use(notFound)
     app.use(errHandler)
