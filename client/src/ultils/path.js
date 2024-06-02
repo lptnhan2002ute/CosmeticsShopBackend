@@ -25,6 +25,7 @@ const path = {
     ADMINPERSONAL: 'adminpersonal',
     MESSENGER: 'messenger',
     MANAGE_VOUCHER:'manage-voucher',
+    FLASHSALE: 'flashsale',
 
 
     // member

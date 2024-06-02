@@ -66,7 +66,7 @@ export const productInformation = [
 
     }
 ]
-const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile, FaFacebookMessenger , TbShoppingBagDiscount} = icons
+const { AiOutlineDashboard, MdGroups, TbBrandProducthunt, RiBillLine, MdOutlineCategory, ImProfile, FaFacebookMessenger , TbShoppingBagDiscount, IoIosFlash} = icons
 export const adminSidebar = [
     {
         id: 1,
@@ -132,6 +132,13 @@ export const adminSidebar = [
         text: 'Quản lý Voucher',
         path: `/${path.ADMIN}/${path.MANAGE_VOUCHER}`,
         icon: <TbShoppingBagDiscount />
+    },
+    {
+        id: 9,
+        type: 'single',
+        text: 'Flashsale',
+        path: `/${path.ADMIN}/${path.FLASHSALE}`,
+        icon: <IoIosFlash />
     }
 ]
 

@@ -204,7 +204,7 @@ const getFlashSaleById = async (req, res) => {
             .populate({
                 path: 'products.product',
                 model: 'Product',
-                select: 'name price imageUrl'
+                select: 'productName price imageUrl originalPrice'
             })
             .exec();
 
@@ -225,8 +225,10 @@ const getFlashSaleById = async (req, res) => {
                 endTime: flashSale.endTime,
                 status: flashSale.status,
                 products: flashSale.products.map(item => ({
-                    name: item.product.name,
+                    name: item.product.productName,
                     price: item.product.price,
+                    originalPrice: item.product.originalPrice,
+                    imageUrl: item.product.imageUrl,
                     discountRate: item.discountRate,
                     quantity: item.quantity,
                     soldQuantity: item.soldQuantity
