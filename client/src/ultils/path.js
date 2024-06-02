@@ -26,6 +26,7 @@ const path = {
     MESSENGER: 'messenger',
     MANAGE_VOUCHER:'manage-voucher',
     FLASHSALE: 'flashsale',
+    NOTIFICATION: 'notification',
 
 
     // member

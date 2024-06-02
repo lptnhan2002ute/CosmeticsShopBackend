@@ -5,7 +5,7 @@ import { BiUserCircle } from 'react-icons/bi'
 import { AiFillHome, AiFillStar, AiOutlineStar, AiFillEye, AiOutlineMenu, AiFillGift, AiOutlineDown, AiOutlineLogout, AiOutlineDashboard } from 'react-icons/ai'
 import { BsFillSuitHeartFill, BsShieldShaded, BsReplyFill, BsCartPlus, BsStarHalf } from 'react-icons/bs'
 import { GiClockwork } from 'react-icons/gi'
-import { IoIosArrowForward, IoIosFlash } from 'react-icons/io'
+import { IoIosArrowForward, IoIosFlash, IoIosNotifications } from 'react-icons/io'
 import { TbBrandProducthunt, TbShoppingBagDiscount } from 'react-icons/tb'
 import { ImProfile } from 'react-icons/im'
 
@@ -40,7 +40,7 @@ const icons = {
     FaFacebookMessenger,
     TbShoppingBagDiscount,
     IoIosFlash,
-
+    IoIosNotifications,
 
 }
 
