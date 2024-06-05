@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiSearchNameVoucher, apiDeleteVoucher } from '../../apis'
+import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiDeleteVoucher } from '../../apis'
 import moment from 'moment'
 import Dialog from '@mui/material/Dialog'
 import { InputForm } from '../../components'
@@ -23,6 +23,9 @@ const ManageVoucher = () => {
     const [searchValue, setSearchValue] = useState("");
     const debounceSearch = useDebounce(searchValue, 300);
 
+    const [startDateFilter, setStartDateFilter] = useState(undefined);
+    const [endDateFilter, setEndDateFilter] = useState(undefined);
+
     const [page, setPage] = useState(1);
 
     const [voucherPageMetadata, setVoucherPageMetadata] = useState({});
@@ -41,12 +44,13 @@ const ManageVoucher = () => {
 
     useEffect(() => {
         if (debounceSearch) {
-            apiSearchNameVoucher({
-                name: debounceSearch
-            }).then(response => {
-                response.voucherList = response.result;
-                if (response.success) setVoucherPageMetadata(response);
-            })
+            // apiSearchNameVoucher({
+            //     name: debounceSearch
+            // }).then(response => {
+            //     response.voucherList = response.result;
+            //     if (response.success) setVoucherPageMetadata(response);
+            // })
+            fetchVouchers(page, debounceSearch, startDateFilter, endDateFilter);
         }
     }, [debounceSearch])
 
@@ -55,9 +59,11 @@ const ManageVoucher = () => {
     }
 
     const onChangeRangePicker = (_date, dateString) => {
-        const startDate = moment(dateString[0], 'YYYY-MM-DD').format('DD/MM/YYYY')
-        const endDate = moment(dateString[1], 'YYYY-MM-DD').format('DD/MM/YYYY')
-        fetchVouchers(1, startDate, endDate);
+        const startDate = moment(dateString[0], 'YYYY-MM-DD').format('DD/MM/YYYY');
+        const endDate = moment(dateString[1], 'YYYY-MM-DD').format('DD/MM/YYYY');
+        setStartDateFilter(startDate);
+        setEndDateFilter(endDate);
+        fetchVouchers(page, debounceSearch, startDate, endDate);
     }
 
     const handleClose = () => {
@@ -103,14 +109,17 @@ const ManageVoucher = () => {
         }
         setShowDialog(true)
     }
-    const fetchVouchers = async (page = 1, startDate = undefined, endDate = undefined) => {
-        const response = await apiGetVoucher(page, startDate, endDate)
+    const fetchVouchers = async (page = 1, name = undefined, startDate = undefined, endDate = undefined) => {
+        const response = await apiGetVoucher(page, name, startDate, endDate);
         if (response.success) {
             setVoucherPageMetadata(response);
         }
+        else {
+            setVoucherPageMetadata([]);
+        }
     }
     useEffect(() => {
-        fetchVouchers(page)
+        fetchVouchers(page, debounceSearch, startDateFilter, endDateFilter);
     }, [page])
 
     const handleDeleteVoucher = async (vid) => {
@@ -190,11 +199,11 @@ const ManageVoucher = () => {
                     ))}
                 </tbody>
             </table>
-            {!searchValue &&
-                <div className='flex items-center justify-center'>
-                    <Pagination onChange={handleChangePage} defaultCurrent={1} total={voucherPageMetadata?.totalItems || 0} pageSize={5} showSizeChanger={false} />
-                </div>
-            }
+
+            <div className='flex items-center justify-center'>
+                <Pagination onChange={handleChangePage} defaultCurrent={1} total={voucherPageMetadata?.totalItems || 0} pageSize={5} showSizeChanger={false} />
+            </div>
+
             <div className='w-[100px] h-[50px] bg-main text-white rounded text-center justify-center items-center flex cursor-pointer' onClick={() => handleShowdialog(null)}>Thêm mới</div>
             <Dialog open={showDialog} onClose={handleClose}>
                 <div className='p-[20px] w-[400px]'>
