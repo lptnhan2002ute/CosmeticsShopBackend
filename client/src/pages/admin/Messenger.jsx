@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { apiGetAllChatSessions, apiGetMessagesInSession, apiSendMessageInSession, apiCloseChatSession } from '../../apis/chat';
 import { useSelector } from 'react-redux'
-import { Badge, Button, Input } from 'antd';
+import { Badge, Button, Input, Image } from 'antd';
 import { IoIosSend } from "react-icons/io";
 import socket from '../../socket/socket';
+import { FileImageTwoTone } from '@ant-design/icons';
 
 const Messenger = () => {
     const [sessions, setSessions] = useState([]);
@@ -14,19 +15,37 @@ const Messenger = () => {
 
     const { current } = useSelector(state => state.user);
 
+    const fileInputRef = useRef(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles(files);
+    };
+
+    const handleInputFileClick = () => {
+        fileInputRef.current.click();
+    };
+
     const handleSendMessage = async (message) => {
-        if (!message || !activeSession)
+        if ((!message && selectedFiles.length < 1) || !activeSession)
             return;
 
-        const rs = await apiSendMessageInSession({
-            senderUserID: current._id,
-            sessionID: activeSession,
-            messageText: textMessage
+        const formData = new FormData();
+        formData.append('senderUserID', current._id);
+        formData.append('sessionID', activeSession);
+        formData.append('messageText', message);
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
         });
+
+        const rs = await apiSendMessageInSession(formData);
+
         const messageFullInformation = { ...rs, senderUserID: { _id: rs.senderUserID, avatar: current.avatar } }
         socket.emit("chatMessage", { sessionId: activeSession, message: messageFullInformation });
         setMessages([...messages, messageFullInformation]);
         setTextMessage("");
+        setSelectedFiles([]);
     }
 
     const handleCloseSession = async () => {
@@ -71,6 +90,7 @@ const Messenger = () => {
     useEffect(() => {
         const getSessions = async () => {
             const rs = await apiGetAllChatSessions(current._id);
+            if (rs?.success === false) return;
             setSessions(rs);
         }
 
@@ -105,10 +125,24 @@ const Messenger = () => {
                         <Button onClick={handleCloseSession} className='self-center mr-8 absolute top-4 z-10' type='primary' danger>Close Session</Button>
                     }
                     <div ref={chatContainerRef} className='flex flex-col gap-6 break-words p-4 pr-6 h-[500px] overflow-y-auto'>
-                        {messages.map((e, i) => <MessageItem key={i} content={e.messageText} avatar={e.senderUserID?.avatar} isMe={e.senderUserID._id === current._id} />)}
+                        {messages.map((e, i) => <MessageItem key={i} content={e.messageText} images={e.imageUrls} avatar={e.senderUserID?.avatar} isMe={e.senderUserID._id === current._id} />)}
                     </div>
                     {activeSession && sessions.filter(e => e._id === activeSession)?.at(0)?.status !== "Closed" &&
                         <div className='flex items-center gap-4 p-4 pt-2 mr-6 bg-red-100 rounded-lg'>
+                            <Badge count={selectedFiles.length}>
+                                <Input
+                                    className='w-[20px] p-0 bg-transparent pr-1 cursor-pointer border-0'
+                                    prefix={<FileImageTwoTone onClick={handleInputFileClick} />}
+                                />
+                            </Badge>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className='hidden'
+                                onChange={handleFileChange}
+                                multiple
+                                accept='image/*'
+                            />
                             <Input onPressEnter={() => handleSendMessage(textMessage)} value={textMessage} onChange={(e) => setTextMessage(e.target.value)} className='bg-slate-100' placeholder='Nhập nội dung' />
                             <IoIosSend onClick={() => handleSendMessage(textMessage)} color='#ff007f' className='cursor-pointer' size={26} />
                         </div>
@@ -132,11 +166,14 @@ const SessionItem = ({ props, currentSession, isClosed, isActive, setActive }) =
                 <img src={props?.customerUserID?.avatar} />
             </div>
             <div className='flex flex-col'>
-                <div className=''>
+                <div className='font-semibold'>
                     {props?.customerUserID?.name}
                 </div>
-                <div className=''>
+                <div className='font-semibold'>
                     {props?.customerUserID?.email}
+                </div>
+                <div className='font-xs text-slate-800 truncate max-w-[180px]'>
+                    {props?.latestMessage}
                 </div>
             </div>
             {isClosed && <Badge count="Closed" />}
@@ -144,7 +181,7 @@ const SessionItem = ({ props, currentSession, isClosed, isActive, setActive }) =
     )
 }
 
-const MessageItem = ({ content, avatar, isMe }) => {
+const MessageItem = ({ content, avatar, isMe, images }) => {
     return (
         <div className={`${isMe ? 'self-end' : ''} flex gap-2 items-center`}>
             {!isMe &&
@@ -152,8 +189,13 @@ const MessageItem = ({ content, avatar, isMe }) => {
                     <img src={avatar} />
                 </div>
             }
-            <div className={`${isMe ? 'bg-red-300' : 'bg-red-200'} max-w-[340px] break-words text-sm py-2 px-4 rounded-lg`}>
-                {content}
+            <div className='flex flex-col'>
+                <div className='flex flex-wrap justify-end max-w-[340px] gap-1'>
+                    {images.length > 0 && images.map(img => <Image width={160} src={img} />)}
+                </div>
+                {content && <div className={`${isMe ? 'bg-red-300' : 'bg-red-200'} max-w-[340px] break-words text-sm py-2 px-4 rounded-lg`}>
+                    {content}
+                </div>}
             </div>
         </div>
     )

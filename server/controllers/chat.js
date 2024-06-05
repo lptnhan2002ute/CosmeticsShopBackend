@@ -2,7 +2,7 @@ const Message = require('../models/message');
 const ChatSession = require('../models/chatSession');
 const User = require('../models/user');
 const asyncHandler = require('express-async-handler');
-const ObjectId = require('mongoose').Types.ObjectId; 
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const startChatSession = asyncHandler(async (req, res) => {
     const { adminUserID, customerUserID } = req.body;
@@ -50,6 +50,7 @@ const sendMessage = asyncHandler(async (req, res) => {
         await message.save();
         res.status(201).json(message);
     } catch (error) {
+        console.log(error);
         res.status(400).json({ message: error.message });
     }
 });
@@ -155,8 +156,19 @@ const findSessionsByEmail = asyncHandler(async (req, res) => {
 const getAllChatSessions = asyncHandler(async (req, res) => {
     try {
         const id = req.params;
+
         const sessions = await ChatSession.find({ adminUserID: new ObjectId(id) }).populate('customerUserID').sort([['startDate', '-1']]);
-        res.status(200).json(sessions);
+
+        const sessionsWithLatestMessages = await Promise.all(sessions.map(async (session) => {
+            const latestMessage = await Message.findOne({ sessionID: session.id })
+                .sort({ createdAt: '-1' });
+            return {
+                ...session.toObject(),
+                latestMessage: latestMessage?.messageText
+            };
+        }));
+
+        res.status(200).json(sessionsWithLatestMessages);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
