@@ -20,6 +20,7 @@ export const apiGetProduct = (pid) => axios({
 export const apiGetRecommendedProducts = (uid) => axios({
     url: '/product/recommendation/' + uid,
     method: 'get',
+    withCredentials: true,
 })
 
 export const apiGetProductCategory = (params) => axios({

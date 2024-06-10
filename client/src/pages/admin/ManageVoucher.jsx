@@ -38,7 +38,7 @@ const ManageVoucher = () => {
             setSearchValue(value);
         } else {
             setSearchValue("");
-            await fetchVouchers()
+            await fetchVouchers(page, undefined, startDateFilter, endDateFilter);
         }
     }
 
@@ -59,6 +59,12 @@ const ManageVoucher = () => {
     }
 
     const onChangeRangePicker = (_date, dateString) => {
+        if(!dateString[0] || !dateString[1]) {
+            setStartDateFilter(undefined);
+            setEndDateFilter(undefined);
+            fetchVouchers(page, debounceSearch);
+            return;
+        }
         const startDate = moment(dateString[0], 'YYYY-MM-DD').format('DD/MM/YYYY');
         const endDate = moment(dateString[1], 'YYYY-MM-DD').format('DD/MM/YYYY');
         setStartDateFilter(startDate);

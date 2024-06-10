@@ -128,3 +128,10 @@
       #fe828e 51%,
       #fe4d7f 100%);
 }
+
+.ant-carousel .slick-prev::before,
+.ant-carousel .slick-next::before,
+.ant-carousel .slick-prev:hover,
+.ant-carousel .slick-next:hover {
+color: black !important;
+}
