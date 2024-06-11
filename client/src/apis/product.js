@@ -91,32 +91,39 @@ export const apiCreateCategory = (data) => axios({
 export const apiGetVoucher = (page = 1, startDate = undefined, endDate = undefined) => axios({
     url: `/voucher?page=${page}${startDate && `&startDate=${startDate}&endDate=${endDate}`}`,
     method: 'get',
+    withCredentials: true,
 })
 export const apiCreateVoucher = (data) => axios({
     url: '/voucher',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiUpdateVoucher = (data, vid) => axios({
     url: '/voucher/' + vid,
     method: 'put',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiSearchNameVoucher = (data) => axios({
     url: 'voucher/search',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
 export const apiDeleteVoucher = (vid) => axios({
     url: '/voucher/' + vid,
     method: 'delete',
+    withCredentials: true,
 })
 export const apiIdVoucher = (vid) => axios({
     url: '/voucher/' + vid,
     method: 'get',
+    withCredentials: true,
 })
 export const apiCheckVoucher = (data) => axios({
     url: 'voucher/check',
     method: 'post',
-    data
+    data,
+    withCredentials: true,
 })
