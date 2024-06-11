@@ -23,7 +23,10 @@ export const apiSendMessageInSession = (data) => axios({
     url: '/chat/send',
     method: 'post',
     data,
-    withCredentials: true
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'multipart/form-data'
+    }
 })
 
 export const apiGetAllChatSessions = (uid) => axios({

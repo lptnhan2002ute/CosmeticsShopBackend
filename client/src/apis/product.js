@@ -20,6 +20,7 @@ export const apiGetProduct = (pid) => axios({
 export const apiGetRecommendedProducts = (uid) => axios({
     url: '/product/recommendation/' + uid,
     method: 'get',
+    withCredentials: true,
 })
 
 export const apiGetProductCategory = (params) => axios({
@@ -88,8 +89,8 @@ export const apiCreateCategory = (data) => axios({
     data,
     withCredentials: true,
 })
-export const apiGetVoucher = (page = 1, startDate = undefined, endDate = undefined) => axios({
-    url: `/voucher?page=${page}${startDate && `&startDate=${startDate}&endDate=${endDate}`}`,
+export const apiGetVoucher = (page = 1, name = undefined, startDate = undefined, endDate = undefined) => axios({
+    url: `/voucher?page=${page}${name ? `&name=${name}` : ''}${startDate ? `&startDate=${startDate}&endDate=${endDate}` : ''}`,
     method: 'get',
     withCredentials: true,
 })

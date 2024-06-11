@@ -1,5 +1,5 @@
-import { FloatButton, Input } from 'antd';
-import { MessageOutlined } from '@ant-design/icons';
+import { Badge, FloatButton, Input, Image } from 'antd';
+import { MessageOutlined, FileImageTwoTone } from '@ant-design/icons';
 import { useEffect, useState, useRef } from 'react';
 import { IoMdClose, IoIosSend } from "react-icons/io";
 import socket from '../../socket/socket';
@@ -72,24 +72,43 @@ const ModalChat = ({ props }) => {
 
     const [message, setMessage] = useState("");
 
+    const fileInputRef = useRef(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles(files);
+    };
+
+    const handleInputFileClick = () => {
+        fileInputRef.current.click();
+    };
+
     const handleSendMessage = async (message) => {
-        if (!message || !currentSessionId)
+        if ((!message && selectedFiles.length < 1) || !currentSessionId)
             return;
 
-        const rs = await apiSendMessageInSession({
-            senderUserID: currentUser._id,
-            sessionID: currentSessionId,
-            messageText: message
+        const formData = new FormData();
+        formData.append('senderUserID', currentUser._id);
+        formData.append('sessionID', currentSessionId);
+        formData.append('messageText', message);
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
         });
+
+        const rs = await apiSendMessageInSession(formData);
+
         const messageFullInformation = { ...rs, senderUserID: { _id: rs.senderUserID, avatar: currentUser.avatar } }
         socket.emit("chatMessage", { sessionId: currentSessionId, message: messageFullInformation });
         setMessages([...messages, messageFullInformation]);
         setMessage("");
+        setSelectedFiles([]);
     }
 
     const handleStartChat = async () => {
         const rs = await apiStartChatSession({
-            adminUserID: '657310e2771a300e61cf043e', //TODO: remove adminUserId with another logic
+            adminUserID: '666067d4860a5a9ae9539a05',
+            // adminUserID: '657310e2771a300e61cf043e', //TODO: remove adminUserId with another logic
             customerUserID: currentUser._id
         })
 
@@ -126,11 +145,19 @@ const ModalChat = ({ props }) => {
                                 if (e.senderUserID._id !== currentUser._id) {
                                     return <div key={i} className='flex gap-2 items-center'>
                                         <RiUserFollowFill color='#ff007f' size={24} />
-                                        <p className='text-sm font-medium break-words max-w-[180px] bg-red-200 py-2 px-4 rounded-lg'>{e.messageText}</p>
+                                        <div className='flex flex-col gap-2 justify-center'>
+                                            <div className='flex flex-wrap max-w-[180px] gap-1'>
+                                                {e?.imageUrls?.length > 0 && e.imageUrls.map(img => <Image width={80} src={img} />)}
+                                            </div>
+                                            {e.messageText && <p className='text-sm font-medium break-words max-w-[180px] bg-red-200 py-2 px-4 rounded-lg'>{e.messageText}</p>}
+                                        </div>
                                     </div>
                                 }
-                                return <div key={i} className='flex gap-2 items-center justify-end'>
-                                    <p className='text-sm font-medium break-words max-w-[180px] bg-red-300 py-2 px-4 rounded-lg'>{e.messageText}</p>
+                                return <div key={i} className='flex flex-col gap-2 items-end justify-center'>
+                                    <div className='flex flex-wrap justify-end max-w-[180px] gap-1'>
+                                        {e?.imageUrls?.length > 0 && e.imageUrls.map(img => <Image width={80} src={img} />)}
+                                    </div>
+                                    {e.messageText && <p className='text-sm font-medium break-words max-w-[180px] bg-red-300 py-2 px-4 rounded-lg'>{e.messageText}</p>}
                                 </div>
                             })
                         }
@@ -140,6 +167,20 @@ const ModalChat = ({ props }) => {
             {
                 currentSessionId && !isClosedSession ?
                     <div className='flex items-center gap-4 p-4 pt-2 bg-red-100 rounded-b-lg'>
+                        <Badge count={selectedFiles.length}>
+                            <Input
+                                className='w-[20px] p-0 bg-transparent pr-1 cursor-pointer border-0'
+                                prefix={<FileImageTwoTone onClick={handleInputFileClick} />}
+                            />
+                        </Badge>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className='hidden'
+                            onChange={handleFileChange}
+                            multiple
+                            accept='image/*'
+                        />
                         <Input onPressEnter={() => handleSendMessage(message)} value={message} onChange={(e) => setMessage(e.target.value)} className='bg-slate-100' placeholder='Nhập nội dung' />
                         <IoIosSend onClick={() => handleSendMessage(message)} color='#ff007f' className='cursor-pointer' size={26} />
                     </div> : currentSessionId && isClosedSession ?

@@ -141,11 +141,14 @@ const deleteFlashSale = asyncHandler(async (req, res) => {
 
 const getAllFlashSales = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 8;
-    const { status, startDate, endDate } = req.query;
+    const limit = parseInt(req.query.limit) || 5;
+    const { status, startDate, endDate, saleName } = req.query;
 
     // Xây dựng bộ lọc dựa trên các tham số đầu vào
     let filterOptions = {};
+    if (saleName) {
+        filterOptions.saleName = new RegExp(saleName, 'i');
+    }
     if (status) {
         filterOptions.status = status;
     }
@@ -175,6 +178,7 @@ const getAllFlashSales = asyncHandler(async (req, res) => {
             success: true,
             count: flashSales.length,
             totalPages,
+            totalItems: total,
             data: flashSales,
             page,
             limit
