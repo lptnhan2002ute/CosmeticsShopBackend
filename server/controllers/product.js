@@ -174,7 +174,7 @@ const updateAll = asyncHandler(async (req, res) => {
         await Promise.all(updates);
 
         // Trả về mảng sản phẩm đã cập nhật
-        return products;
+        return res.json(200);
     } catch (error) {
         console.error('Error fetching products:', error);
         throw error;
