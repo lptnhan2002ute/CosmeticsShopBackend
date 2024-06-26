@@ -64,14 +64,14 @@ const getProduct = asyncHandler(async (req, res) => {
         });
 
         let modifiedProductData = product.toObject();
+        modifiedProductData.isFlashsale = false
         if (flashSale && modifiedProductData) {
             // Tìm sản phẩm trong danh sách các sản phẩm của flash sale
             const saleProduct = flashSale.products.find(p => p.product.toString() === pid.toString());
             if (saleProduct) {
                 modifiedProductData.stockQuantity = saleProduct.quantity; // Số lượng còn lại trong flash sale
                 modifiedProductData.soldQuantity = saleProduct.soldQuantity;
-                modifiedProductData.flashSaleEndTime = flashSale.endTime;
-                // modifiedProductData.timeRemaining = flashSale.endTime - now// Số lượng đã bán trong flash sale
+                modifiedProductData.isFlashsale = true;
                 modifiedProductData.timeRemaining = flashSale.endTime.getTime() - now.getTime();
             }
         }
@@ -135,14 +135,32 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
     //Execute query
 
-    const response = await queryCommand.exec();
+    const products = await queryCommand.exec();
 
-    if (!response || response.length === 0) {
+    if (!products || products.length === 0) {
         return res.status(404).json({
             success: false,
             productData: 'Cannot get product',
         });
     }
+    const now = new Date();
+    const flashSale = await FlashSale.findOne({
+        status: 'Active',
+        startTime: { $lte: now },
+        endTime: { $gte: now }
+    });
+    const modifiedProductsData = await Promise.all(products.map(async product => {
+        const modifiedProduct = product.toObject();
+        modifiedProduct.isFlashsale = false;
+        if (flashSale) {
+            const saleProduct = flashSale.products.find(p => p.product.toString() === modifiedProduct._id.toString());
+            if (saleProduct) {
+                modifiedProduct.isFlashsale = true;
+                modifiedProduct.timeRemaining = flashSale.endTime.getTime() - now.getTime();
+            }
+        }
+        return modifiedProduct;
+    }));
     let counts
     counts = await Product.countDocuments(formatedQueries);
     if (queries?.categoryId)
@@ -152,7 +170,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     return res.status(200).json({
         success: true,
         counts,
-        productData: response,
+        productData: modifiedProductsData,
 
     });
     //const product = await Product.find()
@@ -249,8 +267,8 @@ const getRecommendedProducts = asyncHandler(async (req, res) => {
         const { uid } = req.params
         const rs = await fetch(`${process.env.RECOMMENDATION_SERVER}/${uid}`)
         const productIds = await rs.json()
-        
-        
+
+
         const products = await Product.find({ _id: { $in: productIds } }).populate('brand', 'brandName -_id').populate('category', 'categoryName')
 
         return res.status(200).json({
