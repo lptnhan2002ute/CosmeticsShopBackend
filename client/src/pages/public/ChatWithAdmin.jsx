@@ -115,6 +115,7 @@ const ModalChat = ({ props }) => {
         dispatch(setSessionId({ sessionId: rs._id }));
         setCurrentSessionId(rs._id);
         setIsClosedSession(false);
+        socket.emit('newSession', rs);
         socket.emit('joinRoom', { sessionId: rs._id });
     }
 
