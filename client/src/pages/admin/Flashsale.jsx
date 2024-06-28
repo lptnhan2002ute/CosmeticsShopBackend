@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiDeleteVoucher, apiGetProducts } from '../../apis'
+import { apiGetProducts } from '../../apis'
 import moment from 'moment'
 import Dialog from '@mui/material/Dialog'
 import { InputForm } from '../../components'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import Search from 'antd/es/input/Search'
-import { Pagination, DatePicker, Input, Badge } from 'antd'
+import { Pagination, DatePicker, Input, Badge, Row, Col } from 'antd'
 import Swal from 'sweetalert2'
 import { useNavigate } from 'react-router-dom'
 import useDebounce from '../../hooks/useDebounce'
@@ -36,6 +36,9 @@ const Flashsale = () => {
     const [dialogLabel, setDialogLabel] = useState('Thêm')
     const [isEdit, setIsEdit] = useState(false);
     const [productFlashSaleEdit, setProductFlashSaleEdit] = useState([]);
+    const [productPage, setProductPage] = useState(1);
+    const [productSearchValue, setProductSearchValue] = useState("");
+    const debounceProductSearch = useDebounce(productSearchValue, 300);
 
     const [products, setProducts] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -97,6 +100,7 @@ const Flashsale = () => {
         reset()
         setShowDialog(false)
         setSelectedProducts([])
+        setProductPage(1);
     }
     const handleCreate = async () => {
         const id = getValues('_id')
@@ -244,7 +248,7 @@ const Flashsale = () => {
 
             <div className='w-[100px] h-[50px] bg-main text-white rounded text-center justify-center items-center flex cursor-pointer' onClick={() => handleShowdialog(null)}>Thêm mới</div>
             <Dialog maxWidth='xl' open={showDialog} onClose={handleClose}>
-                <div className='p-[20px] w-[800px]'>
+                <div className='p-[20px] w-[1200px]'>
                     <InputForm
                         label='Tên Flash Sale'
                         placeholder='Nhập tên flash sale'
@@ -287,16 +291,30 @@ const Flashsale = () => {
                         </>
                     }
 
-                    <div className='mt-4'>Chọn sản phẩm</div>
+                    <div className='flex justify-between items-center mt-4'>
+                        Chọn sản phẩm
+                        <Search
+                            className="w-[40vw]"
+                            placeholder="Nhập tên sản phẩm..."
+                            allowClear
+                            enterButton="Search"
+                            size="large"
+                            value={productSearchValue}
+                            onChange={(e) => setProductSearchValue(e.target.value)}
+                        />
+                    </div>
                     <div className='flex flex-col px-4 my-4'>
-                        <Carousel slidesToShow={2} arrows dots={false} infinite>
-                            {products?.map((e, i) => (
-                                <div key={i} className='w-full p-2'>
+                        <Row>
+                            {products?.filter(prod => prod.productName.includes(debounceProductSearch))?.slice((productPage - 1) * 8, productPage * 8)?.map((e, _i) => (
+                                <Col span={6} key={e._id} className='w-full p-2'>
                                     <div className={`flex flex-col gap-2 w-full border-2 ${selectedProducts.find(p => p._id === e._id) ? 'border-green-400' : 'border-slate-200'}`}>
-                                        <img onClick={() => handleSelectProduct(e)} className='w-full h-[220px] object-cover object-center' src={e?.imageUrl?.[0]} />
+                                        <img onClick={() => handleSelectProduct(e)} className='w-full h-[180px] object-contain object-center cursor-pointer' src={e?.imageUrl?.[0]} />
                                         {selectedProducts.find(p => p._id === e._id) &&
                                             <div className='flex gap-2 px-2'>
-                                                <Input defaultValue={productFlashSaleEdit.find(pfs => pfs.product._id === e._id)?.discountRate || 0} onChange={(event) => {
+                                                <Input defaultValue={
+                                                    productFlashSaleEdit.find(pfs => pfs.product._id === e._id)?.discountRate ||
+                                                    selectedProducts.find(pfs => pfs._id === e._id)?.discountRate
+                                                } onChange={(event) => {
                                                     event.stopPropagation();
                                                     const percent = parseInt(event.target.value);
                                                     if (percent > 0 && percent < 100) {
@@ -308,10 +326,13 @@ const Flashsale = () => {
                                                         }
                                                     }
                                                 }} placeholder='Giảm giá (%)' />
-                                                <Input defaultValue={productFlashSaleEdit.find(pfs => pfs.product._id === e._id)?.quantity || 0} onChange={(event) => {
+                                                <Input defaultValue={
+                                                    productFlashSaleEdit.find(pfs => pfs.product._id === e._id)?.quantity ||
+                                                    selectedProducts.find(pfs => pfs._id === e._id)?.quantity
+                                                } onChange={(event) => {
                                                     event.stopPropagation();
                                                     const amount = parseInt(event.target.value);
-                                                    if (amount > 0 && amount < (e.stockQuantity - e.soldQuantity)) {
+                                                    if (amount > 0 && amount <= (e.stockQuantity - e.soldQuantity)) {
                                                         const product = selectedProducts.find(p => p._id === e._id);
                                                         if (product) {
                                                             const newProducts = selectedProducts.filter(p => p._id !== e._id);
@@ -320,13 +341,17 @@ const Flashsale = () => {
                                                         }
                                                     }
                                                 }} placeholder='Số lượng' />
+                                                <Badge count={e.stockQuantity - e.soldQuantity} />
                                             </div>
                                         }
-                                        <span className='w-full truncate p-4'>{e.productName}</span>
+                                        <span className='w-full h-[80px] break-words p-4'>{e.productName}</span>
                                     </div>
-                                </div>
+                                </Col>
                             ))}
-                        </Carousel>
+                        </Row>
+                        <div className='flex items-center justify-center'>
+                            <Pagination onChange={(page) => { setProductPage(page) }} defaultCurrent={1} total={products?.filter(prod => prod.productName.includes(debounceProductSearch)).length || 0} pageSize={8} showSizeChanger={false} />
+                        </div>
                     </div>
                     <div className='justify-end flex pt-2'>
                         <div className='w-[80px] h-[40px] bg-main text-white rounded text-center justify-center items-center flex cursor-pointer' onClick={handleCreate}>{dialogLabel}</div>
@@ -339,7 +364,7 @@ const Flashsale = () => {
                         {showProductsFS.map((e, i) => (
                             <div key={i} className='p-10'>
                                 <div className='flex flex-col w-full justify-center items-center'>
-                                    <img className='w-[300px] object-cover object-center' src={e.imageUrl} />
+                                    <img className='w-[300px] object-cover object-center' src={e?.imageUrl?.[0]} />
                                     <Badge count={`${e.discountRate} %`}>
                                         <p className='font-medium max-w-[500px] truncate p-2'>{e.productName}</p>
                                     </Badge>
