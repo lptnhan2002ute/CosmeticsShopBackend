@@ -94,8 +94,17 @@ const Messenger = () => {
             setSessions(rs);
         }
 
+        const handleNewSession = (session) => {
+            getSessions();
+        }
+
+        socket.on('newSession', handleNewSession);
         getSessions();
-    }, [])
+
+        return () => {
+            socket.off("newSession", handleNewSession);
+        }
+    }, [sessions])
 
     const chatContainerRef = useRef(null);
     const scrollToBottom = () => {

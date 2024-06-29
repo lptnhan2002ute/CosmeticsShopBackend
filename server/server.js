@@ -45,6 +45,7 @@ app.use('/', (req, res) => { res.send('Server on') })
 
 // Socket.io logic for chat
 io.on('connection', (socket) => {
+    io.use(verifySocketMiddleware);
     console.log('A user connected');
 
     // io.use(verifySocketMiddleware);
@@ -65,6 +66,15 @@ io.on('connection', (socket) => {
     socket.on('chatMessage', ({ sessionId, message }) => {
         socket.to(sessionId).emit('message', message);
     });
+
+    socket.on('newSession', async (data) => {
+        const User = require('./models/user');
+        const ChatSession = require('./models/chatSession');
+
+        const session = await ChatSession.findById(data._id).populate('customerUserID');
+        const admins = await User.find({ role: 'Admin' });
+        admins.forEach(admin => socket.to(admin._id.toString()).emit('newSession', session));
+    })
 
     // Listen for closeSession
     socket.on('closeSession', ({ sessionId }) => {
