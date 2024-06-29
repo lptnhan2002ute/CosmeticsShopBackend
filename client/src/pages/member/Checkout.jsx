@@ -211,7 +211,7 @@ const Checkout = () => {
                 count: item.quantity,
             })),
             paymentMethod: "PayPal",
-            total: paymentAmount,
+            total: total,
             voucher: voucher?.voucher?._id,
             // Add additional form data here
             ...formData
@@ -228,7 +228,7 @@ const Checkout = () => {
                 count: item.quantity,
             })),
             paymentMethod: "VnPay",
-            total: paymentAmount,
+            total: total,
             voucher: voucher?.voucher?._id,
             // Add additional form data here
             ...formData
