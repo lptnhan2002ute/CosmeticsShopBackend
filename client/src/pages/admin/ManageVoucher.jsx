@@ -111,6 +111,7 @@ const ManageVoucher = () => {
             })
         }
         else {
+            setDialogLabel('Thêm')
             reset()
         }
         setShowDialog(true)
