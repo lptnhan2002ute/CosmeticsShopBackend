@@ -323,7 +323,7 @@ const resetAccessToken = asyncHandler(async (req, res, next) => {
 
     try {
         const decoded = await jwt.verify(cookie.refreshToken, process.env.JWT_SECRET);
-        console.log(decoded);
+        console.log(`resetAccessToken: `, decoded);
         const user = await User.findOne({ _id: decoded._id, refreshToken: cookie.refreshToken });
         if (!user) {
             return res.status(401).json({
