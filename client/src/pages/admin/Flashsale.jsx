@@ -151,6 +151,7 @@ const Flashsale = () => {
             })
         }
         else {
+            setDialogLabel('Thêm');
             setIsEdit(false);
             reset()
         }

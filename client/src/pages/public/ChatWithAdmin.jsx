@@ -6,7 +6,8 @@ import socket from '../../socket/socket';
 import { apiGetMessagesInSession, apiSendMessageInSession, apiStartChatSession } from './../../apis/chat';
 import { RiUserFollowFill } from "react-icons/ri";
 import { useDispatch, useSelector } from 'react-redux';
-import { setSessionId } from '../../store/chatSlice'
+import { setSessionId } from '../../store/chatSlice';
+import { toast } from 'react-toastify';
 
 const title = "Chat với nhân viên tư vấn";
 
@@ -17,8 +18,13 @@ const ChatWithAdmin = () => {
     const [messages, setMessages] = useState([]);
     const [currentSessionId, setCurrentSessionId] = useState(sessionId);
     const [isClosedSession, setIsClosedSession] = useState(false);
+    const { current: currentUser } = useSelector(state => state.user);
 
     const handleOpenChatModal = () => {
+        if(!currentUser) {
+            toast.error('Vui lòng đăng nhập');
+            return;
+        }
         setOpen(true);
     }
 
@@ -107,7 +113,7 @@ const ModalChat = ({ props }) => {
 
     const handleStartChat = async () => {
         const rs = await apiStartChatSession({
-            adminUserID: '657310e2771a300e61cf043e',
+            adminUserID: '666067d4860a5a9ae9539a05',
             // adminUserID: '657310e2771a300e61cf043e', //TODO: remove adminUserId with another logic
             customerUserID: currentUser._id
         })
@@ -128,6 +134,10 @@ const ModalChat = ({ props }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages])
+
+    if(!currentUser) {
+        return null;
+    }
 
     return (
         <div className={`${open ? 'opacity-100 bottom-[40px]' : 'opacity-0 bottom-[-100%]'} fixed flex flex-col w-[320px] h-[450px] bg-red-100 text-black rounded-lg right-[30px] z-[101] shadow-lg transition-all duration-300`}>
