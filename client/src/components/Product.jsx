@@ -15,13 +15,17 @@ import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
 import { updateCart } from "../store/users/userSlice"
 import { getCurrent } from '../store/users/asyncAction'
+import { ClockCircleOutlined } from '@ant-design/icons'
+import { Statistic } from 'antd';
 
+const { Countdown } = Statistic;
 
 const { BsCartPlus, AiFillEye, BsFillSuitHeartFill } = icons
 
 const Product = ({ productData, isNew, navigate, dispatch }) => {
     const [isShowOption, setIsShowOption] = useState(false)
     const { current } = useSelector(state => state.user)
+
     const handleClickOptions = async (e, flag) => {
         e.stopPropagation()
 
@@ -92,7 +96,18 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                         <span key={index}>{el}</span>
                     ))}</span>
                     <span className='line-clamp-1'>{productData?.productName}</span>
-                    <span>{`${formatMoney(productData?.price)} VNĐ`}</span>
+                    <div className='w-full flex items-center justify-between'>
+                        <span className={`${productData?.isFlashsale && 'text-sm text-gray-700 line-through'}`}>{`${formatMoney(productData?.originalPrice)} VNĐ`}</span>
+                        {productData?.isFlashsale && <span className='text-main'>{`${formatMoney(productData?.price)} VNĐ`}</span>}
+                    </div>
+                    {
+                        productData?.isFlashsale && (
+                            <div className='w-full flex items-center justify-between bg-main text-white p-2'>
+                                <span className='font-semibold'>Flash Sale</span>
+                                <Countdown valueStyle={{ color: 'white', fontSize: 16 }} value={Date.now() + productData?.timeRemaining} />
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>

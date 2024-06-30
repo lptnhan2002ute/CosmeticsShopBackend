@@ -13,7 +13,10 @@ import Swal from 'sweetalert2'
 import path from '../../ultils/path'
 import withBaseComponent from '../../hocs/withBaseComponent'
 import { showModal } from '../../store/appSlice'
+import { ClockCircleOutlined } from '@ant-design/icons'
+import { Statistic } from 'antd';
 
+const { Countdown } = Statistic;
 
 const settings = {
     dots: false,
@@ -183,10 +186,30 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                     </div>
                 </div>
                 <div className={clsx('w-2/5 flex flex-col gap-4 pr-[24px]', isQuickView && 'w-1/2')}>
-                    <div className='flex justify-between items-center'>
-                        <h2 className='text-[30px] font-semibold'>
-                            {`${formatMoney(fotmatPrice(product?.price))} VNĐ`}
-                        </h2>
+                    {
+                        product?.isFlashsale && (
+                            <div className='flex items-center justify-between bg-main text-white p-3'>
+                                <span className='text-xl font-semibold'>Flash Sale</span>
+                                <div className='flex items-center gap-2'>
+                                    <ClockCircleOutlined className='text-xl' /> Kết thúc trong
+                                    <Countdown valueStyle={{ color: 'white', fontSize: 20 }} value={Date.now() + product?.timeRemaining} />
+                                </div>
+                            </div>
+                        )
+                    }
+                    <div className='flex justify-between items-center gap-4'>
+                        <div className='w-full flex items-center justify-between flex-1'>
+                            {/* <span className={`${isFlashsale && 'text-sm text-gray-700 line-through'}`}>{`${formatMoney(productData?.originalPrice)} VNĐ`}</span> */}
+                            {/* {isFlashsale && <span className='text-main'>{`${formatMoney(productData?.price)} VNĐ`}</span>} */}
+                            <h2 className={`text-[30px] ${product?.isFlashsale && 'text-gray-700 line-through !text-[20px]'} font-semibold`}>
+                                {`${formatMoney(fotmatPrice(product?.originalPrice))} VNĐ`}
+                            </h2>
+                            {
+                                product?.isFlashsale && <h2 className='text-[30px] font-semibold text-main'>
+                                    {`${formatMoney(fotmatPrice(product?.price))} VNĐ`}
+                                </h2>
+                            }
+                        </div>
                         <span className='text-sm text-main'>{`Kho: ${product?.stockQuantity}`}</span>
                     </div>
                     <div className='flex items-center gap-1 '>
@@ -263,7 +286,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
                 </div>
                 <div className='h-[100px] w-full'></div>
             </>}
-            {recommendedProducts.length > 0 && <>
+            {recommendedProducts?.length > 0 && <>
                 <div className='w-main m-auto mt-8'>
                     <h3 className='text-[20px] font-semibold py-[15px] border-b-2 border-main'>Có thể bạn sẽ thích:</h3>
                     <CustomSlider products={recommendedProducts} />
