@@ -128,3 +128,9 @@ export const apiCheckVoucher = (data) => axios({
     data,
     withCredentials: true,
 })
+export const apiSendMailVoucher = (data) => axios({
+    url: 'voucher/send',
+    method: 'post',
+    data,
+    withCredentials: true,
+})

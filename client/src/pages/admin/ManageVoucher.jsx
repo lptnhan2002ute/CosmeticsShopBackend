@@ -1,22 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiDeleteVoucher } from '../../apis'
+import { apiGetVoucher, apiCreateVoucher, apiUpdateVoucher, apiDeleteVoucher, apiSendMailVoucher } from '../../apis'
 import moment from 'moment'
 import Dialog from '@mui/material/Dialog'
 import { InputForm } from '../../components'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import Search from 'antd/es/input/Search'
-import { Pagination, DatePicker } from 'antd'
+import { Pagination, DatePicker, Button, Form, Input, Select } from 'antd'
 import Swal from 'sweetalert2'
 import { useNavigate } from 'react-router-dom'
 import useDebounce from '../../hooks/useDebounce'
+import { RightOutlined, DownOutlined } from '@ant-design/icons'
 
 const { RangePicker } = DatePicker;
+const layout = {
+    labelCol: { span: 8 },
+    wrapperCol: { span: 16 },
+};
 
 const ManageVoucher = () => {
     const { handleSubmit, reset, register, getValues, formState: { errors }, setValue, watch } = useForm({
         name: '',
     })
+
+    const [form] = Form.useForm();
 
     const navigate = useNavigate();
 
@@ -29,6 +36,8 @@ const ManageVoucher = () => {
     const [page, setPage] = useState(1);
 
     const [voucherPageMetadata, setVoucherPageMetadata] = useState({});
+
+    const [isSendMail, setIsSendMail] = useState(false);
 
     const [showDialog, setShowDialog] = useState(false)
     const [dialogLabel, setDialogLabel] = useState('Thêm')
@@ -59,7 +68,7 @@ const ManageVoucher = () => {
     }
 
     const onChangeRangePicker = (_date, dateString) => {
-        if(!dateString[0] || !dateString[1]) {
+        if (!dateString[0] || !dateString[1]) {
             setStartDateFilter(undefined);
             setEndDateFilter(undefined);
             fetchVouchers(page, debounceSearch);
@@ -146,6 +155,16 @@ const ManageVoucher = () => {
             }
         });
     };
+
+    const onFinish = async (values) => {
+        const rs = await apiSendMailVoucher(values);
+        if(rs.success) {
+            form.resetFields();
+            toast.success('Gửi mail thành công!');
+        } else {
+            toast.error('Gửi mail thất bại!');
+        }
+    };
     return (
         <div className='w-full flex flex-col gap-3 relative overflow-x-scroll p-4'>
             <div className='flex justify-between items-center'>
@@ -212,6 +231,51 @@ const ManageVoucher = () => {
             </div>
 
             <div className='w-[100px] h-[50px] bg-main text-white rounded text-center justify-center items-center flex cursor-pointer' onClick={() => handleShowdialog(null)}>Thêm mới</div>
+
+            <div className='flex flex-col w-full items-center justify-center gap-4'>
+                <Button onClick={() => setIsSendMail(!isSendMail)} type='primary' className='!bg-main flex items-center justify-center w-[200px]'>
+                    Gửi mail {isSendMail ? <RightOutlined size={20} /> : <DownOutlined size={20} />}
+                </Button>
+                {
+                    isSendMail && (
+                        <Form
+                            {...layout}
+                            form={form}
+                            onFinish={onFinish}
+                            className='flex flex-col'
+                            name="control-hooks"
+                        >
+                            <Form.Item
+                                label="Email"
+                                name="email"
+                                className='w-[400px]'
+                                rules={[{ required: true, message: 'Hãy nhập email!' }]}
+                            >
+                                <Input />
+                            </Form.Item>
+                            <Form.Item
+                                name="voucherId"
+                                label="Voucher"
+                                className='w-[400px]'
+                                rules={[{ required: true }]}
+                            >
+                                <Select
+                                    placeholder="Chọn voucher"
+                                    allowClear
+                                >
+                                    {voucherPageMetadata?.voucherList?.map((e) =>
+                                        <Select.Option key={e._id} value={e._id}>{e.name}</Select.Option>
+                                    )}
+                                </Select>
+                            </Form.Item>
+                            <Button className='w-[100px] self-end !bg-main' type="primary" htmlType="submit">
+                                Gửi
+                            </Button>
+                        </Form>
+                    )
+                }
+            </div>
+
             <Dialog open={showDialog} onClose={handleClose}>
                 <div className='p-[20px] w-[400px]'>
                     <InputForm
