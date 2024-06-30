@@ -46,6 +46,7 @@ const Messenger = () => {
         setMessages([...messages, messageFullInformation]);
         setTextMessage("");
         setSelectedFiles([]);
+        await getSessions();
     }
 
     const handleCloseSession = async () => {
@@ -66,15 +67,23 @@ const Messenger = () => {
         setSessions(newSessions);
     }
 
+    const getSessions = async () => {
+        const rs = await apiGetAllChatSessions(current._id);
+        if (rs?.success === false) return;
+        setSessions(rs);
+    }
+
     useEffect(() => {
         if (!activeSession)
             return;
 
         const getMessages = async () => {
             const rs = await apiGetMessagesInSession(activeSession);
+            await getSessions();
             setMessages(rs);
         }
         const handleListenMessage = (data) => {
+            getSessions();
             setMessages(prevMessages => [...prevMessages, data]);
         };
 
@@ -88,12 +97,6 @@ const Messenger = () => {
     }, [activeSession])
 
     useEffect(() => {
-        const getSessions = async () => {
-            const rs = await apiGetAllChatSessions(current._id);
-            if (rs?.success === false) return;
-            setSessions(rs);
-        }
-
         const handleNewSession = (session) => {
             getSessions();
         }
@@ -104,7 +107,7 @@ const Messenger = () => {
         return () => {
             socket.off("newSession", handleNewSession);
         }
-    }, [sessions])
+    }, [])
 
     const chatContainerRef = useRef(null);
     const scrollToBottom = () => {
