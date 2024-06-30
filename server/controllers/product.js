@@ -10,7 +10,8 @@ const createProduct = asyncHandler(async (req, res) => {
 
     // Tạo sản phẩm từ req.body
     if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName);
-    const newProduct = await Product.create(req.body);
+    const originalPrice = req.body.price
+    const newProduct = await Product.create({ ...req.body, originalPrice })
 
     // Kiểm tra xem sản phẩm đã tạo thành công hay không
     if (!newProduct) throw new Error('Cannot create product');
@@ -91,49 +92,37 @@ const getProduct = asyncHandler(async (req, res) => {
 });
 
 const getAllProduct = asyncHandler(async (req, res) => {
-    const queries = { ...req.query }
-    // Tach cac truong dac biet ra khoi query
-    const excludeFields = ['limit', 'sort', 'page', 'fields']
-    excludeFields.forEach(field => delete queries[field])
-
-    // Format operators cho dung chuan mongoose
-    let queryString = JSON.stringify(queries)
-    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
-    const formatedQueries = JSON.parse(queryString)
-
+    const { query } = req;
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || process.env.LIMIT_PRODUCTS;
+    const skip = (page - 1) * limit;
+    const { sort, fields, categoryId, productName, ...filters } = query;
     //Filter
-    if (queries?.productName) formatedQueries.productName = { $regex: decodeURIComponent(queries.productName), $options: 'i' }
-    let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
-    // if (queries?.categoryId) formatedQueries.categoryId = 
-    if (queries?.categoryId) {
-        formatedQueries.category = queries.categoryId;
-        queryCommand = Product.find({ category: formatedQueries.category }).populate('brand', '_id brandName').populate('category', '_id categoryName')
+    if (categoryId) {
+        filters.category = categoryId;
     }
+    // Format operators cho dung chuan mongoose
+    let filterString = JSON.stringify(filters);
+    filterString = filterString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`);
+    const formatedQueries = JSON.parse(filterString);
+    if (productName && productName.trim()) {
+        formatedQueries.productName = { $regex: decodeURIComponent(productName), $options: 'i' }
+    }
+    let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
+
     //Sort
-    if (req.query.sort) {
-        const sortBy = req.query.sort.split(',').join(' ')
-        queryCommand = queryCommand.sort(sortBy)
+    if (sort) {
+        const sortBy = sort.split(',').join(' ');
+        queryCommand = queryCommand.sort(sortBy);
     }
 
     // Fields limit
-    if (req.query.fields) {
-        const fields = req.query.fields.split(',').join(' ')
+    if (fields) {
+        const fields = fields.split(',').join(' ');
         queryCommand = queryCommand.select(fields)
     }
 
-    //Pagination
-    //limit: số object lấy về trong 1 api
-    // skip: 1
-    const page = +req.query.page
-    const limit = +req.query.limit
-
-    if (page && limit) {
-
-        const skip = (page - 1) * limit
-        queryCommand.skip(skip).limit(limit)
-    }
-
-    //Execute query
+    queryCommand = queryCommand.skip(skip).limit(limit);
 
     const products = await queryCommand.exec();
 
@@ -161,12 +150,8 @@ const getAllProduct = asyncHandler(async (req, res) => {
         }
         return modifiedProduct;
     }));
-    let counts
-    counts = await Product.countDocuments(formatedQueries);
-    if (queries?.categoryId)
-        counts = await Product.countDocuments(
-            formatedQueries.category ? { category: formatedQueries.category } : {}
-        );
+    const counts = await Product.countDocuments(formatedQueries);
+
     return res.status(200).json({
         success: true,
         counts,

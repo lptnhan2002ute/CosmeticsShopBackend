@@ -1,16 +1,16 @@
 const User = require('../models/user')
 const Cart = require('../models/cart')
 const Product = require('../models/product')
+const ChatSession = require('../models/chatSession')
+const Message = require('../models/message')
 const asyncHandler = require('express-async-handler')
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const jwt = require('jsonwebtoken')
-const { response } = require('express')
 const sendMail = require('../ultils/sendMails')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 const createToken = require('uniqid')
 const { promisify } = require('util');
-const jwtVerify = promisify(jwt.verify);
 
 
 const registerGuest = asyncHandler(async (req, res) => {
@@ -216,22 +216,29 @@ const deleteUser = asyncHandler(async (req, res) => {
         return res.status(400).json({
             success: false,
             mess: 'Missing inputs',
-            mess: 'Missing inputs',
         });
     }
     const deletedUser = await User.findByIdAndDelete(uid)
-    if (deletedUser) {
-        await Cart.deleteOne({ userId: uid });
-        return res.status(200).json({
-            success: true,
-            message: `User with email ${deletedUser.email} is deleted`,
-        });
-    } else {
+    if (!deletedUser) {
         return res.status(404).json({
             success: false,
-            message: 'No user deleted',
+            message: 'No user is found to delete'
         });
     }
+    const sessions = await ChatSession.find({
+        $or: [
+            { adminUserID: uid },
+            { customerUserID: uid }
+        ]
+    });
+    const sessionIdList = sessions.map(session => session._id);
+    await ChatSession.deleteMany({ _id: { $in: sessionIdList } });
+    await Message.deleteMany({ sessionID: { $in: sessionIdList } });
+    await Cart.deleteOne({ userId: uid });
+    return res.status(200).json({
+        success: true,
+        message: `User with email ${deletedUser.email} is deleted`,
+    });
 })
 
 
