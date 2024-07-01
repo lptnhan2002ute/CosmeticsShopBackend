@@ -101,7 +101,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     let queryString = JSON.stringify(queries)
     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
     const formatedQueries = JSON.parse(queryString)
-    if(formatedQueries?.price && formatedQueries.price['$gte'] && formatedQueries.price['$lte']) {
+    if (formatedQueries?.price && formatedQueries.price['$gte'] && formatedQueries.price['$lte']) {
         formatedQueries.price['$gte'] = parseInt(formatedQueries.price['$gte']);
         formatedQueries.price['$lte'] = parseInt(formatedQueries.price['$lte']);
     }
@@ -143,9 +143,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
     const products = await queryCommand.exec();
 
     if (!products || products.length === 0) {
-        return res.status(404).json({
-            success: false,
-            productData: 'Cannot get product',
+        return res.status(200).json({
+            success: true,
+            counts: 0,
+            productData: []
         });
     }
     const now = new Date();
