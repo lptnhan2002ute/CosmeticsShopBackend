@@ -10,7 +10,8 @@ const createProduct = asyncHandler(async (req, res) => {
 
     // Tạo sản phẩm từ req.body
     if (req.body && req.body.productName) req.body.slug = slugify(req.body.productName);
-    const newProduct = await Product.create(req.body);
+    const originalPrice = req.body.price
+    const newProduct = await Product.create({ ...req.body, originalPrice});
 
     // Kiểm tra xem sản phẩm đã tạo thành công hay không
     if (!newProduct) throw new Error('Cannot create product');
