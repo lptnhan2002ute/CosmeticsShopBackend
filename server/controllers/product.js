@@ -101,6 +101,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
     let queryString = JSON.stringify(queries)
     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`)
     const formatedQueries = JSON.parse(queryString)
+    if(formatedQueries?.price && formatedQueries.price['$gte'] && formatedQueries.price['$lte']) {
+        formatedQueries.price['$gte'] = parseInt(formatedQueries.price['$gte']);
+        formatedQueries.price['$lte'] = parseInt(formatedQueries.price['$lte']);
+    }
 
     //Filter
     if (queries?.productName) formatedQueries.productName = { $regex: decodeURIComponent(queries.productName), $options: 'i' }

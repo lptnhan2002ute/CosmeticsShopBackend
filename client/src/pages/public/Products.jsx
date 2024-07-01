@@ -5,6 +5,7 @@ import { apiGetProductCategory, apiGetRecommendedProducts } from '../../apis'
 import Masonry from 'react-masonry-css'
 import { Pagination, Input, Spin, Button } from 'antd'
 import { useSelector } from 'react-redux'
+import { Slider } from 'antd';
 
 const breakpointColumnsObj = {
     default: 4,
@@ -25,6 +26,9 @@ const Products = () => {
     const [value, setValue] = useState(null)
     const [showRecommend, setShowRecommend] = useState(false);
     const [recommendedProducts, setRecommendedProducts] = useState([]);
+
+    const [lowPrice, setLowPrice] = useState(0);
+    const [highPrice, setHighPrice] = useState(1000000);
 
     const navigate = useNavigate();
 
@@ -85,6 +89,12 @@ const Products = () => {
             }
         }
 
+        payload = {
+            ...payload,
+            'price[gte]': lowPrice,
+            'price[lte]': highPrice
+        }
+
         try {
             setLoading(true)
             const response = await apiGetProductCategory(payload)
@@ -131,7 +141,22 @@ const Products = () => {
                         onFocus={onFocus}
                         onBlur={onBlur}
                     />
-                    {showRecommend && recommendedProducts.length > 0 &&
+                    <div className='w-full flex items-center gap-6 mt-6'>
+                        Giá:
+                        <Slider
+                            className='flex-1'
+                            range={{ draggableTrack: true }}
+                            min={0}
+                            max={1000000}
+                            step={100000}
+                            defaultValue={[0, 1000000]}
+                            onChangeComplete={(values => {
+                                setLowPrice(values[0]);
+                                setHighPrice(values[1]);
+                            })}
+                        />
+                    </div>
+                    {showRecommend && recommendedProducts?.length > 0 &&
                         <div className='absolute w-[calc(100%_-_80px)] min-h-[100px] bg-white z-10 top-[100%] right-[80px]'>
                             <div className='flex flex-col gap-4 p-4 rounded-md shadow-lg border-[1px]'>
                                 {recommendedProducts.slice(0, 5).map((prod, i) => (

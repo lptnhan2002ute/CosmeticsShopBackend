@@ -279,7 +279,7 @@ const Flashsale = () => {
                         id={'endTime'}
                         validate={{ required: 'Yêu cầu nhập ' }}
                     />
-                    {isEdit &&
+                    {/* {isEdit &&
                         <>
                             <div className='mb-4'>Chọn trạng thái</div>
                             <select
@@ -290,7 +290,7 @@ const Flashsale = () => {
                                 <option value='Active'>Active</option>
                             </select>
                         </>
-                    }
+                    } */}
 
                     <div className='flex justify-between items-center mt-4'>
                         Chọn sản phẩm

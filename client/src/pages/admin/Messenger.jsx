@@ -18,6 +18,8 @@ const Messenger = () => {
     const fileInputRef = useRef(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
 
+    const [searchEmail, setSearchEmail] = useState('');
+
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         setSelectedFiles(files);
@@ -46,6 +48,7 @@ const Messenger = () => {
         setMessages([...messages, messageFullInformation]);
         setTextMessage("");
         setSelectedFiles([]);
+        await getSessions();
     }
 
     const handleCloseSession = async () => {
@@ -66,15 +69,23 @@ const Messenger = () => {
         setSessions(newSessions);
     }
 
+    const getSessions = async () => {
+        const rs = await apiGetAllChatSessions(current._id);
+        if (rs?.success === false) return;
+        setSessions(rs);
+    }
+
     useEffect(() => {
         if (!activeSession)
             return;
 
         const getMessages = async () => {
             const rs = await apiGetMessagesInSession(activeSession);
+            await getSessions();
             setMessages(rs);
         }
         const handleListenMessage = (data) => {
+            getSessions();
             setMessages(prevMessages => [...prevMessages, data]);
         };
 
@@ -88,12 +99,6 @@ const Messenger = () => {
     }, [activeSession])
 
     useEffect(() => {
-        const getSessions = async () => {
-            const rs = await apiGetAllChatSessions(current._id);
-            if (rs?.success === false) return;
-            setSessions(rs);
-        }
-
         const handleNewSession = (session) => {
             getSessions();
         }
@@ -123,9 +128,12 @@ const Messenger = () => {
                     <div className='py-4 text-center font-semibold mb-4'>
                         Khách hàng
                     </div>
+                    <div className='flex mb-4 mx-2'>
+                        <Input onChange={(e) => setSearchEmail(e.target.value)} placeholder='Tìm kiếm email'/>
+                    </div>
                     <div className='admin-messenger-scroll-custom flex flex-col gap-4 overflow-y-auto'>
                         {
-                            sessions.map((e, i) => <SessionItem key={i} props={e} isClosed={e.status === "Closed"} isActive={activeSession === e._id} currentSession={activeSession} setActive={setActiveSession} />)
+                            sessions.filter(e => e.customerUserID.email.includes(searchEmail)).map((e, i) => <SessionItem key={i} props={e} isClosed={e.status === "Closed"} isActive={activeSession === e._id} currentSession={activeSession} setActive={setActiveSession} />)
                         }
                     </div>
                 </div>
