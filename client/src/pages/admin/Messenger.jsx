@@ -8,6 +8,7 @@ import { FileImageTwoTone } from '@ant-design/icons';
 
 const Messenger = () => {
     const [sessions, setSessions] = useState([]);
+    console.log(sessions)
     const [messages, setMessages] = useState([]);
     const [activeSession, setActiveSession] = useState(null);
 
