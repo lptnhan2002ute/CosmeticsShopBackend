@@ -16,11 +16,17 @@ const userConfig = {
   whitelist: ['isLoggedIn', 'token', 'current']
 }
 
+const chatConfig = {
+  key: 'chat/user',
+  storage,
+  whitelist: ['sessionId']
+}
+
 
 export const store = configureStore({
   reducer: {
     app: appSlice,
-    chat: chatSlice,
+    chat: persistReducer(chatConfig, chatSlice),
     products: productSlice,
     user: persistReducer(userConfig, userSlice),
   

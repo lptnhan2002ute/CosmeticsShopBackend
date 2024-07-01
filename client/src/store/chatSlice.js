@@ -7,11 +7,14 @@ export const chatSlice = createSlice({
     },
     reducers: {
        setSessionId : (state, action) => {
-         state.sessionId = action.payload.sessionId
+         state.sessionId = action.payload.sessionId;
+       },
+       removeSessionId: (state) => {
+        state.sessionId = null;
        }
     }
 })
 
-export const { setSessionId } = chatSlice.actions
+export const { setSessionId, removeSessionId } = chatSlice.actions;
 
-export default chatSlice.reducer
+export default chatSlice.reducer;
