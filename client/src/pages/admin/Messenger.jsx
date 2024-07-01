@@ -120,7 +120,6 @@ const Messenger = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages])
-
     return (
         <div className='flex-1 h-[600px] overflow-hidden'>
             <div className='flex gap-4 '>
@@ -133,7 +132,7 @@ const Messenger = () => {
                     </div>
                     <div className='admin-messenger-scroll-custom flex flex-col gap-4 overflow-y-auto'>
                         {
-                            sessions.filter(e => e.customerUserID.email.includes(searchEmail)).map((e, i) => <SessionItem key={i} props={e} isClosed={e.status === "Closed"} isActive={activeSession === e._id} currentSession={activeSession} setActive={setActiveSession} />)
+                            sessions.filter(e => e?.customerUserID?.email?.includes(searchEmail)).map((e, i) => <SessionItem key={i} props={e} isClosed={e.status === "Closed"} isActive={activeSession === e._id} currentSession={activeSession} setActive={setActiveSession} />)
                         }
                     </div>
                 </div>
