@@ -52,10 +52,9 @@ const registerGuest = asyncHandler(async (req, res) => {
 const finalRegister = asyncHandler(async (req, res) => {
     const cookie = req.cookies
     const { token } = req.params
-    if (!cookie || cookie?.dataregister?.token !== token) {
-        res.clearCookie('dataregister')
+    if (!cookie || cookie?.dataregister?.token !== token) 
         return res.redirect(`${process.env.CLIENT_URL}/finalregister/failed`)
-    }
+    
     const newUser = await User.create({
         email: cookie?.dataregister?.email,
         password: cookie?.dataregister?.password,
@@ -63,6 +62,7 @@ const finalRegister = asyncHandler(async (req, res) => {
         phone: cookie?.dataregister?.phone,
     })
     res.clearCookie('dataregister')
+    console.log(newUser)
     if (newUser) {
         const cart = new Cart({
             userId: newUser._id,
@@ -323,7 +323,6 @@ const resetAccessToken = asyncHandler(async (req, res, next) => {
 
     try {
         const decoded = await jwt.verify(cookie.refreshToken, process.env.JWT_SECRET);
-        console.log(`resetAccessToken: `, decoded);
         const user = await User.findOne({ _id: decoded._id, refreshToken: cookie.refreshToken });
         if (!user) {
             return res.status(401).json({

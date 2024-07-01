@@ -104,7 +104,7 @@ const Messenger = () => {
         return () => {
             socket.off("newSession", handleNewSession);
         }
-    }, [sessions])
+    }, [])
 
     const chatContainerRef = useRef(null);
     const scrollToBottom = () => {
