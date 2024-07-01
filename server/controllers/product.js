@@ -1,5 +1,6 @@
 const { request } = require('express')
 const Product = require('../models/product')
+const Order = require('../models/order')
 const asyncHandler = require('express-async-handler')
 const slugify = require('slugify')
 const Category = require('../models/productCategory');
@@ -91,77 +92,6 @@ const getProduct = asyncHandler(async (req, res) => {
     }
 });
 
-const getAllProduct = asyncHandler(async (req, res) => {
-    const { query } = req;
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || process.env.LIMIT_PRODUCTS;
-    const skip = (page - 1) * limit;
-    const { sort, fields, categoryId, productName, ...filters } = query;
-    //Filter
-    if (categoryId) {
-        filters.category = categoryId;
-    }
-    // Format operators cho dung chuan mongoose
-    let filterString = JSON.stringify(filters);
-    filterString = filterString.replace(/\b(gte|gt|lt|lte)\b/g, matchedElements => `$${matchedElements}`);
-    const formatedQueries = JSON.parse(filterString);
-    if (productName && productName.trim()) {
-        formatedQueries.productName = { $regex: decodeURIComponent(productName), $options: 'i' }
-    }
-    let queryCommand = Product.find(formatedQueries).populate('brand', '_id brandName').populate('category', '_id categoryName')
-
-    //Sort
-    if (sort) {
-        const sortBy = sort.split(',').join(' ');
-        queryCommand = queryCommand.sort(sortBy);
-    }
-
-    // Fields limit
-    if (fields) {
-        const fields = fields.split(',').join(' ');
-        queryCommand = queryCommand.select(fields)
-    }
-
-    queryCommand = queryCommand.skip(skip).limit(limit);
-
-    const products = await queryCommand.exec();
-
-    if (!products || products.length === 0) {
-        return res.status(404).json({
-            success: false,
-            productData: 'Cannot get product',
-        });
-    }
-    const now = new Date();
-    const flashSale = await FlashSale.findOne({
-        status: 'Active',
-        startTime: { $lte: now },
-        endTime: { $gte: now }
-    });
-    const modifiedProductsData = await Promise.all(products.map(async product => {
-        const modifiedProduct = product.toObject();
-        modifiedProduct.isFlashsale = false;
-        if (flashSale) {
-            const saleProduct = flashSale.products.find(p => p.product.toString() === modifiedProduct._id.toString());
-            if (saleProduct) {
-                modifiedProduct.isFlashsale = true;
-                modifiedProduct.timeRemaining = flashSale.endTime.getTime() - now.getTime();
-            }
-        }
-        return modifiedProduct;
-    }));
-    const counts = await Product.countDocuments(formatedQueries);
-
-    return res.status(200).json({
-        success: true,
-        counts,
-        productData: modifiedProductsData,
-
-    });
-    //const product = await Product.find()
-
-})
-
 const updateAll = asyncHandler(async (req, res) => {
     try {
         // Lấy tất cả sản phẩm
@@ -184,6 +114,81 @@ const updateAll = asyncHandler(async (req, res) => {
     }
 })
 
+const getAllProduct = asyncHandler(async (req, res) => {
+    const { query } = req;
+    const { sort, page, limit, fields, categoryId, productName, ...filters } = query;
+
+    if (categoryId) {
+        filters.category = categoryId;
+    }
+
+    let filterString = JSON.stringify(filters);
+    filterString = filterString.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`);
+    const formattedFilters = JSON.parse(filterString);
+
+    // Thêm tìm kiếm theo tên sản phẩm
+    if (productName && productName.trim()) {
+        formattedFilters.productName = { $regex: new RegExp(productName.trim(), 'i') };
+    }
+
+    let queryCommand = Product.find(formattedFilters)
+        .populate('brand', '_id brandName')
+        .populate('category', '_id categoryName');
+
+    if (sort) {
+        const sortBy = sort.split(',').join(' ');
+        queryCommand = queryCommand.sort(sortBy);
+    }
+
+    if (fields) {
+        const selectFields = fields.split(',').join(' ');
+        queryCommand = queryCommand.select(selectFields);
+    }
+
+    // Phân trang
+    const skip = (page - 1) * limit;
+    queryCommand = queryCommand.skip(skip).limit(limit);
+
+    // Thực hiện truy vấn
+    const products = await queryCommand.exec();
+
+    if (!products || products.length === 0) {
+        return res.status(200).json({
+            success: true,
+            counts: 0,
+            productData: []
+        });
+    }
+
+    // Kiểm tra flash sale đang diễn ra
+    const now = new Date();
+    const flashSale = await FlashSale.findOne({
+        status: 'Active',
+        startTime: { $lte: now },
+        endTime: { $gte: now }
+    });
+
+    const modifiedProductsData = await Promise.all(products.map(async product => {
+        const modifiedProduct = product.toObject();
+        modifiedProduct.isFlashsale = false;
+        if (flashSale) {
+            const saleProduct = flashSale.products.find(p => p.product.toString() === modifiedProduct._id.toString());
+            if (saleProduct) {
+                modifiedProduct.isFlashsale = true;
+                modifiedProduct.timeRemaining = flashSale.endTime.getTime() - now.getTime();
+            }
+        }
+        return modifiedProduct;
+    }));
+
+    const counts = await Product.countDocuments(formattedFilters);
+
+    return res.status(200).json({
+        success: true,
+        counts,
+        productData: modifiedProductsData
+    });
+});
 
 const updateProduct = asyncHandler(async (req, res) => {
     const { pid } = req.params
@@ -208,9 +213,22 @@ const deleteProduct = asyncHandler(async (req, res) => {
 const rating = asyncHandler(async (req, res) => {
     const { _id } = req.user
     const { star, comment, pid, updatedAt } = req.body
+    if (!pid.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Sai định dạng pid');
+    }
     if (!star || !pid) throw new Error('Missing input')
     const product = await Product.findById(pid)
     if (!product) throw new Error('Product not found')
+
+    const isPurchased = await Order.exists({
+        'products.product': pid,
+        orderBy: _id,
+        status: { $in: ['Confirmed', 'Shipped'] }
+    });
+
+    if (!isPurchased) {
+        throw new Error('Bạn phải mua hàng mới được quyền đánh giá')
+    }
 
     const existingRating = product.ratings.find(ele => ele.postedBy && ele.postedBy.toString() === _id)
 
@@ -218,7 +236,6 @@ const rating = asyncHandler(async (req, res) => {
         existingRating.star = star
         existingRating.comment = comment
         existingRating.updatedAt = updatedAt
-        // existingRating.updatedAt = Date.now()
     } else {
         product.ratings.push({ star, comment, postedBy: _id, updatedAt })
     }
@@ -232,7 +249,8 @@ const rating = asyncHandler(async (req, res) => {
 
     return res.status(200).json({
         status: true,
-        product
+        product,
+        message: 'Bạn đã đánh giá thành công'
     })
 
 })
