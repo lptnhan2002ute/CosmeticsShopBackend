@@ -26,6 +26,7 @@ const Products = () => {
     const [value, setValue] = useState(null)
     const [showRecommend, setShowRecommend] = useState(false);
     const [recommendedProducts, setRecommendedProducts] = useState([]);
+    const [searchText, setSearchText] = useState('');
 
     const [lowPrice, setLowPrice] = useState(0);
     const [highPrice, setHighPrice] = useState(1000000);
@@ -137,6 +138,7 @@ const Products = () => {
                         allowClear
                         enterButton="Search"
                         size="large"
+                        onChange={(e) => setSearchText(e.target.value)}
                         onSearch={onSearch}
                         onFocus={onFocus}
                         onBlur={onBlur}
@@ -156,8 +158,8 @@ const Products = () => {
                             })}
                         />
                     </div>
-                    {showRecommend && recommendedProducts?.length > 0 &&
-                        <div className='absolute w-[calc(100%_-_80px)] min-h-[100px] bg-white z-10 top-[100%] right-[80px]'>
+                    {!searchText && showRecommend && recommendedProducts?.length > 0 &&
+                        <div className='absolute w-[calc(100%_-_80px)] min-h-[100px] bg-white z-10 top-[60%] right-[80px]'>
                             <div className='flex flex-col gap-4 p-4 rounded-md shadow-lg border-[1px]'>
                                 {recommendedProducts.slice(0, 5).map((prod, i) => (
                                     <div onMouseDown={(e) => { navigate(`/${prod.category._id}/${prod._id}/${prod.productName}`); }} className='flex cursor-pointer hover:opacity-80 items-center gap-6'>
