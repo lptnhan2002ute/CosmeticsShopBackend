@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import path from '../ultils/path'
 import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../store/users/userSlice'
+import { removeSessionId } from '../store/chatSlice'
 import { toast } from 'react-toastify'
 import Swal from 'sweetalert2'
 
@@ -21,6 +22,7 @@ const Header = () => {
       }).then((result) => {
         if (result.isConfirmed) {
           dispatch(logout());
+          dispatch(removeSessionId());
           toast.success('Bạn đã đăng xuất khỏi trang web');
         }
       });

@@ -62,7 +62,7 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
     return (
         <div className='w-full text-base px-[10px]'>
             <div
-                className='w-full border p-[15px] flex flex-col items-center'
+                className='w-full min-h-[438px] border p-[15px] flex flex-col items-center'
                 onClick={e => navigate(`/${productData?.category?._id}/${productData?._id}/${productData?.productName}`)}
                 onMouseEnter={e => {
                     e.stopPropagation()

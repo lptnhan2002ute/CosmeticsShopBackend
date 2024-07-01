@@ -5,6 +5,7 @@ import { getCurrent } from '../store/users/asyncAction'
 import { useDispatch, useSelector } from 'react-redux'
 import icons from '../ultils/icon'
 import { logout, clearMessage } from '../store/users/userSlice'
+import { removeSessionId } from '../store/chatSlice'
 import Swal from 'sweetalert2'
 import { toast } from 'react-toastify'
 
@@ -24,6 +25,7 @@ const TopHeader = () => {
         }).then((result) => {
           if (result.isConfirmed) {
             dispatch(logout());
+            dispatch(removeSessionId());
             toast.success('Bạn đã đăng xuất khỏi trang web');
           }
         });
