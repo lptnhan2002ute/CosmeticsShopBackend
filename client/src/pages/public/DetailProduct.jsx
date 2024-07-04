@@ -129,13 +129,17 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
         else toast.error(response.mess)
     }
     const handleSubmitVoteOption = async (value) => {
-        console.log(value)
         if (!value.comment || !value.star) {
             alert('Vui lòng thêm nhận xét của bạn')
             return
         }
         const response = await apiRatings({ star: value.star, comment: value.comment, pid: product?._id, updatedAt: Date.now() })
-        console.log(response)
+        if (response.success) {
+            Swal.fire('Chúc mừng!', response.message, 'success')
+        }
+        else {
+            Swal.fire('Lỗi@', response.mess, 'error')
+        }
         dispatch(showModal({ isShowModal: false, modalChildren: null }))
         rerender()
 
