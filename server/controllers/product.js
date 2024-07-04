@@ -285,6 +285,61 @@ const getRecommendedProducts = asyncHandler(async (req, res) => {
 
 })
 
+const getAllProductsInFlashSale = asyncHandler(async (req, res) => {
+    const { query } = req;
+    const { page, limit, productName, price, ...filters } = query;
+    
+    const now = new Date();
+
+    const activeFlashSale = await FlashSale.findOne({
+        status: 'Active',
+        startTime: { $lte: now },
+        endTime: { $gte: now }
+    }).populate({
+        path: 'products.product',
+        populate: {
+            path: 'brand category',
+            select: '_id brandName categoryName'
+        }
+    });
+
+    if (!activeFlashSale) {
+        return res.status(200).json({
+            success: true,
+            message: 'Hiện tại không trong thời gian FlashSale',
+            count: 0,
+            products: []
+        });
+    }
+
+    let filteredProducts = activeFlashSale.products;
+    if (price) {
+        const priceString = JSON.stringify(price);
+        const priceFilters = JSON.parse(priceString.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`));
+        filteredProducts = filteredProducts.filter(p =>
+            (!priceFilters.$gte || priceFilters.$gte <= p.product.price) &&
+            (!priceFilters.$lte || p.product.price <= priceFilters.$lte) &&
+            (!priceFilters.$lt || p.product.price < priceFilters.$lt) &&
+            (!priceFilters.$gt || priceFilters.$gt < p.product.price)
+        );
+    }
+
+    if (productName) {
+        const regex = new RegExp(productName, 'i');
+        filteredProducts = filteredProducts.filter(p => regex.test(p.product.productName));
+    }
+
+    const skip = (page - 1) * limit;
+    const paginatedProducts = filteredProducts.slice(skip, skip + limit);
+    // Map through the products in the flash sale to structure the response
+    return res.status(200).json({
+        success: true,
+        counts: filteredProducts.length,
+        productData: paginatedProducts
+    });
+
+});
+
 module.exports = {
     createProduct,
     getProduct,
@@ -294,5 +349,6 @@ module.exports = {
     rating,
     uploadImageProduct,
     updateAll,
-    getRecommendedProducts
+    getRecommendedProducts,
+    getAllProductsInFlashSale
 }
