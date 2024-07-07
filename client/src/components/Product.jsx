@@ -89,7 +89,7 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                         alt=''
                         className='w-[274px] h-[274px] object-cover' />
                     <img src={isNew ? label : labelBlue} alt='' className='absolute top-[-15px] left-[-38px] w-[100px] h-[35px] object-cover' />
-                    <span className='font-bold absolute top-[-15px] left-[-12px] text-white'>{isNew ? 'Sale' : 'New'}</span>
+                    <span className='font-bold absolute top-[-15px] left-[-12px] text-white'>{isNew || productData?.isFlashsale ? 'Sale' : 'New'}</span>
                 </div>
                 <div className='flex flex-col gap-1 mt-[15px] items-start w-full'>
                     <span className='flex h-4'>{renderStarFromNumber(productData?.totalRatings)?.map((el, index) => (

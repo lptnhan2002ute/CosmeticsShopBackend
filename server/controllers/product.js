@@ -329,13 +329,19 @@ const getAllProductsInFlashSale = asyncHandler(async (req, res) => {
         filteredProducts = filteredProducts.filter(p => regex.test(p.product.productName));
     }
 
-    const skip = (page - 1) * limit;
-    const paginatedProducts = filteredProducts.slice(skip, skip + limit);
+    if(page) {
+        const skip = (page - 1) * limit;
+        filteredProducts = filteredProducts.slice(skip, skip + limit);
+    }
+
+    //flat map
+    filteredProducts = filteredProducts.map(e => e.product);
+
     // Map through the products in the flash sale to structure the response
     return res.status(200).json({
         success: true,
         counts: filteredProducts.length,
-        productData: paginatedProducts
+        productData: filteredProducts
     });
 
 });

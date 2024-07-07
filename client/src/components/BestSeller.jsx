@@ -7,13 +7,15 @@ import { clsx } from 'clsx';
 
 const tabs = [
     { id: 1, name: 'Hàng bán chạy' },
-    { id: 2, name: 'Hàng mới nhất' }
+    { id: 2, name: 'Hàng mới nhất' },
+    { id: 3, name: 'Hàng Flash Sale' },
 ]
 
 const BestSeller = () => {
-    const [bestSellers, setBestSellers] = useState(null)
+    const [bestSellers, setBestSellers] = useState([])
+    const [flashsaleProducts, setFlashSaleProducts] = useState([]);
     const [activedTab, setActivedTab] = useState(1)
-    const [products, setProducts] = useState(null)
+    const [products, setProducts] = useState([])
     const dispatch = useDispatch()
     const { newProducts } = useSelector(state => state.products)
     const { isShowModal } = useSelector(state => state.app)
@@ -24,18 +26,19 @@ const BestSeller = () => {
         if (response.success) {
             setBestSellers(response.productData)
             setProducts(response.productData)
+            setFlashSaleProducts(response.productData.filter(e => e.isFlashsale))
         }
-
-
     }
 
     useEffect(() => {
         fetchProducts()
         dispatch(getNewProducts())
     }, [])
+
     useEffect(() => {
         if (activedTab === 1) setProducts(bestSellers)
         if (activedTab === 2) setProducts(newProducts)
+        if (activedTab === 3) setProducts(flashsaleProducts)
     }, [activedTab])
 
     return (
@@ -50,7 +53,15 @@ const BestSeller = () => {
                 ))}
             </div>
             <div className='mt-4 mx-[-10px] border-t-2 border-main pt-4'>
-                <CustomSlider products={products} activedTab={activedTab} />
+                {
+                products.length > 0 ? (
+                    <CustomSlider products={products} activedTab={activedTab} />
+                ) : (
+                    <div className='flex w-full justify-center items-center min-h-[438px]'>
+                        Hiện tại không có sản phẩm nào
+                    </div>
+                )
+            }
             </div>
             <div className='w-full flex gap-4 mt-4'>
                 <img

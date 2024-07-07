@@ -22,7 +22,12 @@ export const apiGetRecommendedProducts = (uid) => axios({
     method: 'get',
     withCredentials: true,
 })
-
+export const apiGetFlashsaleProducts = (params) => axios({
+    url: '/product/flashsale',
+    method: 'get',
+    params,
+    withCredentials: true,
+})
 export const apiGetProductCategory = (params) => axios({
     headers: { 'Content-type': 'application/json' },
     url: `/product`,

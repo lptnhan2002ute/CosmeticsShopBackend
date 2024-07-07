@@ -29,7 +29,7 @@ const Products = () => {
     const [searchText, setSearchText] = useState('');
 
     const [lowPrice, setLowPrice] = useState(0);
-    const [highPrice, setHighPrice] = useState(1000000);
+    const [highPrice, setHighPrice] = useState(300000);
 
     const navigate = useNavigate();
 
@@ -143,20 +143,38 @@ const Products = () => {
                         onFocus={onFocus}
                         onBlur={onBlur}
                     />
-                    <div className='w-full flex items-center gap-6 mt-6'>
-                        Giá:
-                        <Slider
-                            className='flex-1'
-                            range={{ draggableTrack: true }}
-                            min={0}
-                            max={1000000}
-                            step={100000}
-                            defaultValue={[0, 1000000]}
-                            onChangeComplete={(values => {
-                                setLowPrice(values[0]);
-                                setHighPrice(values[1]);
-                            })}
-                        />
+                    <div className='w-full flex flex-col gap-2 mt-6'>
+                        <p>Nhập khoảng giá phù hợp với bạn:</p>
+                        <div className='flex flex-col'>
+                            <div className='flex gap-4'>
+                                <Input
+                                    className='w-[200px]'
+                                    addonAfter='VNĐ'
+                                    defaultValue={0}
+                                    onChange={(e) => setLowPrice(parseInt(e.target.value) || 0)}
+                                />
+                                ~
+                                <Input
+                                    className='w-[200px]'
+                                    addonAfter='VNĐ'
+                                    defaultValue={300000}
+                                    onChange={(e) => setHighPrice(parseInt(e.target.value) || 300000)}
+                                />
+                            </div>
+                            <Slider
+                                className='flex-1'
+                                range={{ draggableTrack: true }}
+                                min={0}
+                                max={1000000}
+                                step={10000}
+                                defaultValue={[0, 300000]}
+                                value={[lowPrice, highPrice]}
+                                onChangeComplete={(values => {
+                                    setLowPrice(values[0]);
+                                    setHighPrice(values[1]);
+                                })}
+                            />
+                        </div>
                     </div>
                     {!searchText && showRecommend && recommendedProducts?.length > 0 &&
                         <div className='absolute w-[calc(100%_-_80px)] min-h-[100px] bg-white z-10 top-[60%] right-[80px]'>
@@ -174,19 +192,25 @@ const Products = () => {
             </div>
             <div className='mt-8 w-main m-auto'>
                 <Spin spinning={loading} tip="Loading..." size='large' >
-                    <Masonry
-                        breakpointCols={breakpointColumnsObj}
-                        className="my-masonry-grid flex mx-[-10px]"
-                        columnClassName="my-masonry-grid_column ">
-                        {relatedProduct?.map(el => (
-                            <Product
-                                key={el.id}
-                                pid={el.id}
-                                productData={el}
-                                normal={true}
-                            />
-                        ))}
-                    </Masonry>
+                    {
+                        relatedProduct.length > 0 ? (
+                            <Masonry
+                                breakpointCols={breakpointColumnsObj}
+                                className="my-masonry-grid flex mx-[-10px]"
+                                columnClassName="my-masonry-grid_column ">
+                                {relatedProduct?.map(el => (
+                                    <Product
+                                        key={el.id}
+                                        pid={el.id}
+                                        productData={el}
+                                        normal={true}
+                                    />
+                                ))}
+                            </Masonry>
+                        ) : (
+                            <div className='flex w-full justify-center'>Hiện tại không có sản phẩm nào</div>
+                        )
+                    }
                 </Spin>
             </div>
             <div className='w-full p-[40px] flex items-center justify-center'>
