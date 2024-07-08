@@ -333,7 +333,7 @@ const Flashsale = () => {
                                                 } onChange={(event) => {
                                                     event.stopPropagation();
                                                     const amount = parseInt(event.target.value);
-                                                    if (amount > 0 && amount <= (e.stockQuantity - e.soldQuantity)) {
+                                                    if (amount > 0 && amount <= (e.stockQuantity)) {
                                                         const product = selectedProducts.find(p => p._id === e._id);
                                                         if (product) {
                                                             const newProducts = selectedProducts.filter(p => p._id !== e._id);
@@ -342,7 +342,7 @@ const Flashsale = () => {
                                                         }
                                                     }
                                                 }} placeholder='Số lượng' />
-                                                <Badge count={e.stockQuantity - e.soldQuantity} />
+                                                <Badge count={e.stockQuantity} />
                                             </div>
                                         }
                                         <span className='w-full h-[80px] break-words p-4'>{e.productName}</span>
