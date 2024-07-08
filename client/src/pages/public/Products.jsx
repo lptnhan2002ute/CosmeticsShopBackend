@@ -193,7 +193,7 @@ const Products = () => {
             <div className='mt-8 w-main m-auto'>
                 <Spin spinning={loading} tip="Loading..." size='large' >
                     {
-                        relatedProduct.length > 0 ? (
+                        relatedProduct?.length > 0 ? (
                             <Masonry
                                 breakpointCols={breakpointColumnsObj}
                                 className="my-masonry-grid flex mx-[-10px]"
