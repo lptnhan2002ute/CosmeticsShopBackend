@@ -1,4 +1,5 @@
 const FlashSale = require('../models/flashSale')
+const { updateProductPrices } = require('../models/flashSale');
 const Product = require('../models/product')
 const mongoose = require('mongoose')
 const asyncHandler = require('express-async-handler')
@@ -71,6 +72,9 @@ const updateFlashSale = asyncHandler(async (req, res) => {
                 quantity: product.quantity,
                 soldQuantity: product.soldQuantity // Điều chỉnh số lượng đã bán nếu cần
             }));
+        }
+        if (flashSale.status === 'Active' && (status === 'Active' || !status)) {
+            await updateProductPrices(flashSale, 'apply');
         }
         if (status) {
             if (flashSale.status === 'Upcoming' && status === 'Active') {

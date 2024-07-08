@@ -88,7 +88,6 @@ async function updateProductPrices(flashSale, action) {
                     filter: { _id: saleProduct.product },
                     update: [{
                         $set: {
-                            // price: { $multiply: ["$originalPrice", (1 - saleProduct.discountRate / 100)] },
                             price: {
                                 $round: [{ $multiply: ["$originalPrice", (1 - saleProduct.discountRate / 100)] }, -2]
                             },
@@ -123,3 +122,4 @@ async function updateProductPrices(flashSale, action) {
 
 
 module.exports = mongoose.model('FlashSale', flashSaleSchema);
+module.exports.updateProductPrices = updateProductPrices;
