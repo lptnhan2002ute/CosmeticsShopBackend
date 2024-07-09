@@ -128,7 +128,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
     // Thêm tìm kiếm theo tên sản phẩm
     if (productName && productName.trim()) {
-        formattedFilters.productName = { $regex: new RegExp(productName.trim(), 'i') };
+        formattedFilters.productName = { $regex: new RegExp(decodeURIComponent(productName.trim()), 'i') };
     }
 
     let queryCommand = Product.find(formattedFilters)
