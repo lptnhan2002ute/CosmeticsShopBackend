@@ -97,8 +97,18 @@ const Product = ({ productData, isNew, navigate, dispatch }) => {
                     ))}</span>
                     <span className='line-clamp-1'>{productData?.productName}</span>
                     <div className='w-full flex items-center justify-between'>
-                        <span className={`${productData?.isFlashsale && 'text-sm text-gray-700 line-through'}`}>{`${formatMoney(productData?.originalPrice)} VNĐ`}</span>
-                        {productData?.isFlashsale && <span className='text-main'>{`${formatMoney(productData?.price)} VNĐ`}</span>}
+                        {
+                            productData?.isFlashsale ? (
+                                <>
+                                    <span className='text-sm text-gray-700 line-through'>{`${formatMoney(productData?.originalPrice)} VNĐ`}</span>
+                                    <span className='text-main'>{`${formatMoney(productData?.price)} VNĐ`}</span>
+                                </>
+                            ) : (
+                                <span>{`${formatMoney(productData?.price)} VNĐ`}</span>
+                            )
+                        }
+                        {/* <span className={`${productData?.isFlashsale && 'text-sm text-gray-700 line-through'}`}>{`${formatMoney(productData?.originalPrice)} VNĐ`}</span> */}
+                        {/* {productData?.isFlashsale && <span className='text-main'>{`${formatMoney(productData?.price)} VNĐ`}</span>} */}
                     </div>
                     {
                         productData?.isFlashsale && (
