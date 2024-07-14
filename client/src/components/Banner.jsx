@@ -21,7 +21,7 @@ const Banner = () => {
             </div>
             <div className='w-full'>
                 <img
-                    src='https://tranhdecors.com/wp-content/uploads/edd/2023/11/Banner-chuc-tet-Nguyen-Dan-2024.jpg'
+                    src='https://intphcm.com/data/upload/banner-my-pham-dep.jpg'
                     alt='banner'
                     className='h-[393px] w-full object-cover'
                 />

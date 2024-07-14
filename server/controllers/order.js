@@ -91,9 +91,6 @@ const createOrder = asyncHandler(async (req, res) => {
         };
 
         // Tạo đơn hàng
-        const result = await Order.create(data);
-
-
         const now = new Date();
         const activeFlashSale = await FlashSale.findOne({
             'status': 'Active',
@@ -138,7 +135,7 @@ const createOrder = asyncHandler(async (req, res) => {
         if (activeFlashSale) {
             await activeFlashSale.save();
         }
-
+        const result = await Order.create(data);
         if (selectedVoucher) {
             selectedVoucher.usedCount += 1;
             selectedVoucher.usedBy.push(_id);

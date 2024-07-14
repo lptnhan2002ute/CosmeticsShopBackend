@@ -47,7 +47,7 @@ const FeatureProducts = () => {
                 </div>
                 <img
                 className='h-[657px] w-[24%] object-cover'
-                src='https://palstudio.vn/wp-content/uploads/2021/06/Bi-quyet-chup-anh-my-pham-chuyen-nghiep-e1624506668551.jpg'
+                src='https://hoangphucphoto.com/wp-content/uploads/2024/05/anh-mp-dao-cu.jpeg'
                 alt=''
                 />
             </div>
