@@ -29,7 +29,7 @@ const Products = () => {
     const [searchText, setSearchText] = useState('');
 
     const [lowPrice, setLowPrice] = useState(0);
-    const [highPrice, setHighPrice] = useState(300000);
+    const [highPrice, setHighPrice] = useState(3000000);
 
     const navigate = useNavigate();
 
@@ -157,11 +157,11 @@ const Products = () => {
                                 <Input
                                     className='w-[200px]'
                                     addonAfter='VNĐ'
-                                    defaultValue={300000}
-                                    onChange={(e) => setHighPrice(parseInt(e.target.value) || 300000)}
+                                    defaultValue={3000000}
+                                    onChange={(e) => setHighPrice(parseInt(e.target.value) || 3000000)}
                                 />
                             </div>
-                            <Slider
+                            {/* <Slider
                                 className='flex-1'
                                 range={{ draggableTrack: true }}
                                 min={0}
@@ -173,7 +173,7 @@ const Products = () => {
                                     setLowPrice(values[0]);
                                     setHighPrice(values[1]);
                                 })}
-                            />
+                            /> */}
                         </div>
                     </div>
                     {!searchText && showRecommend && recommendedProducts?.length > 0 &&

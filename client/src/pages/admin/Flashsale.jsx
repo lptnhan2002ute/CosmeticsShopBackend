@@ -306,7 +306,10 @@ const Flashsale = () => {
                     </div>
                     <div className='flex flex-col px-4 my-4'>
                         <Row>
-                            {products?.filter(prod => prod.productName.includes(debounceProductSearch))?.slice((productPage - 1) * 8, productPage * 8)?.map((e, _i) => (
+                            {products?.filter(prod => {
+                                const regex = new RegExp(debounceProductSearch, 'i');
+                                return regex.test(prod.productName);
+                            })?.slice((productPage - 1) * 8, productPage * 8)?.map((e, _i) => (
                                 <Col span={6} key={e._id} className='w-full p-2'>
                                     <div className={`flex flex-col gap-2 w-full border-2 ${selectedProducts.find(p => p._id === e._id) ? 'border-green-400' : 'border-slate-200'}`}>
                                         <img onClick={() => handleSelectProduct(e)} className='w-full h-[180px] object-contain object-center cursor-pointer' src={e?.imageUrl?.[0]} />
@@ -351,7 +354,10 @@ const Flashsale = () => {
                             ))}
                         </Row>
                         <div className='flex items-center justify-center'>
-                            <Pagination onChange={(page) => { setProductPage(page) }} defaultCurrent={1} total={products?.filter(prod => prod.productName.includes(debounceProductSearch)).length || 0} pageSize={8} showSizeChanger={false} />
+                            <Pagination onChange={(page) => { setProductPage(page) }} defaultCurrent={1} total={products?.filter(prod => {
+                                const regex = new RegExp(debounceProductSearch, 'i');
+                                return regex.test(prod.productName);
+                            }).length || 0} pageSize={8} showSizeChanger={false} />
                         </div>
                     </div>
                     <div className='justify-end flex pt-2'>
