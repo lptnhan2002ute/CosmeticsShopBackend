@@ -134,7 +134,7 @@ const DetailProduct = ({ isQuickView, data, navigate, dispatch, location, totalR
             return
         }
         const response = await apiRatings({ star: value.star, comment: value.comment, pid: product?._id, updatedAt: Date.now() })
-        if (response.success) {
+        if (response.status) {
             Swal.fire('Chúc mừng!', response.message, 'success')
         }
         else {

@@ -217,7 +217,6 @@ const Checkout = () => {
             ...formData
             // ...debouncedFormData
         };
-        console.log(data)
         return data;
     };
 
@@ -239,7 +238,6 @@ const Checkout = () => {
 
 
     React.useEffect(() => {
-        console.log(formData);
         const newPayPalPayload = createPayPalPayload();
         const newVnpayPayload = createVnpayPayload();
 
@@ -307,14 +305,14 @@ const Checkout = () => {
                                 <VnPayPayment
                                     payload={vnpayPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={paymentAmount}
+                                    total={total}
                                 />
                             </div>
                             <div className='w-full mx-auto'>
                                 <PayPal
                                     payload={payPalPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={(paymentAmount / 25345).toFixed(2)} />
+                                    amount={(paymentAmount / 25415).toFixed(2)} />
                             </div>
                         </form>
                         <div className="mt-2 ">
