@@ -99,7 +99,8 @@ const updateAll = asyncHandler(async (req, res) => {
 
         // Cập nhật giá ban đầu cho mỗi sản phẩm
         const updates = products.map(async (product) => {
-            product.originalPrice = product.price;
+            if (product.stockQuantity < 500) 
+                product.stockQuantity = 1200
             return product.save(); // Lưu thay đổi vào cơ sở dữ liệu
         });
 

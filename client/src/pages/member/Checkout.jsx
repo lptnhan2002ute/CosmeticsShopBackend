@@ -307,14 +307,13 @@ const Checkout = () => {
                                 <VnPayPayment
                                     payload={vnpayPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={paymentAmount}
                                 />
                             </div>
                             <div className='w-full mx-auto'>
                                 <PayPal
                                     payload={payPalPayload}
                                     setIsSuccess={setIsSuccess}
-                                    amount={(paymentAmount / 25345).toFixed(2)} />
+                                    amount={(paymentAmount / 25415).toFixed(2)} />
                             </div>
                         </form>
                         <div className="mt-2 ">

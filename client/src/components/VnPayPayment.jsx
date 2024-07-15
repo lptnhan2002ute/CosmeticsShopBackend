@@ -5,7 +5,7 @@ import { updateCart } from '../store/users/userSlice';
 import Swal from 'sweetalert2';
 import { apiCreateVnpayUrl, apiOrder, apiDeleteOrder, apiGetUserCart } from "../apis";
 
-const VnPayPaymentComponent = ({ total, payload, setIsSuccess }) => {
+const VnPayPaymentComponent = ({ payload, setIsSuccess }) => {
     const navigate = useNavigate();
     const dispatchRedux = useDispatch();
     const [loading, setLoading] = useState(false);
@@ -21,6 +21,7 @@ const VnPayPaymentComponent = ({ total, payload, setIsSuccess }) => {
             const orderResponse = await apiOrder({ ...payload })
             if (orderResponse.success) {
                 // Fetch payment URL using the orderId
+                console.log( orderResponse.result._id)
                 const paymentResponse = await apiCreateVnpayUrl({ orderId: orderResponse.result._id })
 
                 if (paymentResponse.success) {

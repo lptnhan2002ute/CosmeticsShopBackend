@@ -123,8 +123,8 @@ const Products = () => {
         <div className='w-full'>
             <div className='h-[81px] bg-gray-100 flex justify-center items-center'>
                 <div className='w-main '>
-                    <h3 className='font-semibold uppercase'>{category ? Array.isArray(relatedProduct) ? relatedProduct[0].category.categoryName : "" : "Danh sách sản phẩm"}</h3>
-                    <Breadcrumb category={category ? Array.isArray(relatedProduct) ? relatedProduct[0].category.categoryName : "" : "Tất cả sản phẩm"} />
+                    <h3 className='font-semibold uppercase'>{category ? Array.isArray(relatedProduct) ? relatedProduct[0]?.category.categoryName : "" : "Danh sách sản phẩm"}</h3>
+                    <Breadcrumb category={category ? Array.isArray(relatedProduct) ? relatedProduct[0]?.category.categoryName : "" : "Tất cả sản phẩm"} />
                 </div>
             </div>
             <div className='w-max rounded-xl flex justify-center mt-8 m-auto items-center'>
